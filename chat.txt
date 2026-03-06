@@ -1,0 +1,94 @@
+create a website for kashigo
+
+KashiGo is a premium wwebapp for booking boat rides in Varanasi.
+Similar concept like Ola/Uber but for boat rides.
+
+Features:
+- User can book a boat ride for a specific time and date.
+- User can select the type of boat they want to book.
+- User can select the number of people they want to book for.
+- User can select the duration of the boat ride.
+- User can select the location of pickup.
+- User can select the payment method.
+- User can track the boat ride in real-time.
+- User can rate and review the boat ride.
+
+LOGIC FLOW:
+
+1 users select starting point/Ghat, there currently at
+then select the time of ride ie (mornning, afternoon or evening, based on these 3 choices the packages and combos will be displayed later)
+
+2 users select the type of boat, private or sharing
+
+3 users select package available for sharing and private boats respectively
+(private boats have flixible time but sharing boats have a fixed time of departure)
+
+4 users will browse thru and select the package eg : for evening rides -- Dashashwameth Ghat aarti, Namo Ghat arti
+all 3 classifications will have some common packages and some unique packages
+common packages include : "all ghats"
+unique packages eg:  NIGHT : Dashashwameth Ghat aarti, Namo Ghat arti
+                    MORNING : sunrise boat ride +  bird feeding
+                    EVENING : sunset boat ride +  bird feeding
+
+5 user fills out own and passenger details : 
+name (compulsary)
+number of people (compulsary)
+phone ( 1-2 passenger, 1 passenger compulsary)
+email (optional)
+pickup point, ghat (a dropdown of all ghat names)
+
+6 User navigates to checkout page by clicking "next" button
+
+7 Payments page (Razorpay integration)
+
+8 update entry in supabase, Generate a ride number (pk) and display Ride booked animation and ride number.
+also customer care number and company email
+
+9 Email confirmation sent to the client 
+
+
+
+TECH STACK AND IMPLEMENTAION DETAILS : 
+
+NEXT APP
+
+Db - SUPABASE INTEGRATION -- use placeholder in env
+
+Payment - RAZORPAY integration -- use placeholder in env for now
+
+EMAIL SMTP -- will update credentials in the env(use a placeholder for now)
+
+
+DESIGN : 
+
+MINIMALISTIC UI but interactive and premium
+It should feel premium with animations and quality
+
+section : Hero, about, browse, reviews/testimoonials, footer
+
+Also a book now button in the hero itself
+Hero section will have a video in the bakground and a opacity layer on top to control darkness.
+
+scroll based animations(boat moving from left to right, direct linear propotionality to scroll position and boat movement from left to right ) when switching from one section to another
+only add this when transitioning from hero to about
+
+rest sections must be clean
+
+use GEMINI to generate Interesting images and interesting text for ghats and packages
+
+the design, images, Heading text font and colour scheme should be congruent with the given logo (KashiGo.png) in the directory
+
+Make it responsive for both mobile and deskhtop devices, give more effort for mobile view
+
+PLEASE MAKE IT LOOK MODERN AND PREMIUM and DIFFERENT.
+
+
+
+
+
+
+
+
+
+
+
