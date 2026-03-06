@@ -29,8 +29,8 @@ export default function Footer() {
                         <h3 className="text-white font-semibold text-lg mb-4">Support</h3>
                         <ul className="space-y-2">
                             <li><a href="mailto:support@kashigo.com" className="hover:text-orange-500 transition-colors">support@kashigo.com</a></li>
-                            <li><a href="tel:+919876543210" className="hover:text-orange-500 transition-colors">+91 98765 43210</a></li>
-                            <li className="text-slate-400 mt-4">Dashashwamedh Ghat, Varanasi</li>
+                            <li><a href="tel:+919876543210" className="hover:text-orange-500 transition-colors">+91 8175966910</a></li>
+                            <li className="text-slate-400 mt-4">Brahma Ghat, Varanasi</li>
                         </ul>
                     </div>
                 </div>
