@@ -8,10 +8,17 @@ export default function HeroSection() {
     const [isVideoLoaded, setIsVideoLoaded] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    // Check if video is already loaded from cache on mount
+    // Check if video is already loaded from cache on mount and force play for iOS
     useEffect(() => {
-        if (videoRef.current && videoRef.current.readyState >= 3) {
-            setIsVideoLoaded(true);
+        const video = videoRef.current;
+        if (video) {
+            if (video.readyState >= 3) {
+                setIsVideoLoaded(true);
+            }
+            // Force play to overcome some iOS autoplay restrictions
+            video.play().catch(error => {
+                console.log("Autoplay may be blocked by browser (e.g. Low Power Mode on iOS):", error);
+            });
         }
     }, []);
 
@@ -58,6 +65,8 @@ export default function HeroSection() {
                     loop
                     muted
                     playsInline
+                    preload="auto"
+                    onLoadedData={() => setIsVideoLoaded(true)}
                     onCanPlayThrough={() => setIsVideoLoaded(true)}
                     className="w-full h-full object-cover opacity-60"
                 >
@@ -74,7 +83,7 @@ export default function HeroSection() {
                         initial={{ opacity: 0, x: -30 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8 }}
-                        className="text-4xl sm:text-5xl md:text-7xl lg:text-[4.5rem] leading-tight font-bold font-heading text-white tracking-tight mb-4"
+                        className="text-3xl sm:text-5xl md:text-7xl lg:text-[4.5rem] leading-tight font-bold font-heading text-white tracking-tight mb-4"
                     >
                         <span className="sm:whitespace-nowrap">Experience the Soul of</span> <br className="block sm:hidden" /><span className="text-orange-500 font-cursive text-6xl sm:text-7xl md:text-9xl lg:text-[9rem] tracking-normal relative z-20">Varanasi</span>
                     </motion.h1>
