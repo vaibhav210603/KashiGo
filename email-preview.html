@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template Preview</title>
+</head>
+
+<body>
+    <div
+        style="font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; color: #333; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="background-color: #f9f9f9; padding: 20px; text-align: center; border-bottom: 2px solid #ea580c;">
+            <img src="./public/Untitled.png" alt="KashiGo Logo" style="max-height: 180px;" />
+        </div>
+
+        <div style="padding: 30px 20px;">
+            <h2 style="color: #1e293b; margin-top: 0;">We hope you enjoy your ride!</h2>
+            <p>Dear <strong>{{PASSENGER_NAME}}</strong>,</p>
+            <p>Thank you for choosing KashiGo. Your ride has been successfully booked. Here are your details:</p>
+
+            <div style="background-color: #f1f5f9; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Ride ID:</strong> <span
+                        style="color: #ea580c; font-weight: bold;">{{RIDE_ID}}</span></p>
+                <p style="margin: 5px 0;"><strong>Ghat:</strong> {{GHAT}}</p>
+                <p style="margin: 5px 0;"><strong>Time of Day:</strong> {{TIME_OF_DAY}}</p>
+                <p style="margin: 5px 0;"><strong>Boat Type:</strong> {{BOAT_TYPE}}</p>
+                <p style="margin: 5px 0;"><strong>Passengers:</strong> {{PASSENGERS_COUNT}}</p>
+                <p style="margin: 5px 0;"><strong>Total Amount:</strong> ₹{{AMOUNT}}</p>
+                <p style="margin: 5px 0;"><strong>Payment Mode:</strong> {{PAYMENT_MODE}}</p>
+            </div>
+
+            <p>If you have any questions or need to make changes, please don't hesitate to contact us.</p>
+        </div>
+
+        <div style="background-color: #e09900; color: #ffffff; padding: 20px; text-align: center; font-size: 14px;">
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: #ffffff;">KashiGo pvt ltd</p>
+            <p style="margin: 5px 0;">K20/205, Brahma Ghat,</p>
+            <p style="margin: 5px 0;">Varanasi - 221001</p>
+            <p style="margin: 5px 0;">Phone: +91 8175966910</p>
+        </div>
+    </div>
+</body>
+
+</html>

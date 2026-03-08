@@ -1,5 +1,3 @@
-create a website for kashigo
-
 KashiGo is a premium wwebapp for booking boat rides in Varanasi.
 Similar concept like Ola/Uber but for boat rides.
 
@@ -41,7 +39,7 @@ pickup point, ghat (a dropdown of all ghat names)
 
 7 Payments page (Razorpay integration)
 
-8 update entry in supabase, Generate a ride number (pk) and display Ride booked animation and ride number.
+8 update entry in db, Generate a ride number (pk) and display Ride booked animation and ride number.
 also customer care number and company email
 
 9 Email confirmation sent to the client 

@@ -11,6 +11,7 @@ export default function BookingWizard() {
         timeOfDay: "",
         boatType: "",
         packageId: "",
+        paymentMode: "cod", // Added payment mode
         passengerDetails: {
             name: "",
             phone: "",
@@ -379,9 +380,43 @@ export default function BookingWizard() {
                                     <span className="text-slate-500">Passengers</span>
                                     <span className="font-semibold text-slate-900">{formData.passengerDetails.passengersCount} Person(s) - {formData.passengerDetails.name}</span>
                                 </div>
-                                <div className="flex justify-between items-center pt-2">
+                                <div className="flex justify-between items-center pt-2 mb-4">
                                     <span className="text-lg font-bold text-slate-900">Total Amount</span>
                                     <span className="text-2xl font-bold text-orange-600">₹{currentPackages.find((p: any) => p.id === formData.packageId)?.price || 0}</span>
+                                </div>
+
+                                {/* Payment Modes */}
+                                <div className="pt-4 border-t border-slate-200">
+                                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Payment Mode</h3>
+                                    <div className="space-y-3">
+                                        <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${formData.paymentMode === 'cod' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-200'}`}>
+                                            <input
+                                                type="radio"
+                                                name="paymentMode"
+                                                value="cod"
+                                                checked={formData.paymentMode === 'cod'}
+                                                onChange={(e) => updateFormData('paymentMode', e.target.value)}
+                                                className="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300"
+                                            />
+                                            <span className="ml-3 font-medium text-slate-900">Cash on Delivery (CoD)</span>
+                                        </label>
+
+                                        <label className={`flex items-center p-4 border rounded-xl cursor-not-allowed opacity-70 transition-all ${formData.paymentMode === 'online' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 bg-slate-100'}`}>
+                                            <input
+                                                type="radio"
+                                                name="paymentMode"
+                                                value="online"
+                                                disabled
+                                                className="w-5 h-5 text-slate-400 border-gray-300 cursor-not-allowed"
+                                            />
+                                            <div className="ml-3">
+                                                <span className="font-medium text-slate-900">Credit / Debit / UPI</span>
+                                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                    Currently unoperational
+                                                </span>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
