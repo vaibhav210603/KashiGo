@@ -27,7 +27,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "KashiGo - Premium Boat Rides in Varanasi",
+  title: "KashiGo - Varanasi Boat Rides, Made Simple.",
   description: "Book premium boat rides on the holy Ganges in Varanasi. Experience sunrise, sunset, and Aarti with KashiGo.",
 };
 

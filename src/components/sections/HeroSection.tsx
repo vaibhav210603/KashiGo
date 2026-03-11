@@ -94,7 +94,7 @@ export default function HeroSection() {
                         transition={{ duration: 0.8, delay: 0.2 }}
                         className="text-lg md:text-xl text-slate-200 mb-8 max-w-lg mx-auto md:mx-0 relative z-20"
                     >
-                        Premium boat rides along the sacred Ganges. Witness the majestic Aarti, breathtaking sunrises, and serene sunsets from the comfort of our luxury fleet.
+                        Hastle-free boat rides along the sacred Ganges. Witness the majestic Aarti, breathtaking sunrises, and serene sunsets in just a few clicks.
                     </motion.p>
 
                     <motion.div
