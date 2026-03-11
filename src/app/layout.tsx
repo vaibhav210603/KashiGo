@@ -28,7 +28,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "KashiGo - Varanasi Boat Rides, Made Simple.",
-  description: "Book premium boat rides on the holy Ganges in Varanasi. Experience sunrise, sunset, and Aarti with KashiGo.",
+  description: "Book your boat in seconds. Experience sunrise, sunset, and Aarti with KashiGo.",
 };
 
 export default function RootLayout({
