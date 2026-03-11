@@ -94,7 +94,7 @@ export default function HeroSection() {
                         transition={{ duration: 0.8, delay: 0.2 }}
                         className="text-lg md:text-xl text-slate-200 mb-8 max-w-lg mx-auto md:mx-0 relative z-20"
                     >
-                        Hastle-free boat rides along the sacred Ganges. Witness the majestic Aarti, breathtaking sunrises, and serene sunsets in just a few clicks.
+                        Effortless, hastle-free boat rides along the sacred Ganges. Witness the majestic Aarti, breathtaking sunrises, and serene sunsets in just a few clicks.
                     </motion.p>
 
                     <motion.div
@@ -102,8 +102,19 @@ export default function HeroSection() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5, delay: 0.4 }}
                     >
-                        <Link href="/book" className="inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all shadow-xl hover:shadow-orange-500/30 transform hover:-translate-y-1 relative z-20">
-                            Book Your Ride Now
+                        <Link href="/book" className="group relative overflow-hidden inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all shadow-xl hover:shadow-orange-500/30 transform hover:-translate-y-1 z-20">
+                            <span className="relative z-10">Book Your Ride Now</span>
+                            <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent pointer-events-none"
+                                initial={{ x: "-100%" }}
+                                animate={{ x: "100%" }}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 2,
+                                    ease: "easeInOut",
+                                    repeatType: "loop"
+                                }}
+                            />
                         </Link>
                     </motion.div>
                 </div>
@@ -113,7 +124,7 @@ export default function HeroSection() {
                     initial={{ opacity: 0, x: 30, scale: 0.9 }}
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     transition={{ duration: 0.8 }}
-                    className="mb-8 md:mb-0 relative z-10 w-full md:w-[40%] lg:w-[45%] flex justify-center md:justify-start md:-ml-12 lg:-ml-24 pointer-events-none order-1 md:order-2"
+                    className="-mt-30 mb-4 md:mb-0 relative z-10 w-[60%] md:w-[40%] lg:w-[45%] flex justify-center md:justify-start md:-ml-12 lg:-ml-24 pointer-events-none order-1 md:order-2"
                 >
                     <img
                         src="/Untitled.png"

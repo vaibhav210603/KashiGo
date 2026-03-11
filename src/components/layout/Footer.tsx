@@ -14,7 +14,7 @@ export default function Footer() {
                             </span>
                         </Link>
                         <p className="text-slate-400 mt-2 max-w-sm">
-                            Experience the spiritual essence of Varanasi with our premium boat rides. Book online and glide through the holy waters of the Ganges.
+                            Varanasi Boat Rides, Made Simple.
                         </p>
                     </div>
                     <div>

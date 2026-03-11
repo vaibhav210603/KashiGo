@@ -32,10 +32,10 @@ export default function PackagesSection() {
     ];
 
     return (
-        <section id="packages" className="py-24 bg-slate-50">
+        <section id="packages" className="py-12 bg-slate-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-2xl md:text-3xl font-cursive text-orange-500 mb-3">Our Packages</h2>
+                    <h2 className="text-2xl md:text-3xl font-cursive text-orange-500 mb-3">What's Popular</h2>
                     <h3 className="text-4xl md:text-6xl font-bold font-heading text-slate-900 mb-6">Choose Your Experience</h3>
                     <p className="text-slate-600 max-w-2xl mx-auto text-lg">
                         Whether you prefer the peaceful morning sunrise or the vibrant evening Aarti, we have curated rides to suit your spiritual journey.
