@@ -6,6 +6,12 @@ import { ChevronRight, ChevronLeft, Check, Anchor, Clock, Users, Sun, Moon, Map,
 
 export default function BookingWizard() {
     const [step, setStep] = useState(1);
+    const [couponInput, setCouponInput] = useState("");
+    const [couponApplied, setCouponApplied] = useState(false);
+    const [couponError, setCouponError] = useState("");
+
+    const COUPON_CODE = "KASHIGO21";
+    const COUPON_PRICE = 10;
     const [formData, setFormData] = useState({
         ghat: "",
         timeOfDay: "",
@@ -61,6 +67,44 @@ export default function BookingWizard() {
 
     const currentPackages = (packages as any)[formData.timeOfDay] || [];
 
+    const baseAmount = formData.experienceType === "package"
+        ? (currentPackages.find((p: any) => p.id === formData.packageId)?.price || 0)
+        : 1499;
+    const finalAmount = couponApplied ? COUPON_PRICE : baseAmount;
+
+    const applyCoupon = () => {
+        if (couponInput.trim().toUpperCase() === COUPON_CODE) {
+            setCouponApplied(true);
+            setCouponError("");
+        } else {
+            setCouponApplied(false);
+            setCouponError("Invalid coupon code. Please try again.");
+        }
+    };
+
+    const removeCoupon = () => {
+        setCouponApplied(false);
+        setCouponInput("");
+        setCouponError("");
+    };
+
+    const submitBooking = async (amount: number, razorpayPaymentId?: string) => {
+        const res = await fetch("/api/booking", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...formData, amount, razorpayPaymentId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            updateFormData("rideId", data.rideId);
+            nextStep();
+        } else {
+            // If a refund is being initiated (payment was captured but DB failed),
+            // surface the server's message directly so the user knows about the refund.
+            throw new Error(data.message || "Booking failed. Please try again.");
+        }
+    };
+
     const handleCheckout = async () => {
         updateFormData("isSubmitting", true);
         try {
@@ -68,22 +112,72 @@ export default function BookingWizard() {
             if (formData.experienceType === "package") {
                 amount = currentPackages.find((p: any) => p.id === formData.packageId)?.price || 0;
             } else {
-                amount = 1499; // Standard rate for custom rides
+                amount = 1499;
             }
-            const res = await fetch("/api/booking", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...formData, amount })
-            });
-            const data = await res.json();
-            if (data.success) {
-                updateFormData("rideId", data.rideId);
-                nextStep(); // Move to confirmation step 5
+
+            if (formData.paymentMode === "cod") {
+                // Cash on Delivery — direct booking
+                await submitBooking(finalAmount);
             } else {
-                alert("Booking failed. Please try again.");
+                // Online payment via Razorpay
+                const orderRes = await fetch("/api/razorpay", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ amount: finalAmount }),
+                });
+                const orderData = await orderRes.json();
+                if (!orderData.success) throw new Error("Could not create payment order.");
+
+                // Dynamically load Razorpay checkout script
+                await new Promise<void>((resolve, reject) => {
+                    if ((window as any).Razorpay) { resolve(); return; }
+                    const script = document.createElement("script");
+                    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+                    script.onload = () => resolve();
+                    script.onerror = () => reject(new Error("Failed to load Razorpay SDK"));
+                    document.body.appendChild(script);
+                });
+
+                await new Promise<void>((resolve, reject) => {
+                    const options = {
+                        key: orderData.keyId,
+                        amount: orderData.amount,
+                        currency: orderData.currency,
+                        name: "KashiGo",
+                        description: formData.experienceType === "package"
+                            ? `${formData.timeOfDay} Package - ${formData.ghat}`
+                            : `Custom Ride - ${formData.ghat}`,
+                        image: "/icon.png",
+                        order_id: orderData.orderId,
+                        prefill: {
+                            name: formData.passengerDetails.name,
+                            email: formData.passengerDetails.email,
+                            contact: formData.passengerDetails.phone,
+                        },
+                        theme: { color: "#f97316" },
+                        handler: async (response: any) => {
+                            try {
+                                await submitBooking(finalAmount, response.razorpay_payment_id);
+                                resolve();
+                            } catch (err: any) {
+                                reject(err);
+                            }
+                        },
+                        modal: {
+                            ondismiss: () => {
+                                updateFormData("isSubmitting", false);
+                                reject(new Error("Payment cancelled"));
+                            },
+                        },
+                    };
+                    const rzp = new (window as any).Razorpay(options);
+                    rzp.open();
+                });
             }
-        } catch (error) {
-            alert("An error occurred during booking.");
+        } catch (error: any) {
+            if (error?.message !== "Payment cancelled") {
+                alert(error?.message || "An error occurred during payment.");
+            }
         } finally {
             updateFormData("isSubmitting", false);
         }
@@ -590,14 +684,14 @@ export default function BookingWizard() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Number of Passengers *</label>
+                                    <label className="block text-black text-sm font-medium text-slate-700 mb-1">Number of Passengers *</label>
                                     <input
                                         type="number"
                                         min="1"
                                         max="50"
                                         value={formData.passengerDetails.passengersCount}
                                         onChange={(e) => updatePassengerDetail("passengersCount", parseInt(e.target.value))}
-                                        className="w-full border-slate-300 rounded-lg shadow-sm py-3 px-4 focus:ring-orange-500 focus:border-orange-500 border bg-white"
+                                        className="w-full text-black border-slate-300 rounded-lg shadow-sm py-3 px-4 focus:ring-orange-500 focus:border-orange-500 border bg-white"
                                     />
                                 </div>
                             </div>
@@ -650,9 +744,53 @@ export default function BookingWizard() {
                                     <span className="text-slate-500">Passengers</span>
                                     <span className="font-semibold text-slate-900">{formData.passengerDetails.passengersCount} Person(s) - {formData.passengerDetails.name}</span>
                                 </div>
-                                <div className="flex justify-between items-center pt-2 mb-4">
+                                <div className="flex justify-between items-center pt-2">
                                     <span className="text-lg font-bold text-slate-900">Total Amount</span>
-                                    <span className="text-2xl font-bold text-orange-600">₹{formData.experienceType === "package" ? (currentPackages.find((p: any) => p.id === formData.packageId)?.price || 0) : 1499}</span>
+                                    <div className="text-right">
+                                        {couponApplied && (
+                                            <div className="text-sm text-slate-400 line-through">₹{baseAmount}</div>
+                                        )}
+                                        <span className={`text-2xl font-bold ${couponApplied ? 'text-green-600' : 'text-orange-600'}`}>
+                                            ₹{finalAmount}
+                                        </span>
+                                        {couponApplied && (
+                                            <div className="text-xs text-green-600 font-semibold mt-0.5">Coupon applied ✓</div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Coupon Code */}
+                                <div className="pt-3 border-t border-slate-200">
+                                    {!couponApplied ? (
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={couponInput}
+                                                onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
+                                                onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
+                                                placeholder="Enter coupon code"
+                                                className="flex-1 border border-slate-300 rounded-lg py-2 px-3 text-sm text-black focus:ring-orange-500 focus:border-orange-500 outline-none uppercase tracking-widest font-mono"
+                                            />
+                                            <button
+                                                onClick={applyCoupon}
+                                                className="bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+                                            >
+                                                Apply
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
+                                            <div className="flex items-center gap-2 text-green-700">
+                                                <Check size={16} className="stroke-[3]" />
+                                                <span className="text-sm font-semibold font-mono tracking-widest">{COUPON_CODE}</span>
+                                                <span className="text-sm">— ₹{baseAmount - COUPON_PRICE} off!</span>
+                                            </div>
+                                            <button onClick={removeCoupon} className="text-xs text-slate-400 hover:text-red-500 transition-colors ml-4">Remove</button>
+                                        </div>
+                                    )}
+                                    {couponError && (
+                                        <p className="text-red-500 text-xs mt-1.5 ml-1">{couponError}</p>
+                                    )}
                                 </div>
 
                                 {/* Payment Modes */}
@@ -671,18 +809,19 @@ export default function BookingWizard() {
                                             <span className="ml-3 font-medium text-slate-900">Cash on Delivery (CoD)</span>
                                         </label>
 
-                                        <label className={`flex items-center p-4 border rounded-xl cursor-not-allowed opacity-70 transition-all ${formData.paymentMode === 'online' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 bg-slate-100'}`}>
+                                        <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${formData.paymentMode === 'online' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-200'}`}>
                                             <input
                                                 type="radio"
                                                 name="paymentMode"
                                                 value="online"
-                                                disabled
-                                                className="w-5 h-5 text-slate-400 border-gray-300 cursor-not-allowed"
+                                                checked={formData.paymentMode === 'online'}
+                                                onChange={(e) => updateFormData('paymentMode', e.target.value)}
+                                                className="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300"
                                             />
-                                            <div className="ml-3">
+                                            <div className="ml-3 flex items-center gap-3">
                                                 <span className="font-medium text-slate-900">Credit / Debit / UPI</span>
-                                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                                    Currently unoperational
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                                    Powered by Razorpay
                                                 </span>
                                             </div>
                                         </label>
