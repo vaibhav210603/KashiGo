@@ -84,7 +84,7 @@ export async function POST(req: Request) {
         // 3. Booking Confirmation Email
         if (data.passengerDetails?.email) {
             try {
-                const emailHtml = await getBookingEmailTemplate(data, rideId);
+                const emailHtml = await getBookingEmailTemplate({ ...data, rideDate: data.rideDate || '' }, rideId);
                 await createTransporter().sendMail({
                     from: `"KashiGo Bookings" <${process.env.SMTP_FROM_EMAIL}>`,
                     to: data.passengerDetails.email,

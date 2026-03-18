@@ -16,6 +16,7 @@ export const getBookingEmailTemplate = async (data: any, rideId: string) => {
         htmlContent = htmlContent.replace('{{GHAT}}', data.ghat || '');
         htmlContent = htmlContent.replace('{{TIME_OF_DAY}}', data.timeOfDay || '');
         htmlContent = htmlContent.replace('{{BOAT_TYPE}}', data.boatType || '');
+        htmlContent = htmlContent.replace('{{RIDE_DATE}}', data.rideDate || '');
         htmlContent = htmlContent.replace('{{PASSENGERS_COUNT}}', data.passengerDetails?.passengersCount || '1');
         htmlContent = htmlContent.replace('{{AMOUNT}}', data.amount || '0');
         htmlContent = htmlContent.replace('{{PAYMENT_MODE}}', paymentModeText);
