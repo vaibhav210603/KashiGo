@@ -12,7 +12,7 @@ export default function ReviewsSection() {
             role: "Tourist"
         },
         {
-            name: "Priya Desai",
+            name: "Priya Gupta",
             review: "Loved the easy booking process. No haggling with boatmen. Highly recommend the morning sunrise ride to feed the birds!",
             rating: 5,
             role: "Photographer"
