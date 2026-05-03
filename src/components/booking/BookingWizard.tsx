@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { ChevronRight, ChevronLeft, Check, Anchor, Clock, Users, Sun, Moon, Map, Compass, Package, Sparkles, CalendarDays } from "lucide-react";
 
 export default function BookingWizard() {
@@ -155,7 +156,7 @@ export default function BookingWizard() {
 
             if (formData.paymentMode === "cod") {
                 await submitBooking(finalAmount);
-            } else {
+            } else if (formData.paymentMode === "online_domestic") {
                 const orderRes = await fetch("/api/razorpay", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -236,7 +237,7 @@ export default function BookingWizard() {
                 ))}
             </div>
 
-            <div className="p-5 md:p-8">
+            <div className="p-4 md:p-8">
                 <AnimatePresence mode="wait">
                     {/* Step 1: Ghat, Date & Time */}
                     {step === 1 && (
@@ -328,7 +329,7 @@ export default function BookingWizard() {
                                                     setShowCustomForm(false);
                                                     updateFormData("experienceType", "package");
                                                 }}
-                                                className={`cursor-pointer w-full h-44 md:h-52 rounded-[1.5rem] p-5 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${isSelected ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-white" : ""}`}
+                                                className={`cursor-pointer w-full h-32 md:h-52 rounded-[1.5rem] p-5 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${isSelected ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-white" : ""}`}
                                             >
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10 z-10 opacity-80" />
                                                 <img src={timeOption.img} alt={timeOption.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" />
@@ -414,7 +415,7 @@ export default function BookingWizard() {
                                                         updateFormData("packageId", pkg.id);
                                                         updateFormData("experienceType", "package");
                                                     }}
-                                                    className={`cursor-pointer w-full h-56 md:h-72 rounded-[1.5rem] p-6 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${isSelected ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-white" : ""}`}
+                                                    className={`cursor-pointer w-full h-48 md:h-72 rounded-[1.5rem] p-6 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${isSelected ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-white" : ""}`}
                                                 >
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10 z-10 opacity-80" />
                                                     <img src={pkg.imgSrc} alt={pkg.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" />
@@ -499,7 +500,7 @@ export default function BookingWizard() {
                                                     transition={{ type: "spring", stiffness: 600, damping: 30 }}
                                                     whileHover={{ scale: formData.customDetails.tripType === "round" ? 1.05 : 1.02, zIndex: 20 }}
                                                     onClick={() => updateFormData("customDetails", { ...formData.customDetails, tripType: "round", destinationGhat: "" })}
-                                                    className={`cursor-pointer w-full h-48 md:h-64 rounded-[1.5rem] p-6 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${formData.customDetails.tripType === "round" ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-white" : ""}`}
+                                                    className={`cursor-pointer w-full h-40 md:h-64 rounded-[1.5rem] p-6 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${formData.customDetails.tripType === "round" ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-white" : ""}`}
                                                 >
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10 z-10 opacity-80" />
                                                     <img src="/round_bg.png" alt="Round About Trip" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" />
@@ -535,7 +536,7 @@ export default function BookingWizard() {
                                                     transition={{ type: "spring", stiffness: 600, damping: 30 }}
                                                     whileHover={{ scale: formData.customDetails.tripType === "single" ? 1.05 : 1.02, zIndex: 20 }}
                                                     onClick={() => updateFormData("customDetails", { ...formData.customDetails, tripType: "single" })}
-                                                    className={`cursor-pointer w-full h-48 md:h-64 rounded-[1.5rem] p-6 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${formData.customDetails.tripType === "single" ? "ring-2 ring-slate-800 ring-offset-2 ring-offset-white" : ""}`}
+                                                    className={`cursor-pointer w-full h-40 md:h-64 rounded-[1.5rem] p-6 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${formData.customDetails.tripType === "single" ? "ring-2 ring-slate-800 ring-offset-2 ring-offset-white" : ""}`}
                                                 >
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10 z-10 opacity-80" />
                                                     <img src="/single_bg.png" alt="Single Way Trip" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" />
@@ -713,16 +714,16 @@ export default function BookingWizard() {
                                 <p className="text-slate-600">Please review your selections before proceeding to payment.</p>
                             </div>
 
-                             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 md:p-6 space-y-4">
-                                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-slate-200 pb-4 gap-1">
+                             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 md:p-6 space-y-2 md:space-y-4">
+                                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-slate-200 pb-2 md:pb-4 gap-1">
                                     <span className="text-sm sm:text-base text-slate-500 font-medium">Pick-up Location</span>
                                     <span className="font-semibold text-slate-900">{formData.ghat}</span>
                                 </div>
-                                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-slate-200 pb-4 gap-1">
+                                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-slate-200 pb-2 md:pb-4 gap-1">
                                     <span className="text-sm sm:text-base text-slate-500 font-medium">Date</span>
                                     <span className="font-semibold text-slate-900">{dateOptions.find(d => d.iso === formData.rideDate)?.label || formData.rideDate}</span>
                                 </div>
-                                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-slate-200 pb-4 gap-1">
+                                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-slate-200 pb-2 md:pb-4 gap-1">
                                     <span className="text-sm sm:text-base text-slate-500 font-medium">Experience</span>
                                     <span className="font-semibold text-slate-900 sm:text-right">
                                         {formData.experienceType === "package" ? (
@@ -742,11 +743,11 @@ export default function BookingWizard() {
                                         )}
                                     </span>
                                 </div>
-                                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-slate-200 pb-4 gap-1">
+                                <div className="flex flex-col sm:flex-row sm:justify-between border-b border-slate-200 pb-2 md:pb-4 gap-1">
                                     <span className="text-sm sm:text-base text-slate-500 font-medium">Passengers</span>
                                     <span className="font-semibold text-slate-900">{formData.passengerDetails.passengersCount} Person(s) - {formData.passengerDetails.name}</span>
                                 </div>
-                                <div className="flex justify-between items-center pt-2">
+                                <div className="flex justify-between items-center pt-1 md:pt-2">
                                     <span className="text-lg font-bold text-slate-900">Total Amount</span>
                                     <div className="text-right">
                                         {couponApplied && (
@@ -799,7 +800,7 @@ export default function BookingWizard() {
                                 <div className="pt-4 border-t border-slate-200">
                                     <h3 className="text-lg font-semibold text-slate-900 mb-3">Payment Mode</h3>
                                     <div className="space-y-3">
-                                        <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${formData.paymentMode === 'cod' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-200'}`}>
+                                        <label className={`flex items-center p-3 md:p-4 border rounded-xl cursor-pointer transition-all ${formData.paymentMode === 'cod' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-200'}`}>
                                             <input
                                                 type="radio"
                                                 name="paymentMode"
@@ -811,19 +812,36 @@ export default function BookingWizard() {
                                             <span className="ml-3 font-medium text-slate-900">Cash on Delivery (CoD)</span>
                                         </label>
 
-                                         <label className={`flex items-center p-3 sm:p-4 border rounded-xl cursor-pointer transition-all ${formData.paymentMode === 'online' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-200'}`}>
+                                         <label className={`flex items-center p-3 sm:p-4 border rounded-xl cursor-pointer transition-all ${formData.paymentMode === 'online_domestic' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-200'}`}>
                                             <input
                                                 type="radio"
                                                 name="paymentMode"
-                                                value="online"
-                                                checked={formData.paymentMode === 'online'}
+                                                value="online_domestic"
+                                                checked={formData.paymentMode === 'online_domestic'}
                                                 onChange={(e) => updateFormData('paymentMode', e.target.value)}
                                                 className="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300"
                                             />
                                             <div className="ml-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                                                <span className="font-medium text-slate-900 leading-tight">Credit / Debit / UPI</span>
+                                                <span className="font-medium text-slate-900 leading-tight">Domestic - Credit / Debit / UPI</span>
                                                 <span className="inline-flex items-center w-fit px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                                                     Powered by Razorpay
+                                                </span>
+                                            </div>
+                                        </label>
+
+                                        <label className={`flex items-center p-3 sm:p-4 border rounded-xl cursor-pointer transition-all ${formData.paymentMode === 'online_international' ? 'border-orange-500 bg-orange-50' : 'border-slate-200 hover:border-orange-200'}`}>
+                                            <input
+                                                type="radio"
+                                                name="paymentMode"
+                                                value="online_international"
+                                                checked={formData.paymentMode === 'online_international'}
+                                                onChange={(e) => updateFormData('paymentMode', e.target.value)}
+                                                className="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300"
+                                            />
+                                            <div className="ml-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                                                <span className="font-medium text-slate-900 leading-tight">International - PayPal / Cards</span>
+                                                <span className="inline-flex items-center w-fit px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                                    Powered by PayPal
                                                 </span>
                                             </div>
                                         </label>
@@ -831,17 +849,61 @@ export default function BookingWizard() {
                                 </div>
                             </div>
 
-                             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6">
+                             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 w-full">
                                 <button onClick={prevStep} className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors">
                                     <ChevronLeft size={20} className="mr-2" /> Back
                                 </button>
-                                <button
-                                    onClick={handleCheckout}
-                                    disabled={formData.isSubmitting}
-                                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-bold flex items-center justify-center transition-colors shadow-lg shadow-green-500/30 disabled:bg-slate-400 disabled:cursor-wait"
-                                >
-                                    {formData.isSubmitting ? "Processing..." : "Confirm & Book Ride"}
-                                </button>
+                                {formData.paymentMode === 'online_international' ? (
+                                    <div className="w-full sm:w-auto min-w-[200px] z-10 relative">
+                                        <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "ATMGtSsoMxvX5hrhLzFYYuN1yNCAonxN-vV1xAtNKBRvL7cbgpMQ_EG1Nf7j-43XGcyyUlN6Eb4Our_0", currency: "USD" }}>
+                                            <PayPalButtons
+                                                style={{ layout: "horizontal", color: "blue", shape: "rect", label: "pay", height: 48 }}
+                                                createOrder={async () => {
+                                                    const res = await fetch("/api/paypal/create-order", {
+                                                        method: "POST",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ amount: finalAmount })
+                                                    });
+                                                    const orderData = await res.json();
+                                                    if (!orderData.success) throw new Error("Could not create PayPal order");
+                                                    return orderData.orderId;
+                                                }}
+                                                onApprove={async (data, actions) => {
+                                                    try {
+                                                        updateFormData("isSubmitting", true);
+                                                        const res = await fetch("/api/paypal/capture-order", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({ orderId: data.orderID })
+                                                        });
+                                                        const captureData = await res.json();
+                                                        if (captureData.success) {
+                                                            await submitBooking(finalAmount, captureData.captureData.id);
+                                                        } else {
+                                                            throw new Error("Payment capture failed");
+                                                        }
+                                                    } catch (error: any) {
+                                                        alert(error?.message || "An error occurred during payment.");
+                                                    } finally {
+                                                        updateFormData("isSubmitting", false);
+                                                    }
+                                                }}
+                                                onError={(err) => {
+                                                    alert("PayPal payment failed or was cancelled.");
+                                                    updateFormData("isSubmitting", false);
+                                                }}
+                                            />
+                                        </PayPalScriptProvider>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={handleCheckout}
+                                        disabled={formData.isSubmitting}
+                                        className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-bold flex items-center justify-center transition-colors shadow-lg shadow-green-500/30 disabled:bg-slate-400 disabled:cursor-wait"
+                                    >
+                                        {formData.isSubmitting ? "Processing..." : "Confirm & Book Ride"}
+                                    </button>
+                                )}
                             </div>
                         </motion.div>
                     )}
