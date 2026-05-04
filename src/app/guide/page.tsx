@@ -235,7 +235,7 @@ export default function GuidePage() {
                                                                 value={couponCode}
                                                                 onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
                                                                 placeholder="Enter code from video"
-                                                                className="flex-1 border border-slate-300 rounded-xl py-3 px-4 text-sm text-slate-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none uppercase tracking-widest font-mono shadow-sm bg-slate-50"
+                                                                className="flex-1 border border-slate-300 rounded-xl py-3 px-4 text-base md:text-sm text-slate-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none uppercase tracking-widest font-mono shadow-sm bg-slate-50"
                                                             />
                                                             <button
                                                                 onClick={applyCoupon}
