@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     Check, Download, Star, Map, ShieldAlert, Utensils, 
@@ -21,9 +21,20 @@ const staggerContainer = {
 };
 
 export default function GuidePage() {
-    const [paymentMode, setPaymentMode] = useState<"domestic" | "international">("domestic");
+    const [paymentMode, setPaymentMode] = useState<"domestic" | "international">("international");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasPaid, setHasPaid] = useState(false);
+
+    useEffect(() => {
+        try {
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (timeZone === 'Asia/Calcutta' || timeZone === 'Asia/Kolkata') {
+                setPaymentMode('domestic');
+            }
+        } catch (e) {
+            // Fallback to international if timezone detection fails
+        }
+    }, []);
 
     // Discount State
     const [couponCode, setCouponCode] = useState("");
@@ -43,6 +54,9 @@ export default function GuidePage() {
             setCouponError("");
         } else if (code === "EXCLUSIVE20") {
             setDiscountRate(0.2); // 20% discount
+            setCouponError("");
+        } else if (code === "TEST817") {
+            setDiscountRate(0.99); // 99% discount
             setCouponError("");
         } else {
             setDiscountRate(0);
@@ -114,27 +128,27 @@ export default function GuidePage() {
             <Navbar />
             
             {/* Hero Section */}
-            <div className="relative bg-slate-900 pt-32 pb-24 px-4 overflow-hidden">
+            <div className="relative bg-slate-900 pt-24 md:pt-32 pb-12 md:pb-24 px-4 overflow-hidden">
                 <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1561361513-2d000a50f0dc?q=80&w=2076&auto=format&fit=crop')] bg-cover bg-center" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent" />
                 
                 <div className="relative max-w-5xl mx-auto text-center">
-                    <motion.div initial="initial" animate="animate" variants={staggerContainer} className="space-y-6">
-                        <motion.div variants={fadeIn} className="inline-block px-4 py-1.5 rounded-full bg-orange-500/20 text-orange-400 font-bold text-sm tracking-widest uppercase border border-orange-500/30 backdrop-blur-sm">
+                    <motion.div initial="initial" animate="animate" variants={staggerContainer} className="space-y-4 md:space-y-6">
+                        <motion.div variants={fadeIn} className="inline-block px-4 py-1.5 rounded-full bg-orange-500/20 text-orange-400 font-bold text-xs md:text-sm tracking-widest uppercase border border-orange-500/30 backdrop-blur-sm">
                             Digital PDF E-Book
                         </motion.div>
-                        <motion.h1 variants={fadeIn} className="text-5xl md:text-7xl font-bold font-heading text-white tracking-tight">
+                        <motion.h1 variants={fadeIn} className="text-4xl md:text-7xl font-bold font-heading text-white tracking-tight leading-tight">
                             Varanasi <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-600">Travel Guide 2026</span>
                         </motion.h1>
-                        <motion.p variants={fadeIn} className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
+                        <motion.p variants={fadeIn} className="text-sm md:text-xl text-slate-300 max-w-2xl mx-auto hidden sm:block">
                             The one stop solution for planning your trip to Varanasi. All the information you need in one place for a safe, scam-free trip.
                         </motion.p>
                     </motion.div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full -mt-10 relative z-10 pb-20">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-4 md:-mt-10 relative z-10 pb-20">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                     
                     {/* Video Section */}
                     <div className="lg:col-span-7 order-1">
@@ -237,20 +251,37 @@ export default function GuidePage() {
                                                 <div className="h-px bg-slate-100 my-6" />
 
                                                 {/* Payment Method Selector */}
-                                                <div>
-                                                    <label className="block text-sm font-semibold text-slate-700 mb-3">Select Currency / Region</label>
-                                                    <div className="grid grid-cols-2 gap-3">
+                                                <div className="bg-orange-50/50 rounded-2xl p-4 border-2 border-orange-100">
+                                                    <label className="block text-base font-bold text-slate-900 mb-3 text-center">
+                                                        Select Your Region / Currency
+                                                    </label>
+                                                    <div className="grid grid-cols-2 gap-3 relative">
+                                                        {/* Highlight background slider could go here, but simple buttons work well if styled strongly */}
                                                         <button
                                                             onClick={() => setPaymentMode("domestic")}
-                                                            className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${paymentMode === "domestic" ? "border-orange-500 bg-orange-50 text-orange-700 shadow-sm" : "border-slate-200 text-slate-600 hover:border-orange-200 hover:bg-slate-50"}`}
+                                                            className={`relative flex flex-col items-center py-4 px-2 rounded-xl border-2 transition-all duration-300 ${paymentMode === "domestic" ? "border-orange-500 bg-white shadow-md transform scale-[1.02] z-10" : "border-transparent text-slate-500 hover:bg-white/60"}`}
                                                         >
-                                                            India (INR)
+                                                            <span className={`text-2xl mb-1 ${paymentMode === "domestic" ? "opacity-100" : "opacity-60"}`}>🇮🇳</span>
+                                                            <span className={`font-extrabold text-sm ${paymentMode === "domestic" ? "text-orange-600" : "text-slate-600"}`}>India</span>
+                                                            <span className={`text-xs font-semibold ${paymentMode === "domestic" ? "text-slate-500" : "text-slate-400"}`}>Pay in ₹ INR</span>
+                                                            {paymentMode === "domestic" && (
+                                                                <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1 shadow-sm">
+                                                                    <Check size={12} strokeWidth={4} />
+                                                                </div>
+                                                            )}
                                                         </button>
                                                         <button
                                                             onClick={() => setPaymentMode("international")}
-                                                            className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${paymentMode === "international" ? "border-orange-500 bg-orange-50 text-orange-700 shadow-sm" : "border-slate-200 text-slate-600 hover:border-orange-200 hover:bg-slate-50"}`}
+                                                            className={`relative flex flex-col items-center py-4 px-2 rounded-xl border-2 transition-all duration-300 ${paymentMode === "international" ? "border-blue-500 bg-white shadow-md transform scale-[1.02] z-10" : "border-transparent text-slate-500 hover:bg-white/60"}`}
                                                         >
-                                                            Global (USD)
+                                                            <span className={`text-2xl mb-1 ${paymentMode === "international" ? "opacity-100" : "opacity-60"}`}>🌍</span>
+                                                            <span className={`font-extrabold text-sm ${paymentMode === "international" ? "text-blue-600" : "text-slate-600"}`}>Global</span>
+                                                            <span className={`text-xs font-semibold ${paymentMode === "international" ? "text-slate-500" : "text-slate-400"}`}>Pay in $ USD</span>
+                                                            {paymentMode === "international" && (
+                                                                <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1 shadow-sm">
+                                                                    <Check size={12} strokeWidth={4} />
+                                                                </div>
+                                                            )}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -268,7 +299,7 @@ export default function GuidePage() {
                                                         </button>
                                                     ) : (
                                                         <div className="w-full relative z-10">
-                                                            <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "ATMGtSsoMxvX5hrhLzFYYuN1yNCAonxN-vV1xAtNKBRvL7cbgpMQ_EG1Nf7j-43XGcyyUlN6Eb4Our_0", currency: "USD" }}>
+                                                            <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AZH2zZoIp8p5E-_4wO5wPnBZL8r0OxYtNu1eX6pjl6xMN_GyIaInlW5frraQ8Tq7a2BhKfVavI1rpI5F", currency: "USD" }}>
                                                                 <PayPalButtons
                                                                     style={{ layout: "vertical", color: "blue", shape: "rect", label: "checkout", height: 50 }}
                                                                     createOrder={async () => {

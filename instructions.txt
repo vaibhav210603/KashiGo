@@ -1,7 +1,15 @@
-redesign the ebook section 
-
-1. the video shuold be the main focus
-center the video stage and 
 
 
-Replace the title of the video 
+
+
+
+key : AZH2zZoIp8p5E-_4wO5wPnBZL8r0OxYtNu1eX6pjl6xMN_GyIaInlW5frraQ8Tq7a2BhKfVavI1rpI5F
+
+secret : EH0JwKTIgwU5Frw19o4hHQRFF0NgmHL5ksQruMWwjmSv9KB_CIJhSuo9kvJpBeFxMFBO3DyT2bQzoe2W
+
+
+replace and use live paypal credentials instead
+
+also 
+
+in the mobile view of the guide page, i have to scroll the screen to view the video, position it such that it appeas on the screen withtout the scroll
