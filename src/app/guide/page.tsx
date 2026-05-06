@@ -125,11 +125,9 @@ export default function GuidePage() {
 
     return (
         <main className="min-h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
-            <Navbar />
-            
             {/* Hero Section */}
             <div className="relative bg-slate-900 pt-24 md:pt-32 pb-12 md:pb-24 px-4 overflow-hidden">
-                <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1561361513-2d000a50f0dc?q=80&w=2076&auto=format&fit=crop')] bg-cover bg-center" />
+                <div className="absolute inset-0 opacity-20 bg-[url('/VARANASi.png')] bg-cover bg-center" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent" />
                 
                 <div className="relative max-w-5xl mx-auto text-center">
@@ -138,7 +136,7 @@ export default function GuidePage() {
                             Digital PDF E-Book
                         </motion.div>
                         <motion.h1 variants={fadeIn} className="text-4xl md:text-7xl font-bold font-heading text-white tracking-tight leading-tight">
-                            Varanasi <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-600">Travel Guide 2026</span>
+                         Ultimate Varanasi <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-600">Explore Guide 2026</span>
                         </motion.h1>
                         <motion.p variants={fadeIn} className="text-sm md:text-xl text-slate-300 max-w-2xl mx-auto hidden sm:block">
                             The one stop solution for planning your trip to Varanasi. All the information you need in one place for a safe, scam-free trip.
@@ -161,7 +159,7 @@ export default function GuidePage() {
                             <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center justify-center gap-2">
                                 <Play className="text-orange-500" /> A Must Watch for all travelers to Varanasi.
                             </h2>
-                            <p className="text-slate-600 mb-6 text-center">Get an local's perspective on Varanasi and get a <strong className="text-slate-900">secret discount code</strong> in the video!</p>
+                            <p className="text-slate-600 mb-6">Get a local's perspective on Varanasi and get a <strong className="text-slate-900">secret discount code</strong> in the video!</p>
                             
                             <div className="aspect-video bg-slate-900 rounded-2xl overflow-hidden relative group border border-slate-200 shadow-inner">
                                 <video 
@@ -413,8 +411,6 @@ export default function GuidePage() {
 
                 </div>
             </div>
-            
-            <Footer />
         </main>
     );
 }
