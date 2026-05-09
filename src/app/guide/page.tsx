@@ -230,14 +230,14 @@ export default function GuidePage() {
                         <div className="space-y-8">
                             <h3 className="text-2xl font-bold text-orange-400">What's Covered Inside:</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {(showAllFeatures ? features : features.slice(0, 4)).map((feature, idx) => (
+                                {features.map((feature, idx) => (
                                     <motion.div 
                                         key={idx}
                                         initial={{ opacity: 0, y: 10 }}
                                         whileInView={{ opacity: 1, y: 0 }}
                                         viewport={{ once: true }}
                                         transition={{ delay: idx * 0.05 }}
-                                        className="flex gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all group"
+                                        className={`flex gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all group ${idx >= 4 && !showAllFeatures ? 'hidden md:flex' : 'flex'}`}
                                     >
                                         <div className="w-10 h-10 rounded-xl bg-orange-400 flex items-center justify-center flex-shrink-0 text-white shadow-lg">
                                             <feature.icon size={20} strokeWidth={2} />
