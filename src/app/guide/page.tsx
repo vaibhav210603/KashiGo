@@ -24,6 +24,7 @@ export default function GuidePage() {
     const [paymentMode, setPaymentMode] = useState<"domestic" | "international">("international");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasPaid, setHasPaid] = useState(false);
+    const [showAllFeatures, setShowAllFeatures] = useState(false);
 
     useEffect(() => {
         try {
@@ -229,7 +230,7 @@ export default function GuidePage() {
                         <div className="space-y-8">
                             <h3 className="text-2xl font-bold text-orange-400">What's Covered Inside:</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {features.map((feature, idx) => (
+                                {(showAllFeatures ? features : features.slice(0, 4)).map((feature, idx) => (
                                     <motion.div 
                                         key={idx}
                                         initial={{ opacity: 0, y: 10 }}
@@ -248,6 +249,16 @@ export default function GuidePage() {
                                     </motion.div>
                                 ))}
                             </div>
+                            
+                            {features.length > 4 && (
+                                <button 
+                                    onClick={() => setShowAllFeatures(!showAllFeatures)}
+                                    className="w-full py-4 px-6 rounded-xl border border-white/20 text-white font-bold hover:bg-white/5 transition-colors flex items-center justify-center gap-2 md:hidden"
+                                >
+                                    {showAllFeatures ? "Show Less" : "View More Features"}
+                                    <ChevronRight className={`transform transition-transform ${showAllFeatures ? "-rotate-90" : "rotate-90"}`} size={18} />
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -265,7 +276,7 @@ export default function GuidePage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="flex overflow-x-auto pt-8 pb-8 gap-6 md:grid md:grid-cols-3 md:overflow-x-visible snap-x snap-mandatory scrollbar-hide px-4 -mx-4">
                         {reviews.map((review, idx) => (
                             <motion.div 
                                 key={idx}
@@ -273,7 +284,7 @@ export default function GuidePage() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 relative"
+                                className="min-w-[85vw] md:min-w-0 bg-slate-50 p-8 rounded-[2rem] border border-slate-100 relative snap-center"
                             >
                                 <div className="absolute -top-6 left-8">
                                     <img src={review.image} alt={review.name} className="w-16 h-16 rounded-full border-4 border-white shadow-lg object-cover" />
@@ -305,14 +316,13 @@ export default function GuidePage() {
 
                     <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden max-w-6xl mx-auto border border-slate-100 flex flex-col lg:flex-row">
                         {/* Image Column */}
-                        <div className="lg:w-1/2 relative bg-slate-100 min-h-[400px]">
+                        <div className="lg:w-1/2 relative bg-slate-100 aspect-[4/5] lg:aspect-auto lg:h-auto overflow-hidden">
                             <img 
                                 src="/VARANASi.png" 
                                 alt="Varanasi Guide" 
-                                className="absolute inset-0 w-full h-full object-cover"
+                                className="absolute inset-0 w-full h-full object-cover lg:object-center object-top"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t " />
-                            
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 lg:hidden" />
                         </div>
 
                         {/* Checkout Column */}
