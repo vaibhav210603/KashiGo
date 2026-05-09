@@ -28,7 +28,7 @@ export default function Footer() {
                     <div>
                         <h3 className="text-white font-semibold text-lg mb-4">Support</h3>
                         <ul className="space-y-2">
-                            <li><a href="mailto:support@kashigo.com" className="hover:text-orange-500 transition-colors">support@kashigo.com</a></li>
+                            <li><a href="mailto:kashigo@gmail.com" className="hover:text-orange-500 transition-colors">kashigo@gmail.com</a></li>
                             <li><a href="tel:+919876543210" className="hover:text-orange-500 transition-colors">+91 8175966910</a></li>
                             <li className="text-slate-400 mt-4">Brahma Ghat, Varanasi</li>
                         </ul>

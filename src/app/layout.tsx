@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Dancing_Script, Playfair_Display } from "next/font/google";
+import { Geist, Geist_Mono, Dancing_Script, Playfair_Display, Outfit } from "next/font/google";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import "./globals.css";
@@ -23,9 +23,15 @@ const dancingScript = Dancing_Script({
 });
 
 const playfair = Playfair_Display({
-  variable: "--font-heading",
+  variable: "--font-serif",
   subsets: ["latin"],
   weight: ["400", "600", "700"],
+});
+
+const outfit = Outfit({
+  variable: "--font-heading",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -55,7 +61,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} ${playfair.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} ${playfair.variable} ${outfit.variable} antialiased min-h-screen flex flex-col`}
       >
         <Navbar />
         <main className="flex-grow">
