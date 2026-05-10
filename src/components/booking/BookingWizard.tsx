@@ -76,16 +76,16 @@ export default function BookingWizard() {
     const ghats = ["Dashashwamedh Ghat", "Assi Ghat", "Namo Ghat", "Manikarnika Ghat", "Panchganga Ghat"];
     const packages = {
         "Morning": [
-            { id: "p1", name: "Sunrise + Bird Feeding", price: 499, description: "All ghats visit early morning.", imgSrc: "https://kashigo.in/sunrise_bg.png", time: "5:30 AM" },
-            { id: "p2", name: "Morning Ganga Aarti", price: 699, description: "Assi ghat morning aarti visit.", imgSrc: "https://kashigo.in/m_aarti_bg.png", time: "6:00 AM" }
+            { id: "p1", name: "Sunrise + Bird Feeding", price: 499, description: "All ghats visit early morning.", imgSrc: "/sunrise_bg.png", time: "5:30 AM" },
+            { id: "p2", name: "Morning Ganga Aarti", price: 699, description: "Assi ghat morning aarti visit.", imgSrc: "/m_aarti_bg.png", time: "6:00 AM" }
         ],
         "Afternoon": [
-            { id: "p3", name: "Day Ghat Tour", price: 399, description: "Cover all major 84 ghats in daylight.", imgSrc: "https://kashigo.in/day_ghat_bg.png", time: "12:00 PM" },
-            { id: "p4", name: "Temple + Boat Tour", price: 899, description: "Combined tour logic.", imgSrc: "https://kashigo.in/temple_boat_bg.png", time: "2:00 PM" }
+            { id: "p3", name: "Day Ghat Tour", price: 399, description: "Cover all major 84 ghats in daylight.", imgSrc: "/day_ghat_bg.png", time: "12:00 PM" },
+            { id: "p4", name: "Temple + Boat Tour", price: 899, description: "Combined tour logic.", imgSrc: "/temple_boat_bg.png", time: "2:00 PM" }
         ],
         "Evening": [
-            { id: "p5", name: "Dashashwamedh Evening Aarti", price: 799, description: "Special viewing angle for Aarti.", imgSrc: "https://kashigo.in/e_aarti_bg.png", time: "6:30 PM" },
-            { id: "p6", name: "Sunset Ride", price: 599, description: "Enjoy the beautiful sunset over the Ganges.", imgSrc: "https://kashigo.in/sunset_bg.png", time: "5:00 PM" }
+            { id: "p5", name: "Dashashwamedh Evening Aarti", price: 799, description: "Special viewing angle for Aarti.", imgSrc: "/e_aarti_bg.png", time: "6:30 PM" },
+            { id: "p6", name: "Sunset Ride", price: 599, description: "Enjoy the beautiful sunset over the Ganges.", imgSrc: "/sunset_bg.png", time: "5:00 PM" }
         ]
     };
 
@@ -303,9 +303,9 @@ export default function BookingWizard() {
                                 <label className="block text-sm font-medium text-slate-700">When do you want to ride?</label>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 perspective-1000 mt-2 mb-4">
                                     {[
-                                        { id: 'Morning', icon: Sun, label: 'Morning', desc: 'Serene sunrise to 11 AM', img: 'https://kashigo.in/sunrise_bg.png' },
-                                        { id: 'Afternoon', icon: Clock, label: 'Afternoon', desc: '11 AM to sunset', img: 'https://kashigo.in/day_ghat_bg.png' },
-                                        { id: 'Evening', icon: Moon, label: 'Evening', desc: 'Sunset & evening lights', img: 'https://kashigo.in/e_aarti_bg.png' }
+                                        { id: 'Morning', icon: Sun, label: 'Morning', desc: 'Serene sunrise to 11 AM', img: '/sunrise_bg.png' },
+                                        { id: 'Afternoon', icon: Clock, label: 'Afternoon', desc: '11 AM to sunset', img: '/day_ghat_bg.png' },
+                                        { id: 'Evening', icon: Moon, label: 'Evening', desc: 'Sunset & evening lights', img: '/e_aarti_bg.png' }
                                     ].map((timeOption, idx) => {
                                         const isSelected = formData.timeOfDay === timeOption.id;
                                         const rotateDir = idx === 0 ? 10 : idx === 2 ? -10 : 0;
