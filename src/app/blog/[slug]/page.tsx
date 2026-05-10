@@ -162,36 +162,38 @@ export default async function BlogPostPage({ params }: PageProps) {
             </div>
 
             {/* Premium End-of-post CTA */}
-            <div className="mt-16 p-10 md:p-14 bg-slate-900 rounded-[3rem] border border-slate-800 relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] -ml-32 -mb-32 pointer-events-none" />
+            <div className="mt-20 p-8 md:p-14 bg-slate-900 rounded-[3rem] border border-slate-800 relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] -ml-32 -mb-32 pointer-events-none" />
               
-              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
-                <div className="md:w-3/5">
-                  <p className="text-orange-500 font-bold tracking-widest uppercase text-xs mb-3 flex items-center gap-2">
-                    <span className="w-8 h-px bg-orange-500"></span> 
-                    Written by a local born in Varanasi
-                  </p>
-                  <h3 className="text-3xl md:text-4xl font-bold mb-4 font-heading text-white">
-                    Want the complete guide?
+              <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
+                <div className="lg:w-3/5 text-left">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="h-px w-8 bg-orange-500" />
+                    <p className="text-orange-500 font-bold tracking-[0.2em] uppercase text-[10px]">
+                      Written by a local born in Varanasi
+                    </p>
+                  </div>
+                  <h3 className="text-3xl md:text-5xl font-bold mb-6 font-heading text-white tracking-tight leading-tight">
+                    Want the <span className="text-orange-500">complete</span> guide?
                   </h3>
-                  <p className="text-slate-400 text-lg leading-relaxed">
-                    Don't be another tourist who pays triple. 9 scam shields, all 84 ghats, temple etiquette, and a 2-day itinerary — everything you need for a scam-free trip.
+                  <p className="text-slate-400 text-lg md:text-xl leading-relaxed max-w-xl">
+                    Don't be another tourist who pays triple. Get 9 scam shields, all 84 ghats, and a perfect 2-day itinerary.
                   </p>
                 </div>
-                <div className="md:w-2/5 flex flex-col gap-4 w-full">
+                <div className="lg:w-2/5 flex flex-col gap-4 w-full sm:max-w-xs lg:max-w-none">
                   <Link
                     href="/guide"
-                    className="w-full flex items-center justify-center gap-2 bg-orange-500 text-white px-6 py-4 rounded-xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:-translate-y-1"
+                    className="w-full flex items-center justify-center gap-3 bg-orange-500 text-white px-8 py-5 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:-translate-y-1 active:scale-95"
                   >
-                    <MapPin size={18} />
+                    <MapPin size={20} />
                     Get the Guide — $10.39
                   </Link>
                   <Link
                     href="/book"
-                    className="w-full flex items-center justify-center gap-2 bg-white/10 text-white px-6 py-4 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10 hover:border-white/20 backdrop-blur-sm"
+                    className="w-full flex items-center justify-center gap-3 bg-white/5 text-white px-8 py-5 rounded-2xl font-bold hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 backdrop-blur-md active:scale-95"
                   >
-                    <Compass size={18} />
+                    <Compass size={20} />
                     Book a Boat Ride
                   </Link>
                 </div>

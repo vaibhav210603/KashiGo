@@ -22,85 +22,86 @@ export default function BlogPage() {
   const posts = getAllPosts();
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pt-28 pb-20">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-orange-50/50 to-transparent pointer-events-none" />
+    <div className="min-h-screen bg-slate-50 pt-32 pb-20 relative">
+      {/* Background patterns for a premium feel */}
+      <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-orange-100/30 to-transparent pointer-events-none" />
+      <div className="absolute top-20 left-10 w-64 h-64 bg-orange-200/20 rounded-full blur-3xl pointer-events-none" />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Header Section */}
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-white border border-orange-100 text-orange-600 font-bold text-xs tracking-widest uppercase mb-6 shadow-sm">
-            <BookOpen size={16} />
-            <span>KashiGo Journal</span>
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-white border border-orange-100 text-orange-600 font-bold text-[10px] tracking-[0.2em] uppercase mb-6 shadow-sm">
+            <BookOpen size={14} />
+            <span>Travel Journal</span>
           </div>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-heading text-slate-900 mb-6 tracking-tight">
-            Varanasi Travel <span className="text-orange-500 font-cursive font-normal text-5xl md:text-7xl lg:text-8xl align-bottom -ml-2">Guides</span>
+          <h1 className="text-5xl md:text-7xl font-bold font-heading text-slate-900 mb-6 tracking-tight">
+            Varanasi Travel <span className="text-orange-500 font-cursive font-normal block md:inline mt-2 md:mt-0 text-6xl md:text-8xl">Guides</span>
           </h1>
-          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Insider tips, scam shields, and cultural etiquette for foreigners visiting the holy city. Written by locals who know the real Kashi.
+          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
+            Expert insights, scam-prevention, and cultural wisdom for the modern traveler.
           </p>
         </div>
 
         {/* Blog Grid */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-24">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto mb-24">
           {posts.length > 0 ? (
-            posts.map((post, idx) => (
+            posts.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="group h-full outline-none">
-                <article className="bg-white rounded-[2.5rem] p-8 h-full border border-slate-200/60 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_-12px_rgba(249,115,22,0.15)] hover:-translate-y-2 transition-all duration-500 flex flex-col relative overflow-hidden focus-visible:ring-2 focus-visible:ring-orange-500">
-                  <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-orange-100/50 to-transparent rounded-full blur-3xl -mr-16 -mt-16 transition-transform duration-700 group-hover:scale-150" />
+                <article className="bg-white rounded-[2rem] p-8 md:p-10 h-full border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(249,115,22,0.12)] hover:-translate-y-2 transition-all duration-500 flex flex-col relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-orange-50 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-orange-100 transition-colors duration-500" />
                   
-                  <div className="flex gap-4 text-[11px] font-bold text-slate-500 mb-6 uppercase tracking-widest relative z-10">
-                    <span className="flex items-center gap-1.5"><Calendar size={14} className="text-orange-500" /> {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-                    <span className="flex items-center gap-1.5"><Clock size={14} className="text-orange-500" /> {post.readingTime}</span>
+                  <div className="flex gap-4 text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-[0.15em] relative z-10">
+                    <span className="flex items-center gap-1.5"><Calendar size={14} className="text-orange-500/70" /> {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                    <span className="flex items-center gap-1.5"><Clock size={14} className="text-orange-500/70" /> {post.readingTime}</span>
                   </div>
                   
-                  <h2 className="text-2xl font-bold text-slate-900 mb-4 font-heading group-hover:text-orange-600 transition-colors duration-300 leading-[1.3] relative z-10">
+                  <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4 font-heading group-hover:text-orange-600 transition-colors duration-300 leading-tight relative z-10">
                     {post.title}
                   </h2>
                   
-                  <p className="text-slate-600 mb-8 flex-grow leading-relaxed relative z-10">
+                  <p className="text-slate-600 text-lg mb-8 flex-grow leading-relaxed relative z-10">
                     {post.description}
                   </p>
                   
-                  <div className="flex items-center text-sm font-bold text-slate-900 mt-auto pt-6 border-t border-slate-100 relative z-10">
-                    <span className="group-hover:text-orange-600 transition-colors duration-300">Read Full Guide</span>
-                    <div className="ml-auto w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
-                        <ArrowRight size={16} className="transform group-hover:translate-x-0.5 transition-transform" />
-                    </div>
+                  <div className="flex items-center text-sm font-bold text-slate-900 mt-auto pt-6 border-t border-slate-50 relative z-10 group-hover:border-orange-100 transition-colors">
+                    <span className="group-hover:text-orange-600 transition-all duration-300 flex items-center gap-2">
+                        Read Full Guide
+                        <ArrowRight size={18} className="transform group-hover:translate-x-1 transition-transform" />
+                    </span>
                   </div>
                 </article>
               </Link>
             ))
           ) : (
-            <p className="text-slate-500 italic col-span-full text-center py-20 bg-white rounded-[3rem] border border-slate-100 shadow-sm">No posts found. Check back soon!</p>
+            <p className="text-slate-500 italic col-span-full text-center py-20 bg-white rounded-[3rem] border border-slate-100">Coming soon...</p>
           )}
         </div>
 
         {/* Call to Action */}
-        <div className="relative overflow-hidden rounded-[3rem] bg-slate-900 p-10 md:p-16 text-center border border-slate-800 shadow-2xl">
+        <div className="relative overflow-hidden rounded-[3rem] bg-slate-900 p-10 md:p-20 text-center border border-slate-800 shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600" />
-          <div className="absolute -top-32 -left-32 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-32 -left-32 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
           
           <div className="relative z-10 max-w-3xl mx-auto">
-              <h3 className="text-3xl md:text-5xl font-bold mb-6 font-heading text-white tracking-tight">Ready to experience Varanasi?</h3>
-              <p className="text-lg text-slate-400 mb-10 leading-relaxed max-w-xl mx-auto">
+              <h3 className="text-3xl md:text-5xl font-bold mb-6 font-heading text-white tracking-tight leading-tight">Ready to experience <span className="text-orange-500">Varanasi?</span></h3>
+              <p className="text-lg md:text-xl text-slate-400 mb-12 leading-relaxed max-w-2xl mx-auto">
                 Get the complete 2026 local's travel guide or secure your sunrise boat ride before you arrive. Don't leave it to chance.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
                 <Link
                   href="/guide"
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-orange-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5"
+                  className="w-full sm:w-auto flex items-center justify-center gap-3 bg-orange-500 text-white px-10 py-5 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:-translate-y-1 active:scale-95"
                 >
-                  <MapPin size={20} />
+                  <MapPin size={22} />
                   Get The Full Guide — $10.39
                 </Link>
                 <Link
                   href="/book"
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white/10 text-white px-8 py-4 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10 hover:border-white/20 backdrop-blur-sm"
+                  className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/5 text-white px-10 py-5 rounded-2xl font-bold hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 backdrop-blur-md active:scale-95"
                 >
-                  <Compass size={20} />
+                  <Compass size={22} />
                   Book a Boat Ride
                 </Link>
               </div>

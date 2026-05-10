@@ -5,10 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,10 +30,12 @@ export default function Navbar() {
     { name: "Blog", href: "/blog" },
   ];
 
+  const isLightPage = !isHomePage;
+
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled
-        ? "bg-amber-50/90 backdrop-blur-md shadow-sm py-3"
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled || isLightPage
+        ? "bg-white/90 backdrop-blur-md shadow-sm py-3"
         : "bg-transparent py-5"
         }`}
     >
@@ -47,7 +52,7 @@ export default function Navbar() {
                 priority
             />
           </Link>
-          <span className={`tracking-tighter ${isScrolled ? "text-slate-900" : "text-white"}`}>
+          <span className={`tracking-tighter ${isScrolled || isLightPage ? "text-slate-900" : "text-white"}`}>
             <span className="font-cursive text-4xl text-orange-500 font-bold pr-1">Kashi</span>
             <span className="font-heading font-bold text-2xl">Go</span>
           </span>
@@ -58,7 +63,7 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-orange-500 ${isScrolled ? "text-slate-700" : "text-slate-200"
+                className={`text-sm font-medium transition-colors hover:text-orange-500 ${isScrolled || isLightPage ? "text-slate-700" : "text-slate-200"
                   }`}
               >
                 {link.name}
@@ -73,7 +78,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`${isScrolled ? "text-slate-900" : "text-white"}`}
+              className={`${isScrolled || isLightPage ? "text-slate-900" : "text-white"}`}
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
