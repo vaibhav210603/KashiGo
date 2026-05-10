@@ -48,7 +48,7 @@ export default function BlogPage() {
           {posts.length > 0 ? (
             posts.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="group h-full outline-none">
-                <article className="bg-white rounded-[1.5rem] p-7 md:p-9 h-full border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(249,115,22,0.1)] hover:-translate-y-1.5 transition-all duration-500 flex flex-col relative overflow-hidden">
+                <article className="bg-white rounded-[2rem] p-8 md:p-10 pb-12 md:pb-14 h-full border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(249,115,22,0.1)] hover:-translate-y-1.5 transition-all duration-500 flex flex-col relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-orange-100 transition-colors duration-500" />
                   
                   <div className="flex gap-4 text-[9px] font-bold text-slate-400 mb-5 uppercase tracking-[0.15em] relative z-10">
@@ -60,14 +60,14 @@ export default function BlogPage() {
                     {post.title}
                   </h2>
                   
-                  <p className="text-slate-600 text-base mb-6 flex-grow leading-relaxed relative z-10">
+                  <p className="text-slate-600 text-base mb-8 flex-grow leading-relaxed relative z-10">
                     {post.description}
                   </p>
                   
-                  <div className="flex items-center text-sm font-bold text-slate-900 mt-auto pt-6 border-t border-slate-50 relative z-10 group-hover:border-orange-100 transition-colors">
+                  <div className="flex items-center text-xs font-bold text-slate-900 mt-auto pt-6 border-t border-slate-100 relative z-10 group-hover:border-orange-200 transition-colors">
                     <span className="group-hover:text-orange-600 transition-all duration-300 flex items-center gap-2">
                         Read Full Guide
-                        <ArrowRight size={18} className="transform group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
                     </span>
                   </div>
                 </article>
