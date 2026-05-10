@@ -59,14 +59,15 @@ const mdxComponents = {
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => {
     // Detect if this paragraph is a "Tip"
     const childrenArray = React.Children.toArray(props.children);
-    const firstChild = childrenArray[0];
+    const firstChild = childrenArray[0] as any;
     
-    // Check if first child is a strong tag containing "Tip:"
-    const firstElement = firstChild as any;
-    const isTip = React.isValidElement(firstElement) && 
-                  firstElement.type === 'strong' && 
-                  typeof firstElement.props.children === 'string' &&
-                  firstElement.props.children.toLowerCase().startsWith('tip:');
+    // Avoid React.isValidElement as it narrows props to 'unknown' in strict TypeScript
+    let isTip = false;
+    if (firstChild && firstChild.type === 'strong' && firstChild.props && typeof firstChild.props.children === 'string') {
+      if (firstChild.props.children.toLowerCase().startsWith('tip:')) {
+        isTip = true;
+      }
+    }
 
     if (isTip) {
       return (
@@ -78,7 +79,7 @@ const mdxComponents = {
           <div className="flex-grow">
             <span className="block text-amber-900 font-bold text-xs uppercase tracking-widest mb-1">Local Insight</span>
             <div className="text-amber-900/90 leading-relaxed italic text-base md:text-lg">
-                {(firstElement.props.children as string).toLowerCase().startsWith('tip:') ? 
+                {(firstChild.props.children as string).toLowerCase().startsWith('tip:') ? 
                   childrenArray.slice(1) : childrenArray}
             </div>
           </div>
