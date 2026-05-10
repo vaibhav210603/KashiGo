@@ -44,7 +44,7 @@ export default function BlogPage() {
         </div>
 
         {/* Blog Grid */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto mb-20">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto mb-32">
           {posts.length > 0 ? (
             posts.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="group h-full outline-none">
@@ -79,7 +79,7 @@ export default function BlogPage() {
         </div>
 
         {/* Call to Action */}
-        <div className="relative overflow-hidden rounded-[3rem] bg-slate-900 p-10 md:p-20 text-center border border-slate-800 shadow-2xl">
+        <div className="relative overflow-hidden rounded-[3rem] bg-slate-900 p-12 md:p-24 text-center border border-slate-800 shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600" />
           <div className="absolute -top-32 -left-32 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
