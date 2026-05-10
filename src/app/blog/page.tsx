@@ -30,7 +30,7 @@ export default function BlogPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Header Section */}
-        <div className="text-center mb-20">
+        <div className="text-center mb-16 md:mb-24">
           <div className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-white border border-orange-100 text-orange-600 font-bold text-[9px] tracking-[0.2em] uppercase mb-4 shadow-sm">
             <BookOpen size={12} />
             <span>Travel Journal</span>
@@ -38,13 +38,13 @@ export default function BlogPage() {
           <h1 className="text-4xl md:text-6xl font-bold font-heading text-slate-900 mb-6 tracking-tight">
             Varanasi Travel <span className="text-orange-500 font-cursive font-normal block md:inline mt-1 md:mt-0 text-5xl md:text-7xl">Guides</span>
           </h1>
-          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
+          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium mb-12">
             Expert insights, scam-prevention, and cultural wisdom for the modern traveler.
           </p>
         </div>
 
         {/* Blog Grid */}
-        <div className="grid gap-16 md:gap-20 md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto mb-40">
+        <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto mb-32 pt-4">
           {posts.length > 0 ? (
             posts.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="group h-full outline-none">
