@@ -53,21 +53,32 @@ import React from "react";
 
 // Custom MDX Components for premium typography
 const mdxComponents = {
-  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mt-10 mb-5 tracking-tight leading-tight" {...props} />,
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="text-2xl font-bold font-heading text-slate-900 mt-10 mb-5 tracking-tight flex items-center gap-3 before:content-[''] before:block before:w-1.5 before:h-6 before:bg-orange-500 before:rounded-full" {...props} />,
-  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="text-xl font-bold font-heading text-slate-800 mt-8 mb-4 tracking-tight" {...props} />,
-  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => <p className="text-base md:text-lg text-slate-600 mb-5 leading-relaxed" {...props} />,
-  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-none space-y-2.5 mb-6 ml-2" {...props} />,
+  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mt-16 mb-8 tracking-tight leading-tight" {...props} />,
+  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="text-2xl md:text-3xl font-bold font-heading text-slate-900 mt-20 mb-8 tracking-tight flex items-center gap-4 before:content-[''] before:block before:w-1.5 before:h-8 before:bg-orange-500 before:rounded-full" {...props} />,
+  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="text-xl md:text-2xl font-bold font-heading text-slate-800 mt-14 mb-6 tracking-tight" {...props} />,
+  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => <p className="text-base md:text-lg text-slate-600 mb-8 leading-[1.8] font-normal" {...props} />,
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-none space-y-4 mb-10 ml-2" {...props} />,
   li: (props: React.HTMLAttributes<HTMLLIElement>) => (
-    <li className="flex gap-3 text-base md:text-lg text-slate-600 leading-relaxed items-start">
-      <span className="text-orange-500 mt-1.5">•</span>
+    <li className="flex gap-4 text-base md:text-lg text-slate-600 leading-[1.8] items-start">
+      <span className="text-orange-500 mt-2 text-xl">•</span>
       <span {...props} />
     </li>
   ),
-  strong: (props: React.HTMLAttributes<HTMLElement>) => <strong className="font-bold text-slate-900 bg-orange-50 px-1 rounded" {...props} />,
-  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a className="text-orange-600 hover:text-orange-700 font-semibold underline decoration-orange-200 decoration-2 underline-offset-4 hover:decoration-orange-500 transition-colors" {...props} />,
+  strong: (props: React.HTMLAttributes<HTMLElement>) => {
+    const isTip = typeof props.children === 'string' && props.children.toLowerCase().startsWith('tip:');
+    if (isTip) {
+      return (
+        <span className="block my-6 p-5 bg-amber-50 border-l-4 border-amber-400 rounded-r-xl text-amber-900 font-medium shadow-sm italic">
+          <strong className="not-italic font-bold uppercase tracking-wider text-amber-700 mr-2 text-xs">Pro Tip:</strong>
+          {props.children.toString().replace(/tip:/i, '').trim()}
+        </span>
+      );
+    }
+    return <strong className="font-bold text-slate-900" {...props} />;
+  },
+  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a className="text-orange-600 hover:text-orange-700 font-bold underline decoration-orange-300 decoration-2 underline-offset-4 hover:decoration-orange-600 transition-all" {...props} />,
   blockquote: (props: React.HTMLAttributes<HTMLElement>) => (
-    <blockquote className="border-l-4 border-orange-500 pl-6 py-2 my-8 bg-orange-50/50 rounded-r-2xl italic text-slate-700 text-lg md:text-xl font-serif" {...props} />
+    <blockquote className="border-l-4 border-orange-500 pl-8 py-4 my-12 bg-orange-50/30 rounded-r-3xl italic text-slate-700 text-xl md:text-2xl font-serif leading-relaxed" {...props} />
   ),
 };
 
