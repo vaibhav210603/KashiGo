@@ -62,7 +62,7 @@ const mdxComponents = {
     const firstChild = childrenArray[0];
     
     // Check if first child is a strong tag containing "Tip:"
-    const firstElement = firstChild as React.ReactElement;
+    const firstElement = firstChild as any;
     const isTip = React.isValidElement(firstElement) && 
                   firstElement.type === 'strong' && 
                   typeof firstElement.props.children === 'string' &&
