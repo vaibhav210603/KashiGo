@@ -61,10 +61,12 @@ const mdxComponents = {
     const childrenArray = React.Children.toArray(props.children);
     const firstChild = childrenArray[0];
     
-    const isTip = React.isValidElement(firstChild) && 
-                  firstChild.type === 'strong' && 
-                  typeof firstChild.props.children === 'string' &&
-                  firstChild.props.children.toLowerCase().startsWith('tip:');
+    // Check if first child is a strong tag containing "Tip:"
+    const firstElement = firstChild as React.ReactElement;
+    const isTip = React.isValidElement(firstElement) && 
+                  firstElement.type === 'strong' && 
+                  typeof firstElement.props.children === 'string' &&
+                  firstElement.props.children.toLowerCase().startsWith('tip:');
 
     if (isTip) {
       return (
@@ -76,7 +78,8 @@ const mdxComponents = {
           <div className="flex-grow">
             <span className="block text-amber-900 font-bold text-xs uppercase tracking-widest mb-1">Local Insight</span>
             <div className="text-amber-900/90 leading-relaxed italic text-base md:text-lg">
-                {childrenArray.slice(1)}
+                {(firstElement.props.children as string).toLowerCase().startsWith('tip:') ? 
+                  childrenArray.slice(1) : childrenArray}
             </div>
           </div>
         </div>
