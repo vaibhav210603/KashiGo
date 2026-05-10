@@ -24,6 +24,7 @@ export default function Navbar() {
     { name: "Packages", href: "/#packages" },
     { name: "Reviews", href: "/#reviews" },
     { name: "Guide", href: "/guide" },
+    { name: "Blog", href: "/blog" },
   ];
 
   return (
