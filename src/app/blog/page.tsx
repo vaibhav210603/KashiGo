@@ -79,30 +79,30 @@ export default function BlogPage() {
         </div>
 
         {/* Call to Action */}
-        <div className="relative overflow-hidden rounded-[3rem] bg-slate-900 p-12 md:p-24 text-center border border-slate-800 shadow-2xl">
+        <div className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-slate-900 p-8 md:p-24 text-center border border-slate-800 shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600" />
           <div className="absolute -top-32 -left-32 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
           
           <div className="relative z-10 max-w-3xl mx-auto">
-              <h3 className="text-3xl md:text-5xl font-bold mb-6 font-heading text-white tracking-tight leading-tight">Ready to experience <span className="text-orange-500">Varanasi?</span></h3>
-              <p className="text-lg md:text-xl text-slate-400 mb-12 leading-relaxed max-w-2xl mx-auto">
-                Get the complete 2026 local's travel guide or secure your sunrise boat ride before you arrive. Don't leave it to chance.
+              <h3 className="text-2xl md:text-5xl font-bold mb-4 md:mb-6 font-heading text-white tracking-tight leading-tight">Ready to experience <span className="text-orange-500">Varanasi?</span></h3>
+              <p className="text-sm md:text-xl text-slate-400 mb-8 md:mb-12 leading-relaxed max-w-2xl mx-auto">
+                Get the complete 2026 local's travel guide or secure your sunrise boat ride before you arrive.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-5">
                 <Link
                   href="/guide"
-                  className="w-full sm:w-auto flex items-center justify-center gap-3 bg-orange-500 text-white px-10 py-5 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:-translate-y-1 active:scale-95"
+                  className="w-full sm:w-auto flex items-center justify-center gap-3 bg-orange-500 text-white px-8 py-4 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:-translate-y-1 active:scale-95"
                 >
-                  <MapPin size={22} />
-                  Get The Full Guide — $10.39
+                  <MapPin size={20} className="md:w-[22px] md:h-[22px]" />
+                  <span className="text-sm md:text-base">Get The Full Guide — $10.39</span>
                 </Link>
                 <Link
                   href="/book"
-                  className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/5 text-white px-10 py-5 rounded-2xl font-bold hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 backdrop-blur-md active:scale-95"
+                  className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/5 text-white px-8 py-4 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-bold hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 backdrop-blur-md active:scale-95"
                 >
-                  <Compass size={22} />
-                  Book a Boat Ride
+                  <Compass size={20} className="md:w-[22px] md:h-[22px]" />
+                  <span className="text-sm md:text-base">Book a Boat Ride</span>
                 </Link>
               </div>
           </div>
