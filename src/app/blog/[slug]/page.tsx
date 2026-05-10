@@ -48,6 +48,29 @@ export async function generateMetadata({
   };
 }
 
+import { Calendar, Clock, MapPin, Compass, ArrowLeft, ShieldCheck } from "lucide-react";
+import React from "react";
+
+// Custom MDX Components for premium typography
+const mdxComponents = {
+  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="text-4xl md:text-5xl font-bold font-heading text-slate-900 mt-12 mb-6 tracking-tight leading-tight" {...props} />,
+  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="text-3xl font-bold font-heading text-slate-900 mt-12 mb-6 tracking-tight flex items-center gap-3 before:content-[''] before:block before:w-2 before:h-8 before:bg-orange-500 before:rounded-full" {...props} />,
+  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="text-2xl font-bold font-heading text-slate-800 mt-8 mb-4 tracking-tight" {...props} />,
+  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => <p className="text-lg md:text-xl text-slate-600 mb-6 leading-relaxed" {...props} />,
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-none space-y-3 mb-8 ml-2" {...props} />,
+  li: (props: React.HTMLAttributes<HTMLLIElement>) => (
+    <li className="flex gap-3 text-lg text-slate-600 leading-relaxed items-start">
+      <span className="text-orange-500 mt-1.5">•</span>
+      <span {...props} />
+    </li>
+  ),
+  strong: (props: React.HTMLAttributes<HTMLElement>) => <strong className="font-bold text-slate-900 bg-orange-50 px-1 rounded" {...props} />,
+  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a className="text-orange-600 hover:text-orange-700 font-semibold underline decoration-orange-200 decoration-2 underline-offset-4 hover:decoration-orange-500 transition-colors" {...props} />,
+  blockquote: (props: React.HTMLAttributes<HTMLElement>) => (
+    <blockquote className="border-l-4 border-orange-500 pl-6 py-2 my-8 bg-orange-50/50 rounded-r-2xl italic text-slate-700 text-xl font-serif" {...props} />
+  ),
+};
+
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
@@ -85,80 +108,110 @@ export default async function BlogPostPage({ params }: PageProps) {
         }}
       />
 
-      <main className="max-w-3xl mx-auto px-4 py-16 mt-16">
-        {/* Breadcrumb */}
-        <nav className="text-sm text-gray-400 mb-8">
-          <Link href="/" className="hover:text-orange-600">Home</Link>
-          {" / "}
-          <Link href="/blog" className="hover:text-orange-600">Blog</Link>
-          {" / "}
-          <span className="text-gray-600 truncate inline-block max-w-[200px] align-bottom">{post.title}</span>
-        </nav>
+      <div className="min-h-screen bg-slate-50 selection:bg-orange-200 selection:text-orange-900">
+        {/* Progress Bar (Optional UI enhancement, simulated with top border) */}
+        <div className="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 via-amber-500 to-orange-400 z-50" />
 
-        {/* Post Header */}
-        <header className="mb-10">
-          <h1 className="text-4xl font-bold mb-4 leading-tight font-heading">
-            {post.title}
-          </h1>
-          <div className="flex gap-4 text-sm text-gray-400 flex-wrap">
-            <span>By KashiGo — Local Varanasi Guide</span>
-            <span>·</span>
-            <time dateTime={post.date}>
-              {new Date(post.date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </time>
-            <span>·</span>
-            <span>{post.readingTime}</span>
-          </div>
-        </header>
+        <main className="pt-32 pb-24">
+          <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            {/* Breadcrumb Navigation */}
+            <nav className="flex items-center gap-2 text-sm font-semibold text-slate-400 mb-10 uppercase tracking-widest">
+              <Link href="/" className="hover:text-orange-600 transition-colors">Home</Link>
+              <span>/</span>
+              <Link href="/blog" className="hover:text-orange-600 transition-colors">Journal</Link>
+              <span>/</span>
+              <span className="text-orange-500 truncate max-w-[200px] md:max-w-none">{post.slug.replace(/-/g, ' ')}</span>
+            </nav>
 
-        {/* Post Content */}
-        <article className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:font-heading prose-a:text-orange-600 prose-img:rounded-3xl shadow-none">
-          <MDXRemote source={post.content} />
-        </article>
+            {/* Premium Post Header */}
+            <header className="mb-16 relative">
+              <div className="absolute -top-20 -left-20 w-64 h-64 bg-orange-200/40 rounded-full blur-3xl pointer-events-none" />
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-[1.1] font-heading text-slate-900 tracking-tight relative z-10">
+                {post.title}
+              </h1>
+              
+              <div className="flex flex-wrap items-center gap-6 text-sm font-bold text-slate-500 uppercase tracking-widest relative z-10 bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-slate-200 inline-flex shadow-sm">
+                <div className="flex items-center gap-2 text-slate-900">
+                  <ShieldCheck size={18} className="text-green-500" />
+                  <span>By Local Expert</span>
+                </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                <time dateTime={post.date} className="flex items-center gap-2">
+                  <Calendar size={16} className="text-orange-500" />
+                  {new Date(post.date).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </time>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                <span className="flex items-center gap-2 text-orange-600">
+                  <Clock size={16} />
+                  {post.readingTime}
+                </span>
+              </div>
+            </header>
 
-        {/* End-of-post CTA — appears on EVERY blog post */}
-        <div className="mt-16 p-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-3xl border border-orange-200">
-          <p className="text-xs uppercase tracking-widest text-orange-600 font-bold mb-2">
-            Written by a local born in Varanasi
-          </p>
-          <h3 className="text-2xl font-bold mb-3 font-heading">
-            Want the complete guide?
-          </h3>
-          <p className="text-gray-600 mb-6">
-            9 scam shields, all 84 ghats, temple etiquette, food safety,
-            2-day itinerary — everything you need to experience Varanasi
-            without getting scammed.
-          </p>
-          <div className="flex gap-4 flex-wrap">
-            <Link
-              href="/guide"
-              className="bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20"
-            >
-              Get the Guide — $10.39 →
-            </Link>
-            <Link
-              href="/book"
-              className="border border-orange-600 text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
-            >
-              Book a Boat Ride →
-            </Link>
-          </div>
-        </div>
+            {/* Post Content */}
+            <div className="bg-white rounded-[3rem] p-8 md:p-16 shadow-xl border border-slate-100 relative z-10">
+              <div className="prose prose-lg max-w-none">
+                <MDXRemote source={post.content} components={mdxComponents} />
+              </div>
+            </div>
 
-        {/* Related posts navigation */}
-        <div className="mt-8 pt-8 border-t border-gray-100">
-          <Link
-            href="/blog"
-            className="text-orange-600 hover:underline font-medium flex items-center gap-2"
-          >
-            ← Back to all Varanasi guides
-          </Link>
-        </div>
-      </main>
+            {/* Premium End-of-post CTA */}
+            <div className="mt-16 p-10 md:p-14 bg-slate-900 rounded-[3rem] border border-slate-800 relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] -ml-32 -mb-32 pointer-events-none" />
+              
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+                <div className="md:w-3/5">
+                  <p className="text-orange-500 font-bold tracking-widest uppercase text-xs mb-3 flex items-center gap-2">
+                    <span className="w-8 h-px bg-orange-500"></span> 
+                    Written by a local born in Varanasi
+                  </p>
+                  <h3 className="text-3xl md:text-4xl font-bold mb-4 font-heading text-white">
+                    Want the complete guide?
+                  </h3>
+                  <p className="text-slate-400 text-lg leading-relaxed">
+                    Don't be another tourist who pays triple. 9 scam shields, all 84 ghats, temple etiquette, and a 2-day itinerary — everything you need for a scam-free trip.
+                  </p>
+                </div>
+                <div className="md:w-2/5 flex flex-col gap-4 w-full">
+                  <Link
+                    href="/guide"
+                    className="w-full flex items-center justify-center gap-2 bg-orange-500 text-white px-6 py-4 rounded-xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:-translate-y-1"
+                  >
+                    <MapPin size={18} />
+                    Get the Guide — $10.39
+                  </Link>
+                  <Link
+                    href="/book"
+                    className="w-full flex items-center justify-center gap-2 bg-white/10 text-white px-6 py-4 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10 hover:border-white/20 backdrop-blur-sm"
+                  >
+                    <Compass size={18} />
+                    Book a Boat Ride
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Navigation */}
+            <div className="mt-12 flex justify-center">
+              <Link
+                href="/blog"
+                className="inline-flex items-center gap-2 text-slate-500 font-bold hover:text-orange-600 transition-colors uppercase tracking-widest text-sm bg-white px-6 py-3 rounded-full shadow-sm border border-slate-200 hover:border-orange-200"
+              >
+                <ArrowLeft size={16} />
+                Back to Journal
+              </Link>
+            </div>
+
+          </article>
+        </main>
+      </div>
     </>
   );
 }
