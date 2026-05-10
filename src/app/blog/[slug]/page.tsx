@@ -61,7 +61,6 @@ const mdxComponents = {
     const childrenArray = React.Children.toArray(props.children);
     const firstChild = childrenArray[0];
     
-    // Check if first child is a strong tag containing "Tip:"
     const isTip = React.isValidElement(firstChild) && 
                   firstChild.type === 'strong' && 
                   typeof firstChild.props.children === 'string' &&
@@ -84,13 +83,15 @@ const mdxComponents = {
       );
     }
     
-    return <p className="text-base md:text-lg text-slate-600 mb-8 leading-[1.8] font-normal" {...props} />;
+    return <p className="text-base md:text-lg text-slate-600 mb-8 last:mb-0 leading-[1.8] font-normal" {...props} />;
   },
-  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-none space-y-4 mb-10 ml-2" {...props} />,
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-none space-y-6 mb-12 ml-2" {...props} />,
   li: (props: React.HTMLAttributes<HTMLLIElement>) => (
-    <li className="flex gap-4 text-base md:text-lg text-slate-600 leading-[1.8] items-start">
-      <span className="text-orange-500 mt-2 text-xl">•</span>
-      <span {...props} />
+    <li className="group flex gap-4 text-base md:text-lg text-slate-600 leading-[1.8] items-start">
+      <div className="flex-shrink-0 w-2 h-2 rounded-full bg-orange-500 mt-[0.65rem] group-hover:scale-125 transition-transform duration-300 shadow-[0_0_8px_rgba(249,115,22,0.4)]" />
+      <div className="flex-grow [&>p]:mb-0 [&>p]:leading-[1.8]">
+        {props.children}
+      </div>
     </li>
   ),
   strong: (props: React.HTMLAttributes<HTMLElement>) => <strong className="font-bold text-slate-900" {...props} />,
