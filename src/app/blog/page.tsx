@@ -30,37 +30,37 @@ export default function BlogPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Header Section */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-white border border-orange-100 text-orange-600 font-bold text-[10px] tracking-[0.2em] uppercase mb-6 shadow-sm">
-            <BookOpen size={14} />
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-white border border-orange-100 text-orange-600 font-bold text-[9px] tracking-[0.2em] uppercase mb-4 shadow-sm">
+            <BookOpen size={12} />
             <span>Travel Journal</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold font-heading text-slate-900 mb-6 tracking-tight">
-            Varanasi Travel <span className="text-orange-500 font-cursive font-normal block md:inline mt-2 md:mt-0 text-6xl md:text-8xl">Guides</span>
+          <h1 className="text-4xl md:text-6xl font-bold font-heading text-slate-900 mb-4 tracking-tight">
+            Varanasi Travel <span className="text-orange-500 font-cursive font-normal block md:inline mt-1 md:mt-0 text-5xl md:text-7xl">Guides</span>
           </h1>
-          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
+          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
             Expert insights, scam-prevention, and cultural wisdom for the modern traveler.
           </p>
         </div>
 
         {/* Blog Grid */}
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto mb-24">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto mb-20">
           {posts.length > 0 ? (
             posts.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="group h-full outline-none">
-                <article className="bg-white rounded-[2rem] p-8 md:p-10 h-full border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(249,115,22,0.12)] hover:-translate-y-2 transition-all duration-500 flex flex-col relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-orange-50 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-orange-100 transition-colors duration-500" />
+                <article className="bg-white rounded-[1.5rem] p-7 md:p-9 h-full border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(249,115,22,0.1)] hover:-translate-y-1.5 transition-all duration-500 flex flex-col relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-orange-100 transition-colors duration-500" />
                   
-                  <div className="flex gap-4 text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-[0.15em] relative z-10">
-                    <span className="flex items-center gap-1.5"><Calendar size={14} className="text-orange-500/70" /> {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-                    <span className="flex items-center gap-1.5"><Clock size={14} className="text-orange-500/70" /> {post.readingTime}</span>
+                  <div className="flex gap-4 text-[9px] font-bold text-slate-400 mb-5 uppercase tracking-[0.15em] relative z-10">
+                    <span className="flex items-center gap-1.5"><Calendar size={13} className="text-orange-500/70" /> {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                    <span className="flex items-center gap-1.5"><Clock size={13} className="text-orange-500/70" /> {post.readingTime}</span>
                   </div>
                   
-                  <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4 font-heading group-hover:text-orange-600 transition-colors duration-300 leading-tight relative z-10">
+                  <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-3 font-heading group-hover:text-orange-600 transition-colors duration-300 leading-tight relative z-10">
                     {post.title}
                   </h2>
                   
-                  <p className="text-slate-600 text-lg mb-8 flex-grow leading-relaxed relative z-10">
+                  <p className="text-slate-600 text-base mb-6 flex-grow leading-relaxed relative z-10">
                     {post.description}
                   </p>
                   

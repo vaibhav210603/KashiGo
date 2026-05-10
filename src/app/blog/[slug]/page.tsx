@@ -53,13 +53,13 @@ import React from "react";
 
 // Custom MDX Components for premium typography
 const mdxComponents = {
-  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="text-4xl md:text-5xl font-bold font-heading text-slate-900 mt-12 mb-6 tracking-tight leading-tight" {...props} />,
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="text-3xl font-bold font-heading text-slate-900 mt-12 mb-6 tracking-tight flex items-center gap-3 before:content-[''] before:block before:w-2 before:h-8 before:bg-orange-500 before:rounded-full" {...props} />,
-  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="text-2xl font-bold font-heading text-slate-800 mt-8 mb-4 tracking-tight" {...props} />,
-  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => <p className="text-lg md:text-xl text-slate-600 mb-6 leading-relaxed" {...props} />,
-  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-none space-y-3 mb-8 ml-2" {...props} />,
+  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mt-10 mb-5 tracking-tight leading-tight" {...props} />,
+  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="text-2xl font-bold font-heading text-slate-900 mt-10 mb-5 tracking-tight flex items-center gap-3 before:content-[''] before:block before:w-1.5 before:h-6 before:bg-orange-500 before:rounded-full" {...props} />,
+  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="text-xl font-bold font-heading text-slate-800 mt-8 mb-4 tracking-tight" {...props} />,
+  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => <p className="text-base md:text-lg text-slate-600 mb-5 leading-relaxed" {...props} />,
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-none space-y-2.5 mb-6 ml-2" {...props} />,
   li: (props: React.HTMLAttributes<HTMLLIElement>) => (
-    <li className="flex gap-3 text-lg text-slate-600 leading-relaxed items-start">
+    <li className="flex gap-3 text-base md:text-lg text-slate-600 leading-relaxed items-start">
       <span className="text-orange-500 mt-1.5">•</span>
       <span {...props} />
     </li>
@@ -67,7 +67,7 @@ const mdxComponents = {
   strong: (props: React.HTMLAttributes<HTMLElement>) => <strong className="font-bold text-slate-900 bg-orange-50 px-1 rounded" {...props} />,
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a className="text-orange-600 hover:text-orange-700 font-semibold underline decoration-orange-200 decoration-2 underline-offset-4 hover:decoration-orange-500 transition-colors" {...props} />,
   blockquote: (props: React.HTMLAttributes<HTMLElement>) => (
-    <blockquote className="border-l-4 border-orange-500 pl-6 py-2 my-8 bg-orange-50/50 rounded-r-2xl italic text-slate-700 text-xl font-serif" {...props} />
+    <blockquote className="border-l-4 border-orange-500 pl-6 py-2 my-8 bg-orange-50/50 rounded-r-2xl italic text-slate-700 text-lg md:text-xl font-serif" {...props} />
   ),
 };
 
@@ -125,10 +125,10 @@ export default async function BlogPostPage({ params }: PageProps) {
             </nav>
 
             {/* Premium Post Header */}
-            <header className="mb-16 relative">
+            <header className="mb-12 relative">
               <div className="absolute -top-20 -left-20 w-64 h-64 bg-orange-200/40 rounded-full blur-3xl pointer-events-none" />
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-[1.1] font-heading text-slate-900 tracking-tight relative z-10">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-[1.2] font-heading text-slate-900 tracking-tight relative z-10">
                 {post.title}
               </h1>
               
