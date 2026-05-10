@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
@@ -34,14 +35,20 @@ export default function HeroSection() {
                         transition={{ duration: 0.8, ease: "easeInOut" }}
                         className="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center"
                     >
-                        <motion.img
+                        <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ duration: 0.5 }}
-                            src="/Untitled.png"
-                            alt="KashiGo Loading"
-                            className="h-40 md:h-56 w-auto object-contain mb-12 drop-shadow-2xl opacity-90"
-                        />
+                            className="relative h-40 md:h-56 w-64 mb-12"
+                        >
+                            <Image
+                                src="/Untitled.png"
+                                alt="KashiGo Loading"
+                                fill
+                                className="object-contain drop-shadow-2xl opacity-90"
+                                priority
+                            />
+                        </motion.div>
                         <div className="w-64 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                             <motion.div
                                 className="h-full bg-orange-500 rounded-full"
@@ -124,12 +131,14 @@ export default function HeroSection() {
                     initial={{ opacity: 0, x: 30, scale: 0.9 }}
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     transition={{ duration: 0.8 }}
-                    className="-mt-30 mb-4 md:mb-0 relative z-10 w-[60%] md:w-[40%] lg:w-[45%] flex justify-center md:justify-start md:-ml-12 lg:-ml-24 pointer-events-none order-1 md:order-2"
+                    className="-mt-30 mb-4 md:mb-0 relative z-10 w-[60%] md:w-[40%] lg:w-[45%] h-72 md:h-[32rem] lg:h-[42rem] flex justify-center md:justify-start md:-ml-12 lg:-ml-24 pointer-events-none order-1 md:order-2"
                 >
-                    <img
+                    <Image
                         src="/Untitled.png"
-                        alt="KashiGo logo"
-                        className="h-72 md:h-[32rem] lg:h-[42rem] w-auto object-contain drop-shadow-2xl opacity-90"
+                        alt="KashiGo - Varanasi Boat Rides logo"
+                        fill
+                        className="object-contain drop-shadow-2xl opacity-90"
+                        priority
                     />
                 </motion.div>
             </div>

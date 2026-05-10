@@ -1,15 +1,1461 @@
+# KashiGo — Bulletproof SEO Implementation Plan
+## Next.js 15 App Router | TypeScript | Tailwind CSS 4 | Framer Motion
 
+---
 
+## CONTEXT FOR AI EXECUTOR
 
+You are working on the **KashiGo** codebase at `kashigo.in`.
 
+### Tech Stack
+- Next.js 15+ (App Router)
+- TypeScript
+- Tailwind CSS 4
+- Framer Motion
+- Razorpay + PayPal (payments)
+- Nodemailer (emails)
+- Supabase (database)
 
-key : AZH2zZoIp8p5E-_4wO5wPnBZL8r0OxYtNu1eX6pjl6xMN_GyIaInlW5frraQ8Tq7a2BhKfVavI1rpI5F
+### Two Revenue Products
+1. **Boat Bookings** — Varanasi Ganga rides (sunrise, Aarti, sunset) → `/book`
+2. **Travel Guide Ebook** — Scam-free Varanasi guide for foreigners → `/guide`
+   - PDF already exists at `public/Varanasi_Travel_Guide_2026.pdf`
 
-secret : EH0JwKTIgwU5Frw19o4hHQRFF0NgmHL5ksQruMWwjmSv9KB_CIJhSuo9kvJpBeFxMFBO3DyT2bQzoe2W
+### Target Audience
+Foreign tourists visiting Varanasi (US, UK, Australia, Europe, Germany).
 
+### Current State
+- DNS verified on Google Search Console
+- Google Analytics tag active in `src/app/layout.tsx`
+- Current metadata in `src/app/layout.tsx`:
+  ```ts
+  title: "KashiGo - Varanasi Boat Rides, Made Simple."
+  description: "Book your boat in seconds. Experience sunrise, sunset, and Aarti with KashiGo."
+  ```
+- No blog exists yet
+- No schema markup exists
+- No sitemap or robots.txt
 
-replace and use live paypal credentials instead
+### Exact Project Structure
+```
+KashiGo/
+├── public/
+│   ├── VARANASi.png
+│   ├── back_video.mp4
+│   ├── ebook_video_optimized.mp4
+│   └── Varanasi_Travel_Guide_2026.pdf
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── book/
+│   │   ├── guide/
+│   │   ├── globals.css
+│   │   ├── layout.tsx          ← MODIFY
+│   │   └── page.tsx            ← MODIFY
+│   ├── components/
+│   │   ├── booking/
+│   │   ├── layout/
+│   │   └── sections/
+│   └── lib/
+│       └── emailTemplate.ts
+├── next.config.ts               ← MODIFY
+├── package.json
+└── tsconfig.json
+```
 
-also 
+### IMPORTANT RULES
+- Do NOT touch any existing payment, booking, or email logic
+- Do NOT break existing Razorpay/PayPal/Supabase integrations
+- Do NOT modify `src/app/api/` routes
+- Do NOT alter `src/lib/emailTemplate.ts`
+- All new files use TypeScript (.ts / .tsx)
+- Use Tailwind CSS 4 syntax for any new UI elements
 
-in the mobile view of the guide page, i have to scroll the screen to view the video, position it such that it appeas on the screen withtout the scroll
+---
+
+## EXECUTION ORDER
+
+Run tasks in this exact sequence. Do not skip or reorder.
+
+```
+PHASE 1 — Global Foundation
+  Task 1.1  src/app/layout.tsx          → Update metadata export
+  Task 1.2  src/app/sitemap.ts          → Create sitemap generator
+  Task 1.3  src/app/robots.ts           → Create robots config
+  Task 1.4  src/app/manifest.ts         → Create PWA manifest
+
+PHASE 2 — Page Metadata
+  Task 2.1  src/app/page.tsx            → Add homepage metadata
+  Task 2.2  src/app/guide/page.tsx      → Add guide page metadata
+  Task 2.3  src/app/book/page.tsx       → Add booking page metadata
+
+PHASE 3 — Schema Markup
+  Task 3.1  src/components/JsonLd.tsx   → Create reusable component
+  Task 3.2  src/app/page.tsx            → Add LocalBusiness schema
+  Task 3.3  src/app/guide/page.tsx      → Add Product + FAQ schema
+  Task 3.4  src/app/book/page.tsx       → Add TouristTrip schema
+
+PHASE 4 — Blog System
+  Task 4.1  Terminal                    → Install MDX dependencies
+  Task 4.2  next.config.ts              → Enable MDX support
+  Task 4.3  (directories)               → Create blog folder structure
+  Task 4.4  src/lib/blog.ts             → Blog data layer
+  Task 4.5  src/app/blog/page.tsx       → Blog index page
+  Task 4.6  src/app/blog/[slug]/page.tsx → Dynamic post page
+  Task 4.7  content/blog/*.mdx          → Create 5 blog posts
+
+PHASE 5 — Technical SEO
+  Task 5.1  next.config.ts              → Add security headers
+  Task 5.2  src/app/**                  → Image optimization audit
+  Task 5.3  (all pages)                 → Internal linking audit
+```
+
+---
+
+## PHASE 1 — GLOBAL FOUNDATION
+### Priority: CRITICAL
+
+---
+
+### Task 1.1 — Update `src/app/layout.tsx` Metadata
+
+Find the existing `export const metadata: Metadata` block and replace it entirely.
+Do NOT remove the Google Analytics script tag or any other existing code in this file.
+
+```tsx
+// src/app/layout.tsx
+// REPLACE only the metadata export — keep everything else unchanged
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://kashigo.in"),
+
+  title: {
+    default: "KashiGo — Varanasi Boat Rides & Travel Guide for Foreigners",
+    template: "%s | KashiGo Varanasi",
+  },
+
+  description:
+    "Book Varanasi boat rides for sunrise, Ganga Aarti & sunset. Get the complete scam-free Varanasi travel guide written by a local born in the city. Trusted by foreign travelers.",
+
+  keywords: [
+    "Varanasi boat ride booking",
+    "Ganga Aarti boat ride Varanasi",
+    "Varanasi travel guide foreigners",
+    "Varanasi scam free guide",
+    "Varanasi sunrise boat ride",
+    "things to do Varanasi foreigners",
+    "KashiGo Varanasi",
+    "Varanasi local guide 2026",
+    "Kashi boat ride Ganges",
+    "book boat Varanasi online",
+  ],
+
+  authors: [{ name: "KashiGo", url: "https://kashigo.in" }],
+  creator: "KashiGo",
+  publisher: "KashiGo",
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://kashigo.in",
+    siteName: "KashiGo",
+    title: "KashiGo — Varanasi Boat Rides & Travel Guide for Foreigners",
+    description:
+      "Book sunrise & Ganga Aarti boat rides in Varanasi. Get the complete local's guide — scam-free, hassle-free. Written by someone born in the city.",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "KashiGo — Varanasi Boat Rides and Travel Guide for Foreigners",
+        type: "image/jpeg",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "KashiGo — Varanasi Boat Rides & Travel Guide",
+    description:
+      "Book Varanasi boat rides. Get the scam-free local's travel guide. Written by someone born in Varanasi.",
+    images: ["/og-image.jpg"],
+  },
+
+  alternates: {
+    canonical: "https://kashigo.in",
+  },
+
+  category: "travel",
+};
+```
+
+**Also add to the `<head>` inside the root layout JSX:**
+```tsx
+// Inside <head> tag in the layout return():
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+```
+
+---
+
+### Task 1.2 — Create `src/app/sitemap.ts`
+
+Create this new file. Next.js 15 auto-serves it at `/sitemap.xml`.
+
+```ts
+// src/app/sitemap.ts
+
+import { MetadataRoute } from "next";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = "https://kashigo.in";
+  const now = new Date();
+
+  return [
+    // Core pages
+    {
+      url: baseUrl,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/guide`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/book`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+
+    // Blog posts — add each slug here as you publish
+    {
+      url: `${baseUrl}/blog/how-to-avoid-scams-in-varanasi`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog/varanasi-boat-ride-price-guide-foreigners`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/blog/is-varanasi-safe-solo-female-travelers`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/blog/ganga-aarti-varanasi-complete-guide`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/blog/first-time-varanasi-tips-foreigners`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+  ];
+}
+```
+
+---
+
+### Task 1.3 — Create `src/app/robots.ts`
+
+```ts
+// src/app/robots.ts
+
+import { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: [
+          "/api/",
+          "/admin/",
+          "/_next/",
+          "/api/payment/",
+          "/api/webhook/",
+        ],
+      },
+    ],
+    sitemap: "https://kashigo.in/sitemap.xml",
+    host: "https://kashigo.in",
+  };
+}
+```
+
+---
+
+### Task 1.4 — Create `src/app/manifest.ts`
+
+```ts
+// src/app/manifest.ts
+
+import { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "KashiGo — Varanasi Boat Rides & Travel Guide",
+    short_name: "KashiGo",
+    description:
+      "Book Varanasi boat rides instantly. Get the local scam-free travel guide.",
+    start_url: "/",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#1A3A5C",
+    theme_color: "#E8650A",
+    icons: [
+      {
+        src: "/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    categories: ["travel", "lifestyle"],
+    lang: "en",
+  };
+}
+```
+
+### Task 1.4b — OG Images Required
+
+Save these two images to `/public/`:
+- `og-image.jpg` — 1200×630px — Main site (use the split chaos/golden cover: `VARANASi.png` cropped/composed)
+- `og-guide.jpg` — 1200×630px — Guide-specific (ebook cover with price overlay)
+- `icon-192.png` — 192×192px — KashiGo logo square
+- `icon-512.png` — 512×512px — KashiGo logo square large
+
+These appear on every WhatsApp share, iMessage, Twitter card, and Facebook preview.
+
+---
+
+## PHASE 2 — PAGE-LEVEL METADATA
+### Priority: HIGH
+
+Each page gets its own `export const metadata` targeting different keywords.
+Place these exports at the TOP of each page file, before the component function.
+
+---
+
+### Task 2.1 — `src/app/page.tsx` Homepage Metadata
+
+Add this export at the top of the existing homepage file.
+Do NOT remove or alter any existing component code below it.
+
+```tsx
+// src/app/page.tsx — ADD at top, keep all existing code below
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Varanasi Boat Rides & Scam-Free Travel Guide | KashiGo",
+  description:
+    "Book sunrise, Ganga Aarti & sunset boat rides in Varanasi instantly. Also get the complete scam-free Varanasi travel guide written by a local born in the city.",
+  alternates: {
+    canonical: "https://kashigo.in",
+  },
+  openGraph: {
+    title: "KashiGo — Varanasi Boat Rides & Local Travel Guide",
+    description:
+      "Book Varanasi boat rides in seconds. Get the #1 scam-free travel guide for foreigners — written by a local born here.",
+    url: "https://kashigo.in",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+  },
+};
+```
+
+---
+
+### Task 2.2 — `src/app/guide/page.tsx` Guide Page Metadata
+
+```tsx
+// src/app/guide/page.tsx — ADD at top, keep all existing code below
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Varanasi Travel Guide for Foreigners 2026 — Scam-Free | KashiGo",
+  description:
+    "Complete Varanasi travel guide written by a local born in the city. 9 scam shields, all 84 ghats, temple etiquette, food safety, dos & don'ts, 2-day itinerary. $10.39.",
+  keywords: [
+    "Varanasi travel guide foreigners 2026",
+    "Varanasi scam guide tourists",
+    "Varanasi travel tips foreigners",
+    "Varanasi ebook guide foreigners",
+    "how to avoid scams Varanasi",
+    "Varanasi dos and donts foreigners",
+    "is Varanasi safe foreigners",
+    "Varanasi first timer guide",
+    "Varanasi local guide written by local",
+  ],
+  alternates: {
+    canonical: "https://kashigo.in/guide",
+  },
+  openGraph: {
+    title: "Varanasi Travel Guide for Foreigners 2026 — Written by a Local",
+    description:
+      "Don't get scammed in Varanasi. 9 scam shields, ghat guide, temple etiquette, food safety — written by someone born here. $10.39.",
+    url: "https://kashigo.in/guide",
+    images: [{ url: "/og-guide.jpg", width: 1200, height: 630 }],
+    type: "website",
+  },
+};
+```
+
+---
+
+### Task 2.3 — `src/app/book/page.tsx` Booking Page Metadata
+
+```tsx
+// src/app/book/page.tsx — ADD at top, keep all existing code below
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Book Varanasi Boat Ride — Sunrise, Ganga Aarti & Sunset | KashiGo",
+  description:
+    "Book your Varanasi boat ride online in seconds. Sunrise on the Ganges, Ganga Aarti evening experience, sunset cruise. Fair prices, local boatmen, instant confirmation.",
+  keywords: [
+    "Varanasi boat ride booking online",
+    "Ganga Aarti boat ride book",
+    "Varanasi sunrise boat ride price",
+    "book boat ride Varanasi foreigners",
+    "Varanasi river boat tour online",
+    "Ganges boat ride cost 2026",
+    "Varanasi Ganga boat booking",
+    "Kashi boat ride reservation",
+  ],
+  alternates: {
+    canonical: "https://kashigo.in/book",
+  },
+  openGraph: {
+    title: "Book Varanasi Boat Rides Instantly — KashiGo",
+    description:
+      "Sunrise, Ganga Aarti & sunset boat rides on the Ganges. Book online, fair prices, trusted local boatmen, instant confirmation.",
+    url: "https://kashigo.in/book",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+  },
+};
+```
+
+---
+
+## PHASE 3 — SCHEMA MARKUP (JSON-LD)
+### Priority: HIGH — Enables Google Rich Results (price, FAQ, stars)
+
+---
+
+### Task 3.1 — Create `src/components/JsonLd.tsx`
+
+```tsx
+// src/components/JsonLd.tsx
+
+type JsonLdProps = {
+  data: Record<string, unknown>;
+};
+
+export function JsonLd({ data }: JsonLdProps) {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data, null, 0) }}
+    />
+  );
+}
+```
+
+---
+
+### Task 3.2 — Add LocalBusiness Schema to `src/app/page.tsx`
+
+Import JsonLd and add inside the homepage component JSX return.
+Place it as the very first element inside the outermost wrapper div.
+
+```tsx
+import { JsonLd } from "@/components/JsonLd";
+
+// Inside the homepage component return():
+<JsonLd data={{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "KashiGo",
+  "description": "Varanasi boat ride bookings and scam-free travel guide for foreign tourists visiting Varanasi, India",
+  "url": "https://kashigo.in",
+  "logo": "https://kashigo.in/icon-512.png",
+  "image": "https://kashigo.in/og-image.jpg",
+  "priceRange": "$$",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Varanasi",
+    "addressRegion": "Uttar Pradesh",
+    "postalCode": "221001",
+    "addressCountry": "IN"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 25.3176,
+    "longitude": 82.9739
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "email": "info.kashigo@gmail.com",
+    "availableLanguage": ["English", "Hindi"]
+  },
+  "openingHoursSpecification": {
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+    "opens": "04:00",
+    "closes": "21:00"
+  },
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "KashiGo Services",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Varanasi Sunrise Boat Ride",
+          "description": "Private boat ride on the Ganges at sunrise — watch Varanasi awaken"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Ganga Aarti Boat Ride",
+          "description": "Evening Ganga Aarti experience from a floating boat — panoramic view of the fire ceremony"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "Varanasi Travel Guide for Foreigners 2026",
+          "description": "Complete scam-free Varanasi guide for international visitors"
+        }
+      }
+    ]
+  }
+}} />
+```
+
+---
+
+### Task 3.3 — Add Product + FAQ Schema to `src/app/guide/page.tsx`
+
+Import JsonLd and add TWO schema blocks inside the guide component return().
+
+**Block 1 — Product Schema (shows price in Google search results):**
+```tsx
+import { JsonLd } from "@/components/JsonLd";
+
+<JsonLd data={{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Varanasi Travel Guide for Foreigners 2026",
+  "description": "Complete scam-free Varanasi travel guide written by a local born in the city. Covers 9 scam shields, all 84 ghats, temple etiquette, food safety, dos and don'ts, 2-day itinerary.",
+  "image": "https://kashigo.in/og-guide.jpg",
+  "sku": "KASHI-GUIDE-2026",
+  "brand": {
+    "@type": "Brand",
+    "name": "KashiGo"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "KashiGo",
+    "url": "https://kashigo.in"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "KashiGo",
+    "url": "https://kashigo.in"
+  },
+  "inLanguage": "en",
+  "offers": {
+    "@type": "Offer",
+    "url": "https://kashigo.in/guide",
+    "priceCurrency": "USD",
+    "price": "10.39",
+    "priceValidUntil": "2026-12-31",
+    "availability": "https://schema.org/InStock",
+    "itemCondition": "https://schema.org/NewCondition",
+    "seller": {
+      "@type": "Organization",
+      "name": "KashiGo"
+    }
+  }
+  // IMPORTANT: Add this block once you have real reviews:
+  // "aggregateRating": {
+  //   "@type": "AggregateRating",
+  //   "ratingValue": "4.9",
+  //   "reviewCount": "24",
+  //   "bestRating": "5",
+  //   "worstRating": "1"
+  // }
+}} />
+```
+
+**Block 2 — FAQ Schema (shows Q&A answers directly in Google search):**
+```tsx
+<JsonLd data={{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is Varanasi safe for foreign tourists?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Varanasi is generally safe but has a high concentration of tourist scams including fake guides, boat ride pricing inflation, fake holy men demanding payment, and ATM skimming. The KashiGo Varanasi Travel Guide covers all 9 major scams with exact scripts to avoid them."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the price for a boat ride in Varanasi?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A private boat for 2-6 people costs INR 600-1,500 for 1.5-2 hours. Shared public boats cost INR 30-100 per person. Always fix the price before boarding — foreigners are routinely overcharged. Book through KashiGo for guaranteed fair pricing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What time is the Ganga Aarti in Varanasi?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Ganga Aarti at Dashashwamedh Ghat starts at approximately 6:00-7:30 PM and shifts seasonally. Arrive by 5:30 PM for a standing spot, or book a KashiGo boat for the best floating panoramic view."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are the biggest scams in Varanasi for foreigners?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The 9 major scams are: fake guide commission trips, boat ride price inflation on water, fake holy man blessings, wood donation scams at Manikarnika Ghat, silk shop commission traps, taxi overcharging, fake government tourist offices, stranded traveler stories, and ATM skimming. The KashiGo guide covers all of them."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need a guide in Varanasi as a foreigner?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not mandatory but strongly recommended for first-timers. The narrow galis are disorienting and cultural context is much richer with local knowledge. The KashiGo Varanasi guide gives you everything a local guide would tell you — for $10.39."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the best time to visit Varanasi?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "October to February is the best time to visit Varanasi — cool weather (10-25°C), peak festival season including Dev Deepawali, and the most atmospheric ghat experience. Avoid July-September (monsoon, possible flooding)."
+      }
+    }
+  ]
+}} />
+```
+
+---
+
+### Task 3.4 — Add TouristTrip Schema to `src/app/book/page.tsx`
+
+```tsx
+import { JsonLd } from "@/components/JsonLd";
+
+<JsonLd data={{
+  "@context": "https://schema.org",
+  "@type": "TouristTrip",
+  "name": "Varanasi Boat Rides — Sunrise, Ganga Aarti & Sunset",
+  "description": "Book private boat rides on the Ganges River in Varanasi. Sunrise, Ganga Aarti evening ceremony, and sunset experiences available.",
+  "image": "https://kashigo.in/og-image.jpg",
+  "url": "https://kashigo.in/book",
+  "provider": {
+    "@type": "LocalBusiness",
+    "name": "KashiGo",
+    "url": "https://kashigo.in",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Varanasi",
+      "addressCountry": "IN"
+    }
+  },
+  "touristType": ["Foreign tourists", "Solo travelers", "Backpackers", "Spiritual travelers"],
+  "itinerary": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Sunrise boat ride — watch Varanasi awaken on the Ganges"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Ganga Aarti boat ride — floating front-row view of the fire ceremony"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Sunset cruise — golden hour on the Ganges"
+      }
+    ]
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "INR",
+    "lowPrice": "600",
+    "highPrice": "2000",
+    "availability": "https://schema.org/InStock"
+  }
+}} />
+```
+
+---
+
+## PHASE 4 — BLOG SYSTEM
+### Priority: HIGH — Primary long-term organic traffic driver
+
+---
+
+### Task 4.1 — Install Dependencies
+
+Run in the project terminal:
+```bash
+npm install gray-matter reading-time next-mdx-remote
+npm install -D @types/mdx
+```
+
+Note: Do NOT install `@next/mdx` — we use `next-mdx-remote` for the content directory approach which is cleaner with App Router.
+
+---
+
+### Task 4.2 — Update `next.config.ts`
+
+Open `next.config.ts` and add the `images` and `headers` config.
+Do NOT remove any existing configuration in this file.
+
+```ts
+// next.config.ts
+// ADD these to the existing NextConfig object
+
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // ... keep all existing config ...
+
+  // ADD: Image optimization for external sources if needed
+  images: {
+    formats: ["image/avif", "image/webp"],
+    // add any existing domains here
+  },
+
+  // ADD: Security + SEO headers
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            // Cache static assets aggressively — good for Core Web Vitals
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        // Don't cache HTML pages — always fresh
+        source: "/:path*.html",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
+```
+
+---
+
+### Task 4.3 — Create Blog Directory Structure
+
+Create these directories and empty placeholder files:
+
+```
+content/              ← CREATE at root level (same level as src/)
+  blog/
+    how-to-avoid-scams-in-varanasi.mdx
+    varanasi-boat-ride-price-guide-foreigners.mdx
+    is-varanasi-safe-solo-female-travelers.mdx
+    ganga-aarti-varanasi-complete-guide.mdx
+    first-time-varanasi-tips-foreigners.mdx
+
+src/app/
+  blog/               ← CREATE inside src/app/
+    page.tsx
+    [slug]/
+      page.tsx
+```
+
+---
+
+### Task 4.4 — Create `src/lib/blog.ts`
+
+```ts
+// src/lib/blog.ts
+
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
+import readingTime from "reading-time";
+
+const BLOG_DIR = path.join(process.cwd(), "content", "blog");
+
+export interface BlogPost {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  readingTime: string;
+  keywords: string[];
+  content: string;
+}
+
+export function getAllPosts(): BlogPost[] {
+  if (!fs.existsSync(BLOG_DIR)) return [];
+
+  const files = fs.readdirSync(BLOG_DIR);
+  return files
+    .filter((f) => f.endsWith(".mdx"))
+    .map((filename) => {
+      const slug = filename.replace(".mdx", "");
+      const raw = fs.readFileSync(path.join(BLOG_DIR, filename), "utf-8");
+      const { data, content } = matter(raw);
+      return {
+        slug,
+        title: data.title as string,
+        description: data.description as string,
+        date: data.date as string,
+        readingTime: readingTime(content).text,
+        keywords: (data.keywords as string[]) || [],
+        content,
+      };
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+export function getPostBySlug(slug: string): BlogPost | null {
+  const filePath = path.join(BLOG_DIR, `${slug}.mdx`);
+  if (!fs.existsSync(filePath)) return null;
+
+  const raw = fs.readFileSync(filePath, "utf-8");
+  const { data, content } = matter(raw);
+  return {
+    slug,
+    title: data.title as string,
+    description: data.description as string,
+    date: data.date as string,
+    readingTime: readingTime(content).text,
+    keywords: (data.keywords as string[]) || [],
+    content,
+  };
+}
+```
+
+---
+
+### Task 4.5 — Create `src/app/blog/page.tsx`
+
+```tsx
+// src/app/blog/page.tsx
+
+import type { Metadata } from "next";
+import Link from "next/link";
+import { getAllPosts } from "@/lib/blog";
+
+export const metadata: Metadata = {
+  title: "Varanasi Travel Tips & Local Guides | KashiGo Blog",
+  description:
+    "Free travel guides for foreigners visiting Varanasi. Scam alerts, ghat tips, boat ride pricing, temple etiquette — written by a local born in the city.",
+  alternates: {
+    canonical: "https://kashigo.in/blog",
+  },
+  openGraph: {
+    title: "Varanasi Travel Tips & Local Guides | KashiGo Blog",
+    description:
+      "Free Varanasi guides for foreigners — scam shields, boat prices, ghat tips. Written by a local.",
+    url: "https://kashigo.in/blog",
+  },
+};
+
+export default function BlogPage() {
+  const posts = getAllPosts();
+
+  return (
+    <main className="max-w-4xl mx-auto px-4 py-16">
+      <h1 className="text-4xl font-bold mb-4">Varanasi Travel Guides</h1>
+      <p className="text-lg text-gray-600 mb-12">
+        Written by a local. For foreigners visiting Varanasi.
+      </p>
+
+      <div className="grid gap-8">
+        {posts.map((post) => (
+          <article key={post.slug} className="border-b pb-8">
+            <Link href={`/blog/${post.slug}`}>
+              <h2 className="text-2xl font-semibold hover:text-orange-600 transition-colors mb-2">
+                {post.title}
+              </h2>
+            </Link>
+            <p className="text-gray-600 mb-3">{post.description}</p>
+            <div className="flex gap-4 text-sm text-gray-400">
+              <span>{new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
+              <span>·</span>
+              <span>{post.readingTime}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {/* Internal links to products */}
+      <div className="mt-16 p-8 bg-orange-50 rounded-2xl">
+        <h3 className="text-xl font-bold mb-2">Ready to visit Varanasi?</h3>
+        <p className="text-gray-600 mb-4">
+          Get the complete local's guide or book your boat ride.
+        </p>
+        <div className="flex gap-4 flex-wrap">
+          <Link
+            href="/guide"
+            className="bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+          >
+            Get the Travel Guide — $10.39
+          </Link>
+          <Link
+            href="/book"
+            className="border border-orange-600 text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
+          >
+            Book a Boat Ride
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
+```
+
+---
+
+### Task 4.6 — Create `src/app/blog/[slug]/page.tsx`
+
+```tsx
+// src/app/blog/[slug]/page.tsx
+
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { getAllPosts, getPostBySlug } from "@/lib/blog";
+import { JsonLd } from "@/components/JsonLd";
+import { MDXRemote } from "next-mdx-remote/rsc";
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const posts = getAllPosts();
+  return posts.map((post) => ({ slug: post.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
+  if (!post) return {};
+
+  return {
+    title: post.title,
+    description: post.description,
+    keywords: post.keywords,
+    alternates: {
+      canonical: `https://kashigo.in/blog/${post.slug}`,
+    },
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      url: `https://kashigo.in/blog/${post.slug}`,
+      type: "article",
+      publishedTime: post.date,
+      authors: ["KashiGo"],
+      images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
+      images: ["/og-image.jpg"],
+    },
+  };
+}
+
+export default async function BlogPostPage({ params }: PageProps) {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
+  if (!post) notFound();
+
+  return (
+    <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          description: post.description,
+          author: {
+            "@type": "Person",
+            name: "KashiGo",
+            url: "https://kashigo.in",
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "KashiGo",
+            url: "https://kashigo.in",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://kashigo.in/icon-512.png",
+            },
+          },
+          datePublished: post.date,
+          dateModified: post.date,
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": `https://kashigo.in/blog/${post.slug}`,
+          },
+          image: "https://kashigo.in/og-image.jpg",
+        }}
+      />
+
+      <main className="max-w-3xl mx-auto px-4 py-16">
+        {/* Breadcrumb */}
+        <nav className="text-sm text-gray-400 mb-8">
+          <Link href="/" className="hover:text-orange-600">Home</Link>
+          {" / "}
+          <Link href="/blog" className="hover:text-orange-600">Blog</Link>
+          {" / "}
+          <span>{post.title}</span>
+        </nav>
+
+        {/* Post Header */}
+        <header className="mb-10">
+          <h1 className="text-4xl font-bold mb-4 leading-tight">
+            {post.title}
+          </h1>
+          <div className="flex gap-4 text-sm text-gray-400">
+            <span>By KashiGo — Local Varanasi Guide</span>
+            <span>·</span>
+            <time dateTime={post.date}>
+              {new Date(post.date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </time>
+            <span>·</span>
+            <span>{post.readingTime}</span>
+          </div>
+        </header>
+
+        {/* Post Content */}
+        <article className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-orange-600">
+          <MDXRemote source={post.content} />
+        </article>
+
+        {/* End-of-post CTA — appears on EVERY blog post */}
+        <div className="mt-16 p-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl border border-orange-200">
+          <p className="text-xs uppercase tracking-widest text-orange-600 font-semibold mb-2">
+            Written by a local born in Varanasi
+          </p>
+          <h3 className="text-2xl font-bold mb-3">
+            Want the complete guide?
+          </h3>
+          <p className="text-gray-600 mb-6">
+            9 scam shields, all 84 ghats, temple etiquette, food safety,
+            2-day itinerary — everything you need to experience Varanasi
+            without getting scammed.
+          </p>
+          <div className="flex gap-4 flex-wrap">
+            <Link
+              href="/guide"
+              className="bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+            >
+              Get the Guide — $10.39 →
+            </Link>
+            <Link
+              href="/book"
+              className="border border-orange-600 text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
+            >
+              Book a Boat Ride →
+            </Link>
+          </div>
+        </div>
+
+        {/* Related posts navigation */}
+        <div className="mt-8 pt-8 border-t">
+          <Link
+            href="/blog"
+            className="text-orange-600 hover:underline font-medium"
+          >
+            ← Back to all Varanasi guides
+          </Link>
+        </div>
+      </main>
+    </>
+  );
+}
+```
+
+---
+
+### Task 4.7 — Create 5 Blog Post MDX Files
+
+Create each file in `content/blog/`. Write 800-1,000 words of genuine,
+first-person local content for each. The frontmatter is fixed — the body
+content should be written naturally from the perspective of a Varanasi local.
+Every post must end with a CTA paragraph before the file ends.
+
+---
+
+**`content/blog/how-to-avoid-scams-in-varanasi.mdx`**
+```mdx
+---
+title: "How to Avoid Scams in Varanasi — A Local's Honest Guide (2026)"
+description: "Born and raised in Varanasi, I've watched foreigners get scammed for years. Here are the 9 scams you will face and exactly how to avoid every one of them."
+date: "2026-05-10"
+keywords:
+  - how to avoid scams in varanasi
+  - varanasi scams foreigners 2026
+  - varanasi tourist scams
+  - is varanasi safe for tourists
+  - varanasi fake guides
+  - varanasi boat ride scam
+  - varanasi burning ghat scam
+---
+
+[WRITE 800-1000 words here covering all 9 scams from a first-person local perspective]
+
+---
+
+The complete KashiGo Varanasi Guide covers all 9 scams with exact word-for-word
+scripts to shut down every approach. [Get it here for $10.39](/guide) —
+or [book your boat ride directly with us](/book) so pricing is already handled.
+```
+
+---
+
+**`content/blog/varanasi-boat-ride-price-guide-foreigners.mdx`**
+```mdx
+---
+title: "Varanasi Boat Ride Price Guide for Foreigners 2026 — What to Actually Pay"
+description: "Exact prices foreigners should pay for boat rides in Varanasi in 2026. Shared boats, private boats, sunrise vs Aarti vs sunset — from a local who knows the real rates."
+date: "2026-05-10"
+keywords:
+  - varanasi boat ride price foreigners
+  - ganga boat ride cost 2026
+  - varanasi sunrise boat ride price
+  - private boat varanasi cost
+  - varanasi ganga aarti boat price
+  - varanasi boat scam price
+---
+
+[WRITE 800-1000 words covering all boat ride types, exact prices, negotiation tips,
+and how to know if you're being scammed on pricing]
+
+---
+
+Skip the price negotiation entirely — [book your boat ride through KashiGo](/book)
+and pay a guaranteed fair price. Or grab [the full Varanasi guide](/guide)
+for every other price you'll need to know in the city.
+```
+
+---
+
+**`content/blog/is-varanasi-safe-solo-female-travelers.mdx`**
+```mdx
+---
+title: "Is Varanasi Safe for Solo Female Travelers? Honest Answer (2026)"
+description: "Varanasi is manageable for solo female travelers if you know what's actually dangerous vs overhyped. Honest advice from a local who's seen both sides."
+date: "2026-05-10"
+keywords:
+  - is varanasi safe for solo female travelers
+  - varanasi solo female travel tips
+  - varanasi women safety 2026
+  - solo travel varanasi guide
+  - varanasi safety tips foreigners female
+---
+
+[WRITE 800-1000 words covering: neighborhoods to stay in, ghat safety at night,
+appropriate dress code, transport safety, who to trust, emergency numbers]
+
+---
+
+The [KashiGo Varanasi Guide](/guide) has a full safety section written specifically
+for solo travelers and women visiting Varanasi. [Book your boat ride with us](/book)
+and skip the negotiation entirely.
+```
+
+---
+
+**`content/blog/ganga-aarti-varanasi-complete-guide.mdx`**
+```mdx
+---
+title: "Ganga Aarti Varanasi — Complete Guide for Foreigners (2026)"
+description: "What time it starts, where to watch from, how to get the best view, boat vs ghat steps vs rooftop — everything foreigners need to know about the Ganga Aarti."
+date: "2026-05-10"
+keywords:
+  - ganga aarti varanasi time 2026
+  - ganga aarti varanasi guide foreigners
+  - dashashwamedh ghat aarti time
+  - varanasi aarti boat ride view
+  - ganga aarti what to expect foreigners
+  - how to watch ganga aarti varanasi
+---
+
+[WRITE 800-1000 words covering: exact timing (seasonal variations), 3 viewing options
+(ghat steps / boat / rooftop), photography tips, what to expect, what not to do]
+
+---
+
+[Book a KashiGo Aarti boat ride](/book) for the best floating view of the ceremony —
+or get the [full Varanasi guide](/guide) which covers everything you'll need
+before and during your entire trip.
+```
+
+---
+
+**`content/blog/first-time-varanasi-tips-foreigners.mdx`**
+```mdx
+---
+title: "First Time in Varanasi? 12 Things Nobody Tells Foreigners (2026)"
+description: "The honest things travel blogs don't say — from navigating the galis to the burning ghats to what to do when everyone approaches you. A local's first-timer guide."
+date: "2026-05-10"
+keywords:
+  - first time varanasi tips foreigners
+  - varanasi first time visitor guide 2026
+  - what to know before visiting varanasi
+  - varanasi tips western tourists
+  - varanasi hidden tips locals know
+  - varanasi first time what to expect
+---
+
+[WRITE 800-1000 words covering: gali navigation, what to eat first, what shocks
+people, how to handle touts, what not to photograph, morning vs evening rhythm,
+what to wear, how to get around, the burning ghat etiquette]
+
+---
+
+Everything in this post and much more is in the [KashiGo Varanasi Travel Guide](/guide) —
+the complete resource for foreigners visiting Varanasi for the first time.
+While you're here, [book your sunrise boat ride](/book) — it's the single
+experience that makes Varanasi unforgettable.
+```
+
+---
+
+## PHASE 5 — TECHNICAL SEO
+### Priority: MEDIUM
+
+---
+
+### Task 5.1 — Image Optimization Audit
+
+Search across all files in `src/` for any `<img` tags.
+Replace each with Next.js `<Image>` with keyword-rich alt text:
+
+```tsx
+// BEFORE (anywhere in src/):
+<img src="/VARANASi.png" alt="Varanasi" />
+
+// AFTER:
+import Image from "next/image";
+<Image
+  src="/VARANASi.png"
+  alt="Varanasi ghats at sunrise — KashiGo travel guide for foreigners"
+  width={1200}
+  height={800}
+  priority // only for above-the-fold / hero images
+  className="..." // keep existing className
+/>
+```
+
+**Alt text rules for every image:**
+- Hero images: include "Varanasi" + context + "KashiGo"
+- Boat images: include "Varanasi boat ride" or "Ganga boat"
+- Ghat images: include ghat name + "Varanasi"
+- Aarti images: include "Ganga Aarti Varanasi"
+
+---
+
+### Task 5.2 — Internal Linking Audit
+
+Check all existing pages and add these links where missing:
+
+| From Page | Add Link To | Anchor Text |
+|-----------|-------------|-------------|
+| `src/app/page.tsx` | `/guide` | "Get the Scam-Free Travel Guide" |
+| `src/app/page.tsx` | `/book` | "Book a Boat Ride" |
+| `src/app/page.tsx` | `/blog` | "Read Free Travel Tips" |
+| `src/app/guide/page.tsx` | `/book` | "Book your boat ride" |
+| `src/app/guide/page.tsx` | `/blog` | "Read our free guides" |
+| `src/app/book/page.tsx` | `/guide` | "Get the full travel guide" |
+
+---
+
+## PHASE 6 — POST-DEPLOYMENT MANUAL ACTIONS
+### Do these yourself after pushing to production
+
+1. **Google Search Console**
+   - Go to: search.google.com/search-console
+   - Sitemaps → Add → `https://kashigo.in/sitemap.xml` → Submit
+   - URL Inspection → `https://kashigo.in` → Request Indexing
+   - URL Inspection → `https://kashigo.in/guide` → Request Indexing
+   - URL Inspection → `https://kashigo.in/book` → Request Indexing
+   - URL Inspection → each blog post URL → Request Indexing
+
+2. **Rich Results Test**
+   - Go to: search.google.com/test/rich-results
+   - Test `https://kashigo.in/guide` → should show Product + FAQ rich results
+   - Test `https://kashigo.in` → should show LocalBusiness rich result
+
+3. **PageSpeed Insights**
+   - Go to: pagespeed.web.dev
+   - Test homepage → target 90+ on mobile
+   - Fix any flagged issues (usually image sizes or render-blocking resources)
+
+4. **Verify sitemap**
+   - Visit `https://kashigo.in/sitemap.xml` in browser
+   - Should show XML with all your URLs listed
+
+5. **Verify robots**
+   - Visit `https://kashigo.in/robots.txt` in browser
+   - Should show allow/disallow rules and sitemap URL
+
+---
+
+## COMPLETE FILE CHANGE SUMMARY
+
+| Action | File |
+|--------|------|
+| MODIFY | `src/app/layout.tsx` |
+| CREATE | `src/app/sitemap.ts` |
+| CREATE | `src/app/robots.ts` |
+| CREATE | `src/app/manifest.ts` |
+| MODIFY | `src/app/page.tsx` |
+| MODIFY | `src/app/guide/page.tsx` |
+| MODIFY | `src/app/book/page.tsx` |
+| CREATE | `src/components/JsonLd.tsx` |
+| MODIFY | `next.config.ts` |
+| CREATE | `src/lib/blog.ts` |
+| CREATE | `src/app/blog/page.tsx` |
+| CREATE | `src/app/blog/[slug]/page.tsx` |
+| CREATE | `content/blog/how-to-avoid-scams-in-varanasi.mdx` |
+| CREATE | `content/blog/varanasi-boat-ride-price-guide-foreigners.mdx` |
+| CREATE | `content/blog/is-varanasi-safe-solo-female-travelers.mdx` |
+| CREATE | `content/blog/ganga-aarti-varanasi-complete-guide.mdx` |
+| CREATE | `content/blog/first-time-varanasi-tips-foreigners.mdx` |
+| ADD TO PUBLIC | `og-image.jpg`, `og-guide.jpg`, `icon-192.png`, `icon-512.png` |
+
+---
+
+## KEYWORD TARGETS SUMMARY
+
+### Boat Bookings (`/book`)
+- varanasi boat ride booking online
+- ganga aarti boat ride varanasi
+- varanasi sunrise boat ride price 2026
+- book private boat varanasi ganges
+
+### Travel Guide (`/guide`)
+- varanasi travel guide foreigners 2026
+- how to avoid scams varanasi
+- varanasi scam free guide tourists
+- varanasi dos and donts foreigners
+
+### Blog Long-tail (highest conversion, least competition)
+- how to avoid scams in varanasi
+- varanasi boat ride price foreigners
+- is varanasi safe solo female traveler
+- ganga aarti varanasi time what to expect
+- first time varanasi tips foreigners
+
+---
+
+## EXPECTED RESULTS TIMELINE
+
+| Timeline | What Happens |
+|----------|--------------|
+| Day 1–3 | sitemap.xml and robots.txt live, submitted to Search Console |
+| Week 1–2 | All pages indexed by Google |
+| Week 2–3 | Product schema shows price in search results for `/guide` |
+| Week 2–3 | FAQ schema shows Q&A answers directly in Google results |
+| Month 1–2 | Blog posts appear in long-tail keyword searches |
+| Month 2–3 | First consistent daily organic traffic from blog |
+| Month 3–6 | Page 1 rankings for multiple long-tail keywords |
+| Month 6+ | Compounding — each new blog post feeds authority to all others |

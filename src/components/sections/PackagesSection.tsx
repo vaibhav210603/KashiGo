@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export default function PackagesSection() {
     const packages = [
@@ -44,15 +45,20 @@ export default function PackagesSection() {
 
                 <div className="grid md:grid-cols-3 gap-8">
                     {packages.map((pkg, idx) => (
-                        <div key={idx} className={`relative rounded-2xl overflow-hidden bg-white shadow-lg transition-transform hover:-translate-y-2 ${pkg.featured ? 'ring-2 ring-orange-500 shadow-orange-100' : ''}`}>
+                        <div key={idx} className={`relative group rounded-2xl overflow-hidden bg-white shadow-lg transition-transform hover:-translate-y-2 ${pkg.featured ? 'ring-2 ring-orange-500 shadow-orange-100' : ''}`}>
                             {pkg.featured && (
                                 <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10">
                                     MOST POPULAR
                                 </div>
                             )}
-                            <div className="h-56 relative w-full bg-slate-200">
-                                <img src={pkg.image} alt={pkg.title} className="w-full h-full object-cover" />
-                                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold text-slate-800">
+                            <div className="relative h-64 overflow-hidden">
+                                <Image 
+                                    src={pkg.image} 
+                                    alt={`KashiGo Package: ${pkg.title} boat ride in Varanasi`} 
+                                    fill
+                                    className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                                />
+                                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold text-slate-800 z-10">
                                     {pkg.time}
                                 </div>
                             </div>

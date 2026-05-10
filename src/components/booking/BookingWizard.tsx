@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { ChevronRight, ChevronLeft, Check, Anchor, Clock, Users, Sun, Moon, Map, Compass, Package, Sparkles, CalendarDays } from "lucide-react";
 
@@ -332,7 +333,12 @@ export default function BookingWizard() {
                                                 className={`cursor-pointer w-full h-32 md:h-52 rounded-[1.5rem] p-5 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${isSelected ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-white" : ""}`}
                                             >
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10 z-10 opacity-80" />
-                                                <img src={timeOption.img} alt={timeOption.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" />
+                                                <Image 
+                                                    src={timeOption.img} 
+                                                    alt={`Varanasi boat ride at ${timeOption.label}`} 
+                                                    fill
+                                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" 
+                                                />
 
                                                 <div className="relative z-20 text-white translate-y-[10px] transition-transform duration-500 group-hover:translate-y-0">
                                                     <div className="flex items-center space-x-3 mb-[2px]">
@@ -418,7 +424,12 @@ export default function BookingWizard() {
                                                     className={`cursor-pointer w-full h-48 md:h-72 rounded-[1.5rem] p-6 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${isSelected ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-white" : ""}`}
                                                 >
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10 z-10 opacity-80" />
-                                                    <img src={pkg.imgSrc} alt={pkg.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" />
+                                                    <Image 
+                                                        src={pkg.imgSrc} 
+                                                        alt={`KashiGo Package: ${pkg.name}`} 
+                                                        fill
+                                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" 
+                                                    />
 
                                                     {/* Time Badge */}
                                                     <div className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10">
@@ -503,7 +514,12 @@ export default function BookingWizard() {
                                                     className={`cursor-pointer w-full h-40 md:h-64 rounded-[1.5rem] p-6 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${formData.customDetails.tripType === "round" ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-white" : ""}`}
                                                 >
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10 z-10 opacity-80" />
-                                                    <img src="/round_bg.png" alt="Round About Trip" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" />
+                                                    <Image 
+                                                        src="/round_bg.png" 
+                                                        alt="Round Trip Varanasi boat ride" 
+                                                        fill
+                                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" 
+                                                    />
 
                                                     <div className="relative z-20 text-white translate-y-2 transition-transform duration-500 group-hover:translate-y-0">
                                                         <h3 className="text-xl font-heading font-bold mb-2">Round About</h3>
@@ -539,7 +555,12 @@ export default function BookingWizard() {
                                                     className={`cursor-pointer w-full h-40 md:h-64 rounded-[1.5rem] p-6 flex flex-col justify-end relative shadow-xl transition-colors duration-150 transform-gpu overflow-hidden border border-white/10 ${formData.customDetails.tripType === "single" ? "ring-2 ring-slate-800 ring-offset-2 ring-offset-white" : ""}`}
                                                 >
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10 z-10 opacity-80" />
-                                                    <img src="/single_bg.png" alt="Single Way Trip" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" />
+                                                    <Image 
+                                                        src="/single_bg.png" 
+                                                        alt="One-way Varanasi boat ride" 
+                                                        fill
+                                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] ease-linear hover:scale-110" 
+                                                    />
 
                                                     <div className="relative z-20 text-white translate-y-2 transition-transform duration-500 group-hover:translate-y-0">
                                                         <h3 className="text-xl font-heading font-bold mb-2">Single Way</h3>

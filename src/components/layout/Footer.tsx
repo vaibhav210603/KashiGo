@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
     return (
@@ -7,7 +8,13 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="col-span-1 md:col-span-2">
                         <Link href="/" className="flex items-center gap-3 mb-4">
-                            <img src="/KashiGo.png" alt="KashiGo" className="h-10 w-auto object-contain" />
+                            <Image 
+                                src="/KashiGo.png" 
+                                alt="KashiGo - Varanasi Boat Rides & Travel Guide" 
+                                width={160} 
+                                height={40} 
+                                className="h-10 w-auto object-contain" 
+                            />
                             <span className="tracking-tighter text-white">
                                 <span className="font-cursive text-4xl text-orange-500 font-bold pr-1">Kashi</span>
                                 <span className="font-heading font-bold text-2xl">Go</span>

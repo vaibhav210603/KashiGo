@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
 
 export default function AboutSection() {
     const containerRef = useRef<HTMLElement>(null);
@@ -22,13 +23,15 @@ export default function AboutSection() {
 
             {/* Scroll Animated Clouds */}
             <motion.div
+                initial={{ x: "0%" }}
                 style={{ x: cloudsX }}
-                className="absolute top-12 left-0 w-full md:w-[150%] max-w-none h-auto z-0 pointer-events-none opacity-40 mix-blend-multiply"
+                className="absolute top-12 left-0 w-full md:w-[150%] h-[300px] z-0 pointer-events-none opacity-40 mix-blend-multiply"
             >
-                <img
+                <Image
                     src="/clouds_white_bg.png"
-                    alt="Clouds"
-                    className="w-full h-auto object-cover"
+                    alt="Stylized clouds over Varanasi"
+                    fill
+                    className="object-cover"
                 />
             </motion.div>
 
@@ -61,7 +64,15 @@ export default function AboutSection() {
                     <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
                         {/* About Us Video/GiF */}
                         <div className="absolute inset-0 bg-slate-200">
-                            <img src="/gif1.gif" alt="Varanasi Ghats" className="w-full h-full object-cover" />
+                        <div className="relative w-full h-full overflow-hidden rounded-3xl">
+                            <Image 
+                                src="/gif1.gif" 
+                                alt="Varanasi Ghats at golden hour" 
+                                fill
+                                className="object-cover" 
+                                unoptimized
+                            />
+                        </div>
                         </div>
                     </div>
                 </div>

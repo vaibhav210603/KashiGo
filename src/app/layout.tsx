@@ -35,8 +35,77 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "KashiGo - Varanasi Boat Rides, Made Simple.",
-  description: "Book your boat in seconds. Experience sunrise, sunset, and Aarti with KashiGo.",
+  metadataBase: new URL("https://kashigo.in"),
+
+  title: {
+    default: "KashiGo — Varanasi Boat Rides & Travel Guide for Foreigners",
+    template: "%s | KashiGo Varanasi",
+  },
+
+  description:
+    "Book Varanasi boat rides for sunrise, Ganga Aarti & sunset. Get the complete scam-free Varanasi travel guide written by a local born in the city. Trusted by foreign travelers.",
+
+  keywords: [
+    "Varanasi boat ride booking",
+    "Ganga Aarti boat ride Varanasi",
+    "Varanasi travel guide foreigners",
+    "Varanasi scam free guide",
+    "Varanasi sunrise boat ride",
+    "things to do Varanasi foreigners",
+    "KashiGo Varanasi",
+    "Varanasi local guide 2026",
+    "Kashi boat ride Ganges",
+    "book boat Varanasi online",
+  ],
+
+  authors: [{ name: "KashiGo", url: "https://kashigo.in" }],
+  creator: "KashiGo",
+  publisher: "KashiGo",
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://kashigo.in",
+    siteName: "KashiGo",
+    title: "KashiGo — Varanasi Boat Rides & Travel Guide",
+    description:
+      "Book Varanasi boat rides. Get the scam-free local's travel guide. Written by someone born in Varanasi.",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "KashiGo — Varanasi Boat Rides and Travel Guide for Foreigners",
+        type: "image/jpeg",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "KashiGo — Varanasi Boat Rides & Travel Guide",
+    description:
+      "Book Varanasi boat rides. Get the scam-free local's travel guide. Written by someone born in Varanasi.",
+    images: ["/og-image.jpg"],
+  },
+
+  alternates: {
+    canonical: "https://kashigo.in",
+  },
+
+  category: "travel",
 };
 
 export default function RootLayout({
@@ -47,6 +116,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-FERJSDDQ3J"
           strategy="afterInteractive"

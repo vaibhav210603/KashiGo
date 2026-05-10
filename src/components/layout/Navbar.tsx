@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -35,13 +36,20 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
-            <img src="/Untitled.png" alt="KashiGo" className="h-10 w-auto object-contain" />
-            <span className={`tracking-tighter ${isScrolled ? "text-slate-900" : "text-white"}`}>
-              <span className="font-cursive text-4xl text-orange-500 font-bold pr-1">Kashi</span>
-              <span className="font-heading font-bold text-2xl">Go</span>
-            </span>
+          <Link href="/" className="flex items-center">
+            <Image 
+                src="/Untitled.png" 
+                alt="KashiGo - Varanasi Boat Rides" 
+                width={120} 
+                height={40} 
+                className="h-10 w-auto object-contain" 
+                priority
+            />
           </Link>
+          <span className={`tracking-tighter ${isScrolled ? "text-slate-900" : "text-white"}`}>
+            <span className="font-cursive text-4xl text-orange-500 font-bold pr-1">Kashi</span>
+            <span className="font-heading font-bold text-2xl">Go</span>
+          </span>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-8">
