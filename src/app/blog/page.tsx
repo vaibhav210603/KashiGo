@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
 import { ArrowRight, Calendar, Clock, BookOpen, MapPin, Compass } from "lucide-react";
+import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Varanasi Travel Tips & Local Guides | KashiGo Blog",
@@ -23,6 +24,13 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pt-32 pb-20 relative">
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Varanasi Travel Tips & Local Guides | KashiGo Blog",
+        "description": "Free travel guides for foreigners visiting Varanasi. Scam alerts, ghat tips, boat ride pricing, temple etiquette — written by a local born in the city.",
+        "url": "https://kashigo.in/blog"
+      }} />
       {/* Background patterns for a premium feel */}
       <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-orange-100/30 to-transparent pointer-events-none" />
       <div className="absolute top-20 left-10 w-64 h-64 bg-orange-200/20 rounded-full blur-3xl pointer-events-none" />
