@@ -1,0 +1,25 @@
+name: Supabase Keep-Alive
+
+# Pings the site's health endpoint so a real query hits Supabase Postgres,
+# resetting the free-tier inactivity timer that otherwise pauses the project.
+
+on:
+  schedule:
+    # Runs at 06:00 UTC every 3 days (well within the free-tier pause window).
+    - cron: "0 6 */3 * *"
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          echo "Pinging ${{ secrets.KEEPALIVE_URL }}"
+          code=$(curl -sS -o /dev/null -w "%{http_code}" --retry 3 --retry-delay 10 --max-time 60 "${{ secrets.KEEPALIVE_URL }}")
+          echo "HTTP status: $code"
+          if [ "$code" -ne 200 ]; then
+            echo "Keep-alive failed with status $code"
+            exit 1
+          fi
+          echo "Keep-alive succeeded."

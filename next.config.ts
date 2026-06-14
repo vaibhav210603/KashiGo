@@ -12,6 +12,17 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.kashigo.in" }],
+        destination: "https://kashigo.in/:path*",
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

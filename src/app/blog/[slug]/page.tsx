@@ -50,6 +50,7 @@ export async function generateMetadata({
 
 import { Calendar, Clock, MapPin, Compass, ArrowLeft, ShieldCheck, Lightbulb } from "lucide-react";
 import React from "react";
+import BlogEmailPopup from "@/components/blog/BlogEmailPopup";
 
 // Custom MDX Components for premium typography
 const mdxComponents = {
@@ -141,6 +142,8 @@ export default async function BlogPostPage({ params }: PageProps) {
           image: "https://kashigo.in/og-image.jpg",
         }}
       />
+
+      <BlogEmailPopup />
 
       <div className="min-h-screen bg-slate-50 selection:bg-orange-200 selection:text-orange-900">
         {/* Progress Bar (Optional UI enhancement, simulated with top border) */}
