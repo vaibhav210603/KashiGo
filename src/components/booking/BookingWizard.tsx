@@ -76,16 +76,16 @@ export default function BookingWizard() {
     const ghats = ["Dashashwamedh Ghat", "Assi Ghat", "Namo Ghat", "Manikarnika Ghat", "Panchganga Ghat"];
     const packages = {
         "Morning": [
-            { id: "p1", name: "Sunrise + Bird Feeding", price: 499, description: "All ghats visit early morning.", imgSrc: "/sunrise_bg.png", time: "5:30 AM" },
-            { id: "p2", name: "Morning Ganga Aarti", price: 699, description: "Assi ghat morning aarti visit.", imgSrc: "/m_aarti_bg.png", time: "6:00 AM" }
+            { id: "p1", name: "Sunrise + Bird Feeding", price: 844, description: "All ghats visit early morning.", imgSrc: "/sunrise_bg.png", time: "5:30 AM" },
+            { id: "p2", name: "Morning Ganga Aarti", price: 1182, description: "Assi ghat morning aarti visit.", imgSrc: "/m_aarti_bg.png", time: "6:00 AM" }
         ],
         "Afternoon": [
-            { id: "p3", name: "Day Ghat Tour", price: 399, description: "Cover all major 84 ghats in daylight.", imgSrc: "/day_ghat_bg.png", time: "12:00 PM" },
-            { id: "p4", name: "Temple + Boat Tour", price: 899, description: "Combined tour logic.", imgSrc: "/temple_boat_bg.png", time: "2:00 PM" }
+            { id: "p3", name: "Day Ghat Tour", price: 675, description: "Cover all major 84 ghats in daylight.", imgSrc: "/day_ghat_bg.png", time: "12:00 PM" },
+            { id: "p4", name: "Temple + Boat Tour", price: 1520, description: "Combined tour logic.", imgSrc: "/temple_boat_bg.png", time: "2:00 PM" }
         ],
         "Evening": [
-            { id: "p5", name: "Dashashwamedh Evening Aarti", price: 799, description: "Special viewing angle for Aarti.", imgSrc: "/e_aarti_bg.png", time: "6:30 PM" },
-            { id: "p6", name: "Sunset Ride", price: 599, description: "Enjoy the beautiful sunset over the Ganges.", imgSrc: "/sunset_bg.png", time: "5:00 PM" }
+            { id: "p5", name: "Dashashwamedh Evening Aarti", price: 1351, description: "Special viewing angle for Aarti.", imgSrc: "/e_aarti_bg.png", time: "6:30 PM" },
+            { id: "p6", name: "Sunset Ride", price: 1013, description: "Enjoy the beautiful sunset over the Ganges.", imgSrc: "/sunset_bg.png", time: "5:00 PM" }
         ]
     };
 
@@ -94,7 +94,7 @@ export default function BookingWizard() {
 
     const baseAmount = formData.experienceType === "package"
         ? (selectedPackage?.price || 0)
-        : 1499;
+        : 2534;
     const finalAmount = couponApplied ? COUPON_PRICE : baseAmount;
 
     // Build the time_of_day string for DB: "Morning, 5:30 AM"
@@ -152,7 +152,7 @@ export default function BookingWizard() {
             if (formData.experienceType === "package") {
                 amount = selectedPackage?.price || 0;
             } else {
-                amount = 1499;
+                amount = 2534;
             }
 
             if (formData.paymentMode === "cod") {

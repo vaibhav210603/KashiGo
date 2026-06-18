@@ -9,7 +9,7 @@ export default function PackagesSection() {
             time: "Morning",
             title: "Sunrise & Bird Feeding",
             description: "Experience the tranquil morning vibes of Kashi. Perfect for photography and meditation.",
-            price: "₹499",
+            price: "₹844",
             features: ["Subah-e-Banaras", "Siberian Gull Feeding", "All Ghat Visit"],
             image: "/sunrise.png"
         },
@@ -17,7 +17,7 @@ export default function PackagesSection() {
             time: "Evening",
             title: "Majestic Sunset & Aarti",
             description: "Witness the magnificent Ganga Aarti from the best vantage point on the water.",
-            price: "₹799",
+            price: "₹1,351",
             features: ["Dashashwamedh Aarti", "Evening Lights", "Comfortable Seating"],
             image: "/sunset.png",
             featured: true
@@ -26,7 +26,7 @@ export default function PackagesSection() {
             time: "Night",
             title: "Mystic Night Cruise",
             description: "A serene, quiet ride exploring the mystical ghats under the moonlight.",
-            price: "₹999",
+            price: "₹1,689",
             features: ["Peaceful Ambiance", "Namo Ghat Visit", "Private Options"],
             image: "/night.png"
         }

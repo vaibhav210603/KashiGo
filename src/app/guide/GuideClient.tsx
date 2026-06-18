@@ -41,8 +41,8 @@ export default function GuideClient() {
     const [discountRate, setDiscountRate] = useState(0);
     const [couponError, setCouponError] = useState("");
 
-    const BASE_PRICE_INR = 1080;
-    const BASE_PRICE_USD = 12.99;
+    const BASE_PRICE_INR = 1825;
+    const BASE_PRICE_USD = 21.96;
     
     const FINAL_PRICE_INR = discountRate > 0 ? Math.round(BASE_PRICE_INR * (1 - discountRate)) : BASE_PRICE_INR;
     const FINAL_PRICE_USD = discountRate > 0 ? Number((BASE_PRICE_USD * (1 - discountRate)).toFixed(2)) : BASE_PRICE_USD;

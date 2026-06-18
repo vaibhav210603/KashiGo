@@ -5,7 +5,7 @@ import { JsonLd } from "@/components/JsonLd";
 export const metadata: Metadata = {
   title: "Varanasi Travel Guide for Foreigners 2026 — Written by a Local",
   description:
-    "Complete Varanasi travel guide written by a local born in the city. 9 scam shields, all 84 ghats, temple etiquette, food safety, dos & don'ts, 2-day itinerary. $10.39.",
+    "Complete Varanasi travel guide written by a local born in the city. 9 scam shields, all 84 ghats, temple etiquette, food safety, dos & don'ts, 2-day itinerary. $17.56.",
   keywords: [
     "Varanasi travel guide foreigners 2026",
     "Varanasi scam guide tourists",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Varanasi Travel Guide for Foreigners 2026 — Written by a Local",
     description:
-      "Don't get scammed in Varanasi. 9 scam shields, ghat guide, temple etiquette, food safety — written by someone born here. $10.39.",
+      "Don't get scammed in Varanasi. 9 scam shields, ghat guide, temple etiquette, food safety — written by someone born here. $17.56.",
     url: "https://kashigo.in/guide",
     images: [{ url: "/og-guide.jpg", width: 1200, height: 630 }],
     type: "website",
@@ -59,7 +59,7 @@ export default function GuidePage() {
           "@type": "Offer",
           "url": "https://kashigo.in/guide",
           "priceCurrency": "USD",
-          "price": "10.39",
+          "price": "17.56",
           "priceValidUntil": "2026-12-31",
           "availability": "https://schema.org/InStock",
           "itemCondition": "https://schema.org/NewCondition",
@@ -110,7 +110,7 @@ export default function GuidePage() {
             "name": "Do I need a guide in Varanasi as a foreigner?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Not mandatory but strongly recommended for first-timers. The narrow galis are disorienting and cultural context is much richer with local knowledge. The KashiGo Varanasi guide gives you everything a local guide would tell you — for $10.39."
+              "text": "Not mandatory but strongly recommended for first-timers. The narrow galis are disorienting and cultural context is much richer with local knowledge. The KashiGo Varanasi guide gives you everything a local guide would tell you — for $17.56."
             }
           },
           {

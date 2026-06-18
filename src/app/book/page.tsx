@@ -72,8 +72,8 @@ export default function BookPage() {
         "offers": {
           "@type": "AggregateOffer",
           "priceCurrency": "INR",
-          "lowPrice": "600",
-          "highPrice": "2000",
+          "lowPrice": "780",
+          "highPrice": "2600",
           "availability": "https://schema.org/InStock"
         }
       }} />
