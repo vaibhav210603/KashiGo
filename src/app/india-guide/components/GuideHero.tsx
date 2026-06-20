@@ -17,7 +17,7 @@ export default function GuideHero({ onBuy }: GuideHeroProps) {
     <section className="relative min-h-[92vh] flex flex-col justify-end items-center bg-slate-900 text-white pb-20 pt-24 overflow-hidden" id="top">
       <div className="absolute inset-0 z-0">
         <Image
-          src="/agra_cover.png"
+          src="/agra_cover.jpg"
           alt="India travel"
           fill
           className="object-cover"
