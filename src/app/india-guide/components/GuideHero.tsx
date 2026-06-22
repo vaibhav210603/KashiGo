@@ -2,6 +2,12 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
+const checklist = [
+  { emoji: "🍛", label: "Eat well, don't get sick" },
+  { emoji: "🛡️", label: "Spot every scam" },
+  { emoji: "🗺️", label: "Routes that actually work" },
+];
+
 export default function GuideHero() {
   return (
     <section className="relative min-h-[92vh] flex flex-col justify-end items-center bg-slate-900 text-white pb-20 pt-24 overflow-hidden" id="top">
