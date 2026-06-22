@@ -28,6 +28,7 @@ export default function Navbar() {
     { name: "Reviews", href: "/#reviews" },
     { name: "Guide", href: "/guide" },
     { name: "Blog", href: "/blog" },
+    { name: "India Tour", href: "/india-tour" },
   ];
 
   const isLightPage = !isHomePage;

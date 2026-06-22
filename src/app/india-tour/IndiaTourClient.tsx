@@ -58,6 +58,14 @@ export default function IndiaTourClient() {
   const FINAL_PRICE_INR = 2374;
   const FINAL_PRICE_USD = 29;
 
+  const handlePaymentSuccess = () => {
+    setIsSuccess(true);
+    localStorage.setItem("hasPaidIndiaGuide", "true");
+    setTimeout(() => {
+      window.location.href = "/india-guide";
+    }, 2000);
+  };
+
   const handleRazorpay = async () => {
     setIsProcessing(true);
     try {
@@ -87,7 +95,7 @@ export default function IndiaTourClient() {
         order_id: orderData.orderId,
         theme: { color: "#f97316" },
         handler: function (response: any) {
-          if (response.razorpay_payment_id) setIsSuccess(true);
+          if (response.razorpay_payment_id) handlePaymentSuccess();
         },
         modal: { ondismiss: function () { setIsProcessing(false); } },
       };
@@ -360,8 +368,8 @@ export default function IndiaTourClient() {
                     <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Check size={32} className="text-green-400 stroke-[2.5]" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-2">You're in!</h3>
-                    <p className="text-slate-400">Check your email for the guide download link.</p>
+                    <h3 className="text-2xl font-bold text-white mb-2">You&apos;re in!</h3>
+                    <p className="text-slate-400">Redirecting to your guide...</p>
                   </motion.div>
                 ) : (
                   <motion.div key="pay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -389,7 +397,7 @@ export default function IndiaTourClient() {
                                   body: JSON.stringify({ orderId: data.orderID }),
                                 });
                                 const captureData = await res.json();
-                                if (captureData.success) setIsSuccess(true);
+                                if (captureData.success) handlePaymentSuccess();
                                 else throw new Error("Payment capture failed");
                               } catch (e: any) {
                                 alert(e.message);

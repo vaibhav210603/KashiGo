@@ -224,7 +224,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                     className="w-full flex items-center justify-center gap-3 bg-orange-500 text-white px-8 py-5 rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:-translate-y-1 active:scale-95"
                   >
                     <MapPin size={20} />
-                    Get the Guide — $10.39
+                    Get the Guide — $13.51
                   </Link>
                   <Link
                     href="/book"

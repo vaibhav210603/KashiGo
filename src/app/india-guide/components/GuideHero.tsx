@@ -2,17 +2,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-interface GuideHeroProps {
-  onBuy: () => void;
-}
-
-const checklist = [
-  { emoji: "🍛", label: "Eat well, don't get sick" },
-  { emoji: "🛡️", label: "Spot every scam" },
-  { emoji: "🗺️", label: "Routes that actually work" },
-];
-
-export default function GuideHero({ onBuy }: GuideHeroProps) {
+export default function GuideHero() {
   return (
     <section className="relative min-h-[92vh] flex flex-col justify-end items-center bg-slate-900 text-white pb-20 pt-24 overflow-hidden" id="top">
       <div className="absolute inset-0 z-0">
@@ -80,20 +70,6 @@ export default function GuideHero({ onBuy }: GuideHeroProps) {
           ))}
         </motion.div>
 
-        <motion.button
-          onClick={onBuy}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.38 }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="inline-flex items-center gap-3 bg-orange-500 hover:bg-orange-600 text-white font-bold font-heading px-10 py-5 rounded-full transition-colors shadow-xl shadow-orange-500/25 text-lg"
-        >
-          Get the Full Guide
-          <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-            <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clipRule="evenodd" />
-          </svg>
-        </motion.button>
       </div>
     </section>
   );

@@ -103,7 +103,7 @@ export default function BlogPage() {
                   className="w-full sm:w-auto flex items-center justify-center gap-3 bg-orange-500 text-white px-8 py-4 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:-translate-y-1 active:scale-95"
                 >
                   <MapPin size={20} className="md:w-[22px] md:h-[22px]" />
-                  <span className="text-sm md:text-base">Get The Full Guide — $10.39</span>
+                  <span className="text-sm md:text-base">Get The Full Guide — $13.51</span>
                 </Link>
                 <Link
                   href="/book"

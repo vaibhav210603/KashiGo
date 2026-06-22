@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Dancing_Script, Playfair_Display, Outfit } from "next/font/google";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import GuidePopup from "@/components/GuidePopup";
 import "./globals.css";
 import Script from "next/script";
 
@@ -134,6 +135,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} ${playfair.variable} ${outfit.variable} antialiased min-h-screen flex flex-col`}
       >
+        <GuidePopup />
         <Navbar />
         <main className="flex-grow">
           {children}

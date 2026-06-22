@@ -3,6 +3,7 @@ import HeroSection from "@/components/sections/HeroSection";
 import AboutSection from "@/components/sections/AboutSection";
 import PackagesSection from "@/components/sections/PackagesSection";
 import ReviewsSection from "@/components/sections/ReviewsSection";
+import GuideFeatureSection from "@/components/sections/GuideFeatureSection";
 import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
@@ -105,6 +106,7 @@ export default function Home() {
       <AboutSection />
       <PackagesSection />
       <ReviewsSection />
+      <GuideFeatureSection />
     </div>
   );
 }
