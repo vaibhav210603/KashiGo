@@ -33,6 +33,14 @@ export default function BookPage() {
     <div className="min-h-screen bg-slate-50 pt-24 pb-12">
       <JsonLd data={{
         "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://kashigo.in" },
+          { "@type": "ListItem", "position": 2, "name": "Book a Boat Ride", "item": "https://kashigo.in/book" }
+        ]
+      }} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
         "@type": "TouristTrip",
         "name": "Varanasi Boat Rides — Sunrise, Ganga Aarti & Sunset",
         "description": "Book private boat rides on the Ganges River in Varanasi. Sunrise, Ganga Aarti evening ceremony, and sunset experiences available.",
