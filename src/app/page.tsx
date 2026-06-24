@@ -4,6 +4,7 @@ import AboutSection from "@/components/sections/AboutSection";
 import PackagesSection from "@/components/sections/PackagesSection";
 import ReviewsSection from "@/components/sections/ReviewsSection";
 import GuideFeatureSection from "@/components/sections/GuideFeatureSection";
+import FAQSection from "@/components/sections/FAQSection";
 import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
@@ -159,6 +160,7 @@ export default function Home() {
       <AboutSection />
       <PackagesSection />
       <ReviewsSection />
+      <FAQSection />
       <GuideFeatureSection />
     </div>
   );
