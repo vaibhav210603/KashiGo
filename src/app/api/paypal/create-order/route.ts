@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAmountUSD } from "@/lib/pricing";
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET!;
@@ -21,15 +22,16 @@ async function generateAccessToken() {
 
 export async function POST(req: Request) {
     try {
-        const { amount } = await req.json();
+        const { product, coupon } = await req.json();
 
-        if (!amount || amount <= 0) {
-            return NextResponse.json({ success: false, message: "Invalid amount" }, { status: 400 });
+        // Price is resolved server-side from the product id. Client-sent amounts are ignored.
+        const amountUSD = getAmountUSD(product, coupon);
+
+        if (amountUSD === null || amountUSD <= 0) {
+            return NextResponse.json({ success: false, message: "Invalid product" }, { status: 400 });
         }
 
-        // Convert INR to USD (approximate rate: 1 USD = 83 INR for demonstration, since PayPal sandbox doesn't support INR well without workarounds for Indian accounts in test mode, we convert to USD for international payments)
-        const exchangeRate = 83;
-        const amountInUSD = (amount / exchangeRate).toFixed(2);
+        const amountInUSD = amountUSD.toFixed(2);
 
         const accessToken = await generateAccessToken();
         const url = `${base}/v2/checkout/orders`;

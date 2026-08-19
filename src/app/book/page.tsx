@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import BookingWizard from "@/components/booking/BookingWizard";
+import PackagesSection from "@/components/sections/PackagesSection";
+import ReviewsSection from "@/components/sections/ReviewsSection";
+import FAQSection from "@/components/sections/FAQSection";
 import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
@@ -85,9 +88,14 @@ export default function BookPage() {
           "availability": "https://schema.org/InStock"
         }
       }} />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div id="booking" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <BookingWizard />
       </div>
+
+      {/* Boat-ride story, relocated from the old homepage */}
+      <PackagesSection />
+      <ReviewsSection />
+      <FAQSection />
     </div>
   );
 }

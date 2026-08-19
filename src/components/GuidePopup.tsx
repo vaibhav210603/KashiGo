@@ -101,7 +101,7 @@ export default function GuidePopup() {
                       whileTap={{ scale: 0.97 }}
                       className="w-full flex items-center justify-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm"
                     >
-                      Get the Guide · $13.51
+                      Get the Guide · $14.99
                       <ChevronRight size={14} />
                     </motion.button>
                   </Link>

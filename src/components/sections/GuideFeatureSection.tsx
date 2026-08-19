@@ -99,7 +99,7 @@ export default function GuideFeatureSection() {
                   whileTap={{ scale: 0.97 }}
                   className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-7 py-4 rounded-xl transition-colors text-base shadow-lg shadow-orange-900/30"
                 >
-                  Get the Guide · $17.56
+                  Get the Guide · $14.99
                   <ChevronRight size={18} />
                 </motion.button>
               </Link>
@@ -149,7 +149,7 @@ export default function GuideFeatureSection() {
 
                 {/* Price badge */}
                 <div className="absolute top-4 right-4 bg-orange-500 text-white font-bold text-base px-4 py-1.5 rounded-xl shadow-lg">
-                  $13.51
+                  $14.99
                 </div>
 
                 {/* "Instant download" ribbon */}

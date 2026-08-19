@@ -1,10 +1,5 @@
 import type { Metadata } from "next";
-import HeroSection from "@/components/sections/HeroSection";
-import AboutSection from "@/components/sections/AboutSection";
-import PackagesSection from "@/components/sections/PackagesSection";
-import ReviewsSection from "@/components/sections/ReviewsSection";
-import GuideFeatureSection from "@/components/sections/GuideFeatureSection";
-import FAQSection from "@/components/sections/FAQSection";
+import ChooserScreen from "@/components/ChooserScreen";
 import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
@@ -156,12 +151,7 @@ export default function Home() {
           }
         ]
       }} />
-      <HeroSection />
-      <AboutSection />
-      <PackagesSection />
-      <ReviewsSection />
-      <FAQSection />
-      <GuideFeatureSection />
+      <ChooserScreen />
     </div>
   );
 }

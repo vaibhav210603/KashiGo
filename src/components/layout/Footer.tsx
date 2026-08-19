@@ -27,10 +27,10 @@ export default function Footer() {
                     <div>
                         <h3 className="text-white font-semibold text-lg mb-4">Quick Links</h3>
                         <ul className="space-y-2">
-                            <li><Link href="#about" className="hover:text-orange-500 transition-colors">About Us</Link></li>
-                            <li><Link href="#packages" className="hover:text-orange-500 transition-colors">Rides & Packages</Link></li>
-                            <li><Link href="#reviews" className="hover:text-orange-500 transition-colors">Reviews</Link></li>
-                            <li><Link href="/guide" className="hover:text-orange-500 transition-colors">Travel Guide</Link></li>
+                            <li><Link href="/book" className="hover:text-orange-500 transition-colors">Book a Boat Ride</Link></li>
+                            <li><Link href="/guide" className="hover:text-orange-500 transition-colors">Explore Varanasi</Link></li>
+                            <li><Link href="/india-tour" className="hover:text-orange-500 transition-colors">Explore India</Link></li>
+                            <li><Link href="/about" className="hover:text-orange-500 transition-colors">About KashiGo</Link></li>
                             <li><Link href="/blog" className="hover:text-orange-500 transition-colors">Blog</Link></li>
                         </ul>
                     </div>
@@ -38,7 +38,7 @@ export default function Footer() {
                         <h3 className="text-white font-semibold text-lg mb-4">Support</h3>
                         <ul className="space-y-2">
                             <li><a href="mailto:kashigo@gmail.com" className="hover:text-orange-500 transition-colors">kashigo@gmail.com</a></li>
-                            <li><a href="tel:+919876543210" className="hover:text-orange-500 transition-colors">+91 8175966910</a></li>
+                            <li><a href="tel:+918175966910" className="hover:text-orange-500 transition-colors">+91 8175966910</a></li>
                             <li className="text-slate-400 mt-4">Brahma Ghat, Varanasi</li>
                         </ul>
                     </div>

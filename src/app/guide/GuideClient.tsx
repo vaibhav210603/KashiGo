@@ -41,8 +41,8 @@ export default function GuideClient() {
     const [discountRate, setDiscountRate] = useState(0);
     const [couponError, setCouponError] = useState("");
 
-    const BASE_PRICE_INR = 1825;
-    const BASE_PRICE_USD = 21.96;
+    const BASE_PRICE_INR = 999;
+    const BASE_PRICE_USD = 14.99;
     
     const FINAL_PRICE_INR = discountRate > 0 ? Math.round(BASE_PRICE_INR * (1 - discountRate)) : BASE_PRICE_INR;
     const FINAL_PRICE_USD = discountRate > 0 ? Number((BASE_PRICE_USD * (1 - discountRate)).toFixed(2)) : BASE_PRICE_USD;
@@ -70,7 +70,7 @@ export default function GuideClient() {
             const orderRes = await fetch("/api/razorpay", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount: FINAL_PRICE_INR }),
+                body: JSON.stringify({ product: "guide", coupon: discountRate > 0 ? couponCode : undefined }),
             });
             const orderData = await orderRes.json();
             if (!orderData.success) throw new Error("Could not create payment order.");
@@ -128,22 +128,19 @@ export default function GuideClient() {
             name: "Sarah Jenkins",
             role: "Solo Traveler",
             content: "The scam shield section alone saved me at least 5000 rupees on my first day. A must-have for anyone visiting Varanasi for the first time.",
-            rating: 5,
-            image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&h=150&auto=format&fit=crop"
+            rating: 5
         },
         {
             name: "Michael Ross",
             role: "Photographer",
             content: "Beautifully designed and extremely practical. The Ghats mapping helped me find the best spots for sunrise without getting lost in the gullies.",
-            rating: 5,
-            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&h=150&auto=format&fit=crop"
+            rating: 5
         },
         {
             name: "Ananya Patel",
             role: "Cultural Enthusiast",
             content: "Finally, a guide that doesn't just list temples but actually tells you how to navigate the city like a local. The food recommendations were spot on!",
-            rating: 5,
-            image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=150&h=150&auto=format&fit=crop"
+            rating: 5
         }
     ];
 
@@ -163,6 +160,20 @@ export default function GuideClient() {
                             India's best city for Tourists, <br/>
                             <span className="text-xl md:text-4xl text-orange-400 mt-4 block font-medium tracking-normal">only if done right!</span>
                         </motion.h1>
+                        <motion.p variants={fadeIn} className="max-w-2xl mx-auto text-base md:text-xl text-slate-300 leading-relaxed">
+                            The complete Varanasi playbook — written by someone born on the ghats. Real prices, the 9 scams to dodge, temple etiquette, food you can trust, and a ready-to-use itinerary. Know exactly what everything should cost <span className="text-white font-semibold">before</span> you land.
+                        </motion.p>
+                        <motion.div variants={fadeIn} className="flex flex-col items-center gap-4 pt-2">
+                            <a href="#buy" className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-4 px-10 rounded-xl font-bold text-lg transition-all shadow-lg shadow-orange-500/30 group">
+                                Get the guide — just $14.99
+                                <ChevronRight className="transform group-hover:translate-x-1 transition-transform" size={20} />
+                            </a>
+                            <p className="text-sm text-slate-400 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+                                <span className="inline-flex items-center gap-1.5"><Download size={14} className="text-orange-400" /> Instant PDF download</span>
+                                <span className="inline-flex items-center gap-1.5"><ShieldAlert size={14} className="text-orange-400" /> Money-back guarantee</span>
+                                <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-orange-400" /> One overpriced boat ride costs more</span>
+                            </p>
+                        </motion.div>
                     </motion.div>
                 </div>
             </section>
@@ -288,13 +299,8 @@ export default function GuideClient() {
                                 transition={{ delay: idx * 0.1 }}
                                 className="min-w-[85vw] md:min-w-0 bg-slate-50 p-8 rounded-[2rem] border border-slate-100 relative snap-center"
                             >
-                                <div className="absolute -top-6 left-8 h-16 w-16">
-                                    <Image 
-                                        src={review.image} 
-                                        alt={`Portrait of ${review.name}`} 
-                                        fill
-                                        className="rounded-full border-4 border-white shadow-lg object-cover" 
-                                    />
+                                <div className="absolute -top-6 left-8 h-16 w-16 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center">
+                                    <span className="text-white text-xl font-bold">{review.name.charAt(0)}</span>
                                 </div>
                                 <div className="mt-8">
                                     <p className="text-slate-700 italic mb-6 leading-relaxed">"{review.content}"</p>
@@ -310,14 +316,14 @@ export default function GuideClient() {
             </section>
 
             {/* 5. Buy Now Section */}
-            <section className="py-24 bg-slate-900 px-4 relative overflow-hidden">
+            <section id="buy" className="scroll-mt-20 py-24 bg-slate-900 px-4 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500" />
                 <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl" />
                 <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
 
                 <div className="max-w-4xl mx-auto relative z-10">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-5xl font-bold font-heading text-white mb-4 tracking-tight">Get your's now!</h2>
+                        <h2 className="text-3xl md:text-5xl font-bold font-heading text-white mb-4 tracking-tight">Get yours now!</h2>
                         <p className="text-slate-400 text-lg">Don't be another tourist who pays triple for everything.</p>
                     </div>
 
@@ -423,7 +429,7 @@ export default function GuideClient() {
                                                                     const res = await fetch("/api/paypal/create-order", {
                                                                         method: "POST",
                                                                         headers: { "Content-Type": "application/json" },
-                                                                        body: JSON.stringify({ amount: FINAL_PRICE_INR })
+                                                                        body: JSON.stringify({ product: "guide", coupon: discountRate > 0 ? couponCode : undefined })
                                                                     });
                                                                     const orderData = await res.json();
                                                                     if (!orderData.success) throw new Error("Could not create PayPal order");
@@ -458,6 +464,24 @@ export default function GuideClient() {
                                                     </div>
                                                 )}
                                             </div>
+
+                                            {/* Trust + risk reversal */}
+                                            <div className="pt-2 space-y-4">
+                                                <div className="flex items-start gap-3 bg-green-50 border border-green-100 rounded-2xl p-4">
+                                                    <div className="w-9 h-9 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 text-white shadow-sm">
+                                                        <ShieldAlert size={18} strokeWidth={2.5} />
+                                                    </div>
+                                                    <p className="text-sm text-slate-700 leading-relaxed">
+                                                        <span className="font-bold text-slate-900">7-day money-back guarantee.</span> If the guide doesn't save you more than it cost, email us for a full refund — keep the PDF anyway.
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-semibold text-slate-500">
+                                                    <span className="inline-flex items-center gap-1.5"><Download size={14} className="text-orange-500" /> Instant download</span>
+                                                    <span className="inline-flex items-center gap-1.5"><Check size={14} className="text-orange-500" /> Works on any device</span>
+                                                    <span className="inline-flex items-center gap-1.5"><Wallet size={14} className="text-orange-500" /> Secure checkout</span>
+                                                    <span className="inline-flex items-center gap-1.5"><Star size={14} className="text-orange-500" /> No account needed</span>
+                                                </div>
+                                            </div>
                                         </motion.div>
                                     ) : (
                                         <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-6">
@@ -475,6 +499,43 @@ export default function GuideClient() {
                                 </AnimatePresence>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 6. FAQ Section */}
+            <section className="py-24 bg-white px-4">
+                <div className="max-w-3xl mx-auto">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl md:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight">Before you buy</h2>
+                        <p className="text-slate-500 text-lg">The questions we get asked most.</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        {[
+                            { q: "How do I get the guide after paying?", a: "Instantly. The moment your payment goes through, a download button appears and the PDF is yours — no waiting, no email delay, no account to create." },
+                            { q: "What format is it, and will it work on my phone?", a: "It's a PDF. It opens on any phone, tablet, or laptop, works fully offline, and is easy to read on the go while you're actually in Varanasi." },
+                            { q: "Is $14.99 really worth it?", a: "One inflated boat ride, one fake-guide commission, or one 'donation' scam usually costs more than the guide itself. Knowing the real prices before you land typically saves first-timers several thousand rupees on day one." },
+                            { q: "What if it's not useful to me?", a: "You're covered by a 7-day money-back guarantee. If it doesn't help, email us within a week for a full refund and keep the guide anyway. No risk to you." },
+                            { q: "Is this written by an actual local?", a: "Yes — it's written by someone born and raised on the ghats of Varanasi, not a travel agency reselling generic tips. Everything is based on what actually happens in the city day to day." },
+                            { q: "Is it up to date for 2026?", a: "Yes. Prices, timings, and the scam tactics are current for 2026, including seasonal Ganga Aarti times and up-to-date fare benchmarks." },
+                        ].map((item, idx) => (
+                            <details key={idx} className="group bg-slate-50 rounded-2xl border border-slate-100 p-6 [&_svg]:open:rotate-90">
+                                <summary className="flex items-center justify-between cursor-pointer list-none font-bold text-slate-900 text-lg">
+                                    {item.q}
+                                    <ChevronRight className="text-orange-500 transition-transform flex-shrink-0 ml-4" size={20} />
+                                </summary>
+                                <p className="text-slate-600 leading-relaxed mt-4">{item.a}</p>
+                            </details>
+                        ))}
+                    </div>
+
+                    <div className="text-center mt-12">
+                        <a href="#buy" className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-4 px-10 rounded-xl font-bold text-lg transition-all shadow-lg group">
+                            Get the guide — $14.99
+                            <ChevronRight className="transform group-hover:translate-x-1 transition-transform" size={20} />
+                        </a>
+                        <p className="text-sm text-slate-400 mt-3">Instant download · 7-day money-back guarantee</p>
                     </div>
                 </div>
             </section>

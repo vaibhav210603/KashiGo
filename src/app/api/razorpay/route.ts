@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
+import { getAmountINR } from "@/lib/pricing";
 
 const razorpay = new Razorpay({
     key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
@@ -8,11 +9,14 @@ const razorpay = new Razorpay({
 
 export async function POST(req: Request) {
     try {
-        const { amount } = await req.json();
+        const { product, coupon } = await req.json();
 
-        if (!amount || amount <= 0) {
+        // Price is resolved server-side from the product id. Client-sent amounts are ignored.
+        const amount = getAmountINR(product, coupon);
+
+        if (amount === null || amount <= 0) {
             return NextResponse.json(
-                { success: false, message: "Invalid amount" },
+                { success: false, message: "Invalid product" },
                 { status: 400 }
             );
         }

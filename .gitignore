@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Growth/marketing scratch notes (keep private)
+reddit-daily-drafts.md
+youtube-daily-drafts.md
+reddit-posts.md
+.claude/settings.local.json

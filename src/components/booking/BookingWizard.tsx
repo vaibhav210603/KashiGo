@@ -161,7 +161,7 @@ export default function BookingWizard() {
                 const orderRes = await fetch("/api/razorpay", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount: finalAmount }),
+                    body: JSON.stringify({ product: formData.experienceType === "package" ? (selectedPackage?.id || "") : "custom-boat", coupon: couponApplied ? "KASHIGO21" : undefined }),
                 });
                 const orderData = await orderRes.json();
                 if (!orderData.success) throw new Error("Could not create payment order.");
@@ -883,7 +883,7 @@ export default function BookingWizard() {
                                                     const res = await fetch("/api/paypal/create-order", {
                                                         method: "POST",
                                                         headers: { "Content-Type": "application/json" },
-                                                        body: JSON.stringify({ amount: finalAmount })
+                                                        body: JSON.stringify({ product: formData.experienceType === "package" ? (selectedPackage?.id || "") : "custom-boat", coupon: couponApplied ? "KASHIGO21" : undefined })
                                                     });
                                                     const orderData = await res.json();
                                                     if (!orderData.success) throw new Error("Could not create PayPal order");

@@ -76,7 +76,7 @@ export default function IndiaTourClient() {
       const res = await fetch("/api/razorpay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: FINAL_PRICE_INR }),
+        body: JSON.stringify({ product: "india-tour" }),
       });
       const orderData = await res.json();
       if (!orderData.success) throw new Error("Could not create payment order.");
@@ -450,7 +450,7 @@ export default function IndiaTourClient() {
                               const res = await fetch("/api/paypal/create-order", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ amount: FINAL_PRICE_INR }),
+                                body: JSON.stringify({ product: "india-tour" }),
                               });
                               const orderData = await res.json();
                               if (!orderData.success) throw new Error("Could not create PayPal order");
