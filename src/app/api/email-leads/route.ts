@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
+import { rateLimited } from "@/lib/rateLimit";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -8,6 +9,9 @@ const supabase = createClient(
 );
 
 export async function POST(req: Request) {
+  if (rateLimited(req, "email-leads", 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
+  }
   try {
     const { name, email } = await req.json();
 
@@ -29,9 +33,10 @@ export async function POST(req: Request) {
     }
 
     // Deliver the free cheat sheet right away (Email 1 of the welcome sequence).
+    // Only on a first signup, so the endpoint can't be used to spam an address.
     // Best-effort: a mail failure must not lose the lead.
-    try {
-      const first = name.trim().split(" ")[0];
+    if (!error) try {
+      const first = name.trim().split(" ")[0].slice(0, 40);
       await createTransporter().sendMail({
         from: `"Vaibhav from KashiGo" <${process.env.SMTP_USER}>`,
         to: email.trim(),

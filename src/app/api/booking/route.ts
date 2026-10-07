@@ -19,6 +19,12 @@ const createTransporter = () => nodemailer.createTransport({
 });
 
 export async function POST(req: Request) {
+    // Tours aren't operating yet: refuse bookings until BOOKINGS_OPEN=true is set.
+    // (This route also trusts client-sent amount/payment status — add server-side
+    // payment verification before reopening.)
+    if (process.env.BOOKINGS_OPEN !== "true") {
+        return NextResponse.json({ success: false, message: "Bookings are paused — join the waitlist at kashigo.in/book." }, { status: 503 });
+    }
     try {
         const data = await req.json();
 

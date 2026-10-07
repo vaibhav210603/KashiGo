@@ -45,8 +45,12 @@ const nextConfig: NextConfig = {
             value: "1; mode=block",
           },
           {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
           },
         ],
       },

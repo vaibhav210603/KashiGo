@@ -7,8 +7,6 @@ import { Check, Download, ShieldCheck, Tag, X, Headphones, BookOpen, Mail } from
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { SHOP_PRODUCTS, ShopProduct, LAUNCH_CODE } from "@/lib/products";
 
-const SHOP_COUPONS: Record<string, number> = { LAUNCH40: 0.4, INSIDER20: 0.2, KASHISECRET: 0.5 };
-
 type Dl = { label: string; url: string };
 
 export default function ShopClient() {
@@ -164,10 +162,13 @@ function Checkout({ product, region, onClose }: { product: ShopProduct; region: 
     const finalInr = Math.round(product.inr * (1 - rate));
     const finalUsd = Number((product.usd * (1 - rate)).toFixed(2));
 
-    const applyCode = () => {
+    const applyCode = async () => {
         const c = code.trim().toUpperCase();
-        if (SHOP_COUPONS[c] !== undefined) { setRate(SHOP_COUPONS[c]); setCodeMsg(`${Math.round(SHOP_COUPONS[c] * 100)}% off applied`); }
-        else { setRate(0); setCodeMsg("That code isn't valid."); }
+        try {
+            const data = await fetch("/api/coupon", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product: product.id, code: c }) }).then((r) => r.json());
+            if (data.valid) { setRate(data.rate); setCodeMsg(`${Math.round(data.rate * 100)}% off applied`); return; }
+        } catch { }
+        setRate(0); setCodeMsg("That code isn't valid.");
     };
 
     const deliver = async (payload: Record<string, string>) => {

@@ -47,21 +47,23 @@ export default function GuideClient() {
     const FINAL_PRICE_INR = discountRate > 0 ? Math.round(BASE_PRICE_INR * (1 - discountRate)) : BASE_PRICE_INR;
     const FINAL_PRICE_USD = discountRate > 0 ? Number((BASE_PRICE_USD * (1 - discountRate)).toFixed(2)) : BASE_PRICE_USD;
 
-    const applyCoupon = () => {
+    const applyCoupon = async () => {
         const code = couponCode.trim().toUpperCase();
-        if (code === "KASHISECRET") {
-            setDiscountRate(0.5); // 50% discount
-            setCouponError("");
-        } else if (code === "EXCLUSIVE20") {
-            setDiscountRate(0.2); // 20% discount
-            setCouponError("");
-        } else if (code === "TEST817") {
-            setDiscountRate(0.99); // 99% discount
-            setCouponError("");
-        } else {
-            setDiscountRate(0);
-            setCouponError("Invalid discount code.");
-        }
+        try {
+            const res = await fetch("/api/coupon", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ product: "guide", code }),
+            });
+            const data = await res.json();
+            if (data.valid) {
+                setDiscountRate(data.rate);
+                setCouponError("");
+                return;
+            }
+        } catch { }
+        setDiscountRate(0);
+        setCouponError("Invalid discount code.");
     };
 
     const handleRazorpay = async () => {

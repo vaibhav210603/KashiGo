@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { rateLimited } from "@/lib/rateLimit";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -21,6 +22,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (rateLimited(req, "comments", 3, 60 * 60 * 1000)) {
+    return NextResponse.json({ success: false, message: "Too many reviews from this connection. Try again later." }, { status: 429 });
+  }
   try {
     const { name, location, message, rating } = await req.json();
 

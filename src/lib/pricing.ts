@@ -59,7 +59,6 @@ function couponRate(product: string, coupon?: string): number {
 const GUIDE_COUPONS: Record<string, number> = {
     KASHISECRET: 0.5,
     EXCLUSIVE20: 0.2,
-    TEST817: 0.99,
 };
 
 // Boat booking coupon: fixed ₹10 price
