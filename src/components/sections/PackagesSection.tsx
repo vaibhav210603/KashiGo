@@ -78,8 +78,8 @@ export default function PackagesSection() {
                                         <span className="text-sm text-slate-500">Starting from</span>
                                         <div className="text-orange-600 text-2xl font-bold">{pkg.price}</div>
                                     </div>
-                                    <Link href="/book" className="bg-slate-900 hover:bg-orange-500 text-white px-5 py-2 rounded-lg font-medium transition-colors">
-                                        Book
+                                    <Link href="/book#booking" className="bg-slate-900 hover:bg-orange-500 text-white px-5 py-2 rounded-lg font-medium transition-colors">
+                                        Join waitlist
                                     </Link>
                                 </div>
                             </div>

@@ -27,7 +27,8 @@ export default function Footer() {
                     <div>
                         <h3 className="text-white font-semibold text-lg mb-4">Quick Links</h3>
                         <ul className="space-y-2">
-                            <li><Link href="/book" className="hover:text-orange-500 transition-colors">Book a Boat Ride</Link></li>
+                            <li><Link href="/book" className="hover:text-orange-500 transition-colors">Boat Rides (Waitlist)</Link></li>
+                            <li><Link href="/shop" className="hover:text-orange-500 transition-colors">Shop Guides &amp; Audio Tours</Link></li>
                             <li><Link href="/guide" className="hover:text-orange-500 transition-colors">Explore Varanasi</Link></li>
                             <li><Link href="/india-tour" className="hover:text-orange-500 transition-colors">Explore India</Link></li>
                             <li><Link href="/about" className="hover:text-orange-500 transition-colors">About KashiGo</Link></li>

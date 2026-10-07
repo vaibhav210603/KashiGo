@@ -26,6 +26,7 @@ export async function POST(req: Request) {
             amount: Math.round(amount * 100),
             currency: "INR",
             receipt: `kashigo_${Date.now()}`,
+            notes: { product: String(product) },
         });
 
         return NextResponse.json({

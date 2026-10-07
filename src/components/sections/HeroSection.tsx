@@ -110,7 +110,7 @@ export default function HeroSection() {
                         transition={{ duration: 0.5, delay: 0.4 }}
                     >
                         <Link href="/book" className="group relative overflow-hidden inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all shadow-xl hover:shadow-orange-500/30 transform hover:-translate-y-1 z-20">
-                            <span className="relative z-10">Book Your Ride Now</span>
+                            <span className="relative z-10">Join the Boat Ride Waitlist</span>
                             <motion.div
                                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent pointer-events-none"
                                 initial={{ x: "-100%" }}

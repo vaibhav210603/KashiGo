@@ -123,27 +123,6 @@ export default function GuideClient() {
         { icon: Phone, title: "Emergency Info", desc: "Important contacts, reliable hospitals, and helplines." }
     ];
 
-    const reviews = [
-        {
-            name: "Sarah Jenkins",
-            role: "Solo Traveler",
-            content: "The scam shield section alone saved me at least 5000 rupees on my first day. A must-have for anyone visiting Varanasi for the first time.",
-            rating: 5
-        },
-        {
-            name: "Michael Ross",
-            role: "Photographer",
-            content: "Beautifully designed and extremely practical. The Ghats mapping helped me find the best spots for sunrise without getting lost in the gullies.",
-            rating: 5
-        },
-        {
-            name: "Ananya Patel",
-            role: "Cultural Enthusiast",
-            content: "Finally, a guide that doesn't just list temples but actually tells you how to navigate the city like a local. The food recommendations were spot on!",
-            rating: 5
-        }
-    ];
-
     return (
         <>
             {/* 1. Hero Section */}
@@ -273,44 +252,6 @@ export default function GuideClient() {
                                 </button>
                             )}
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* 4. Reviews Section */}
-            <section className="py-24 bg-white px-4">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-5xl font-bold font-heading text-slate-900 mb-6 tracking-tight">Watch people who love Varanasi</h2>
-                        <div className="flex justify-center gap-1 mb-8">
-                            {[1, 2, 3, 4, 5].map((s) => (
-                                <Star key={s} className="text-amber-400 fill-amber-400" size={24} />
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="flex overflow-x-auto pt-8 pb-8 gap-6 md:grid md:grid-cols-3 md:overflow-x-visible snap-x snap-mandatory scrollbar-hide px-4 -mx-4">
-                        {reviews.map((review, idx) => (
-                            <motion.div 
-                                key={idx}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: idx * 0.1 }}
-                                className="min-w-[85vw] md:min-w-0 bg-slate-50 p-8 rounded-[2rem] border border-slate-100 relative snap-center"
-                            >
-                                <div className="absolute -top-6 left-8 h-16 w-16 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center">
-                                    <span className="text-white text-xl font-bold">{review.name.charAt(0)}</span>
-                                </div>
-                                <div className="mt-8">
-                                    <p className="text-slate-700 italic mb-6 leading-relaxed">"{review.content}"</p>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900">{review.name}</h4>
-                                        <p className="text-sm text-slate-500">{review.role}</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
                     </div>
                 </div>
             </section>

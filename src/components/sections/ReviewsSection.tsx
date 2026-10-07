@@ -13,14 +13,8 @@ type Review = {
   role?: string;
 };
 
-const staticReviews: Review[] = [
-  { id: "s1", name: "Rahul Sharma", message: "The evening Aarti ride was magical. Best experience in Varanasi. The boat was clean and on time.", rating: 5, role: "Tourist", location: "Delhi, India" },
-  { id: "s2", name: "Priya Gupta", message: "Loved the easy booking process. No haggling with boatmen. Highly recommend the morning sunrise ride to feed the birds!", rating: 5, role: "Photographer", location: "Bangalore, India" },
-  { id: "s3", name: "Amit Patel", message: "Premium service indeed. The guide explained everything beautifully. The sunset view was spectacular.", rating: 4, role: "Pilgrim", location: "Gujarat, India" },
-  { id: "s4", name: "Sneha Gupta", message: "Absolutely breathtaking! The night ride was peaceful, and the KashiGo team was so professional throughout.", rating: 5, role: "Solo Traveler", location: "Mumbai, India" },
-  { id: "s5", name: "Vikram Singh", message: "Great value for money. The shared boat was not overcrowded and we enjoyed the cultural stories shared by the boatman.", rating: 4, role: "Family Tourist", location: "Lucknow, India" },
-  { id: "s6", name: "Ananya Iyer", message: "The website is so easy to use! We pre-booked our sunrise ride and everything was ready for us when we arrived at the ghat.", rating: 5, role: "Digital Nomad", location: "Chennai, India" },
-];
+// Only real reviews submitted by customers are shown (loaded from /api/comments).
+const staticReviews: Review[] = [];
 
 const STATIC_COUNT = staticReviews.length;
 
@@ -121,6 +115,9 @@ export default function ReviewsSection() {
         </div>
 
         {/* Carousel */}
+        {total === 0 ? (
+          <p className="text-center text-slate-500">No reviews yet — our boat rides open soon. Been on the river with us? Be the first to share below.</p>
+        ) : (
         <div className="relative">
           <div className="flex items-center gap-3 md:gap-5">
 
@@ -203,6 +200,7 @@ export default function ReviewsSection() {
             {current + 1} / {total}
           </p>
         </div>
+        )}
 
         {/* Divider */}
         <div className="flex items-center gap-4 my-16">

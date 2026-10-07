@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import BookingWizard from "@/components/booking/BookingWizard";
+import TourWaitlist from "@/components/booking/TourWaitlist";
 import PackagesSection from "@/components/sections/PackagesSection";
 import ReviewsSection from "@/components/sections/ReviewsSection";
 import FAQSection from "@/components/sections/FAQSection";
@@ -85,11 +85,11 @@ export default function BookPage() {
           "priceCurrency": "INR",
           "lowPrice": "780",
           "highPrice": "2600",
-          "availability": "https://schema.org/InStock"
+          "availability": "https://schema.org/PreOrder"
         }
       }} />
       <div id="booking" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <BookingWizard />
+        <TourWaitlist />
       </div>
 
       {/* Boat-ride story, relocated from the old homepage */}

@@ -46,6 +46,8 @@ export async function POST(req: Request) {
                 intent: "CAPTURE",
                 purchase_units: [
                     {
+                        custom_id: String(product),
+                        description: `KashiGo — ${String(product)}`.slice(0, 127),
                         amount: {
                             currency_code: "USD",
                             value: amountInUSD,

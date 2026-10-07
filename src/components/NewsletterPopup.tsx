@@ -122,7 +122,7 @@ export default function NewsletterPopup() {
                   </h2>
 
                   <p className="text-slate-400 text-sm mb-5 leading-relaxed">
-                    Join 500+ travelers who got the insider edge before landing in Kashi.
+                    Free from a local born in Varanasi: the scams, the real prices and the moves that beat them — before you land.
                   </p>
 
                   {/* Benefits */}

@@ -41,14 +41,26 @@ export default function MiniBar() {
                     </span>
                 </Link>
 
-                {!onBookPage && (
-                    <Link
-                        href="/book"
-                        className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2 rounded-full transition-all shadow-md hover:scale-105"
-                    >
-                        Book
-                    </Link>
-                )}
+                <div className="flex items-center gap-2">
+                    {pathname !== "/shop" && (
+                        <Link
+                            href="/shop"
+                            className={`text-sm font-semibold px-4 py-2 rounded-full border transition-all ${
+                                isScrolled ? "border-slate-300 text-slate-800 hover:border-orange-400" : "border-white/60 text-white hover:bg-white/10"
+                            }`}
+                        >
+                            Shop guides
+                        </Link>
+                    )}
+                    {!onBookPage && (
+                        <Link
+                            href="/book"
+                            className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2 rounded-full transition-all shadow-md hover:scale-105"
+                        >
+                            Boat rides waitlist
+                        </Link>
+                    )}
+                </div>
             </div>
         </div>
     );
