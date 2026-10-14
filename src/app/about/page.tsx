@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col bg-white">
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "AboutPage",
@@ -32,30 +32,31 @@ export default function AboutPage() {
       }} />
 
       {/* Intro */}
-      <section className="relative bg-slate-900 pt-32 pb-20 overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="font-cursive text-3xl text-orange-400 mb-3">Namaste from Kashi</p>
-          <h1 className="font-heading font-bold text-white text-4xl md:text-6xl leading-[1.05] mb-6">
+      <section className="pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50">
+        <div className="max-w-3xl mx-auto text-center">
+          <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-700">
+            Namaste from Kashi
+          </span>
+          <h1 className="mt-4 font-heading font-bold text-slate-900 text-3xl sm:text-5xl leading-tight tracking-tight">
             Travel Varanasi like you were born here.
           </h1>
-          <p className="text-slate-300 text-lg max-w-2xl mx-auto">
+          <p className="mt-4 text-[15px] sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
             KashiGo was built by a local to fix the two hardest parts of visiting India&apos;s
             oldest city — getting scammed, and not knowing where to begin. Fair-priced boat
             rides on the Ganges, and honest guides that read like a friend showing you around.
           </p>
-          <div className="mt-9 flex items-center justify-center gap-4 flex-wrap">
+          <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
             <Link
               href="/book"
-              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-7 py-3.5 rounded-full transition-colors shadow-lg shadow-orange-900/30"
+              className="w-full sm:w-auto inline-flex items-center justify-center h-12 px-6 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors shadow-sm"
             >
               Book a boat ride
             </Link>
             <Link
-              href="/"
-              className="text-slate-200 hover:text-white font-medium px-4 py-3.5 transition-colors"
+              href="/guide"
+              className="w-full sm:w-auto inline-flex items-center justify-center h-12 px-6 rounded-full border border-slate-300 bg-white text-slate-800 font-semibold hover:bg-slate-50 transition-colors"
             >
-              Explore all options
+              Read the Varanasi guide
             </Link>
           </div>
         </div>

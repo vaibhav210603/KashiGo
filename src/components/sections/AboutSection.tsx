@@ -1,79 +1,61 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
+import { Check } from "lucide-react";
+
+const features = [
+    { label: "Easy booking in seconds", tint: "bg-orange-100 text-orange-700" },
+    { label: "Transparent pricing", tint: "bg-teal-100 text-teal-700" },
+    { label: "Premium experience", tint: "bg-pink-100 text-pink-700" },
+    { label: "Your own timings", tint: "bg-sky-100 text-sky-700" },
+];
 
 export default function AboutSection() {
-    const containerRef = useRef<HTMLElement>(null);
-
-    // Setup scroll animation for the clouds
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        // Start when the top of About section hits bottom of screen
-        // End when the top of About section hits 30% from the top of screen
-        offset: ["start end", "start 30%"]
-    });
-
-    // Transform scroll progress (0 to 1) to horizontal movement
-    const cloudsX = useTransform(scrollYProgress, [0.4, 1], ["-200vw", "120vw"])
-
     return (
-        <section id="about" ref={containerRef} className="relative py-12 bg-white overflow-hidden">
+        <section id="about" className="py-14 sm:py-20 px-4 bg-white">
+            <div className="max-w-5xl mx-auto">
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4 }}
+                    className="text-center mb-8 sm:mb-12"
+                >
+                    <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-amber-100 text-amber-800">Why KashiGo?</span>
+                    <h2 className="mt-3 text-3xl sm:text-5xl font-bold font-heading text-slate-900 tracking-tight">
+                        Save your spirit and peace of mind
+                    </h2>
+                </motion.div>
 
-            {/* Scroll Animated Clouds */}
-            <motion.div
-                initial={{ x: "0%" }}
-                style={{ x: cloudsX }}
-                className="absolute top-12 left-0 w-full md:w-[150%] h-[300px] z-0 pointer-events-none opacity-40 mix-blend-multiply"
-            >
-                <Image
-                    src="/clouds_white_bg.png"
-                    alt="Stylized clouds over Varanasi"
-                    fill
-                    className="object-cover"
-                />
-            </motion.div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="text-center mb-16">
-                    <h2 className="text-2xl md:text-3xl font-cursive text-orange-500 mb-3">Why KashiGo ? </h2>
-                    <h3 className="text-4xl md:text-6xl font-bold font-heading text-slate-900 mb-6">Save your spirit and peace of mind</h3>
-                    <div className="w-24 h-1 bg-orange-500 mx-auto rounded-full mb-8"></div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div className="space-y-6 text-lg text-slate-600">
+                <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                    <div className="space-y-4 text-[15px] sm:text-lg text-slate-600 leading-relaxed">
                         <p>
-                            Spiritual Journeys require spirit but why lose it often getting harassed and scammed. <br></br><br></br>KashiGo is Varanasi&apos;s premier boat ride booking platform, offering easy, transparent and structured spiritual experiences on the river Ganges.
+                            Spiritual journeys require spirit — so why lose it getting harassed and scammed? KashiGo is Varanasi&apos;s boat ride booking platform, offering easy, transparent and structured experiences on the river Ganges.
                         </p>
                         <p>
-                            Gone are the days of haggling at the ghats. With our platform, you can seamlessly book private or shared boat rides for the perfect time of day—whether you wish to feed the Siberian gulls at dawn or witness the grand Dashashwamedh Aarti at dusk.
+                            Gone are the days of haggling at the ghats. Book a boat ride for the perfect time of day — whether you wish to feed the Siberian gulls at dawn or witness the grand Dashashwamedh Aarti at dusk.
                         </p>
-                        <ul className="space-y-4 pt-4">
-                            {['Easy booking in seconds','Transparent Pricing', 'Premium Experience', 'Your own Timings'].map((feature, idx) => (
-                                <li key={idx} className="flex items-center gap-3">
-                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-600">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                            {features.map((feature) => (
+                                <li key={feature.label} className="flex items-center gap-3 rounded-2xl bg-white border border-slate-200/70 shadow-sm px-4 py-3">
+                                    <span className={`flex items-center justify-center w-7 h-7 rounded-full flex-shrink-0 ${feature.tint}`}>
+                                        <Check size={15} strokeWidth={3} />
                                     </span>
-                                    <span className="font-medium text-slate-800">{feature}</span>
+                                    <span className="font-medium text-slate-800 text-[15px]">{feature.label}</span>
                                 </li>
                             ))}
                         </ul>
                     </div>
-                    <div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
-                        {/* About Us Video/GiF */}
-                        <div className="absolute inset-0 bg-slate-200">
-                        <div className="relative w-full h-full overflow-hidden rounded-3xl">
-                            <Image 
-                                src="/gif1.gif" 
-                                alt="Varanasi Ghats at golden hour" 
-                                fill
-                                className="object-cover" 
-                                unoptimized
-                            />
-                        </div>
-                        </div>
+                    <div className="relative aspect-[4/3] md:aspect-square rounded-3xl overflow-hidden border border-slate-200/70 shadow-sm bg-amber-50">
+                        <Image
+                            src="/gif1.gif"
+                            alt="Varanasi Ghats at golden hour"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 480px"
+                            className="object-cover"
+                            unoptimized
+                        />
                     </div>
                 </div>
             </div>

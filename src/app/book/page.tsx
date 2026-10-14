@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import BookingWizard from "@/components/booking/BookingWizard";
-import PackagesSection from "@/components/sections/PackagesSection";
-import ReviewsSection from "@/components/sections/ReviewsSection";
+import BookingFlow from "@/components/booking/BookingFlow";
+import { LifeBuoy, BadgeIndianRupee, Phone } from "lucide-react";
 import FAQSection from "@/components/sections/FAQSection";
 import { JsonLd } from "@/components/JsonLd";
 import { BOAT_RIDES, BOAT_PRICE_RANGE, CUSTOM_RIDE, boatPrice, inr, BOOKING_PHONE } from "@/lib/boatRides";
@@ -10,7 +9,7 @@ import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 export const metadata: Metadata = {
   title: "Book Varanasi Boat Ride — Sunrise, Ganga Aarti & Sunset | KashiGo",
   description:
-    "Book your Varanasi boat ride online in seconds. Sunrise on the Ganges, Ganga Aarti evening experience, sunset cruise. Fixed prices from ₹1,013 per private boat, trusted local boatmen, instant confirmation.",
+    "Book your Varanasi boat ride online in seconds. Sunrise on the Ganges, Ganga Aarti evening experience, sunset cruise. Fixed prices from ₹990 per private boat, trusted local boatmen, instant confirmation.",
   keywords: [
     "Varanasi boat ride booking online",
     "Ganga Aarti boat ride book",
@@ -35,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function BookPage() {
   return (
-    <div className="min-h-screen bg-slate-50 pt-24 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/40 to-white pt-20 pb-12">
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -101,23 +100,24 @@ export default function BookPage() {
           }))
         }
       }} />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-orange-600">Now operating on the ghats of Varanasi</p>
-        <h1 className="text-3xl md:text-5xl font-bold font-heading text-slate-900 mt-3">Book a Varanasi Boat Ride</h1>
-        <p className="text-xl md:text-2xl font-cursive text-orange-500 mt-2">Pay a genuine price for comfort</p>
-        <p className="text-slate-600 mt-4 leading-relaxed max-w-2xl mx-auto">
-          Private boats on the Ganges with trusted local boatmen — sunrise, Ganga Aarti, sunset and custom rides. One fixed price per boat,
-          shown up front, no haggling on the ghat steps. Pay online (UPI, cards, PayPal) or pay at the ghat. Questions? Call us on {BOOKING_PHONE}.
-        </p>
+      <div className="max-w-3xl mx-auto px-4 pt-4 pb-5">
+        <p className="text-sm font-semibold text-teal-700">Now operating · private boats</p>
+        <h1 className="mt-1 font-heading font-bold text-3xl sm:text-4xl text-slate-900">Book a Varanasi Boat Ride</h1>
+        <p className="mt-2 text-slate-700"><strong className="font-semibold">Pay a genuine price for comfort.</strong> One fixed price per boat — no haggling.</p>
+        <ul className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+          <li className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-slate-700"><BadgeIndianRupee size={14} className="text-orange-500" />Fixed price</li>
+          <li className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-slate-700"><LifeBuoy size={14} className="text-teal-600" />Life jackets</li>
+          <li><a href={`tel:${BOOKING_PHONE.replace(/\s/g, "")}`} className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-slate-700"><Phone size={14} className="text-pink-500" />{BOOKING_PHONE}</a></li>
+        </ul>
       </div>
 
-      <div id="booking" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <BookingWizard />
+      <div id="booking" className="max-w-3xl mx-auto px-4">
+        <BookingFlow />
       </div>
 
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12" aria-labelledby="prices">
-        <h2 id="prices" className="text-2xl md:text-3xl font-bold font-heading text-slate-900 mb-4">Varanasi boat ride prices (private boat, 2026)</h2>
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+      <section className="max-w-3xl mx-auto px-4 mt-4 scroll-mt-20" id="prices" aria-labelledby="prices-h">
+        <h2 id="prices-h" className="text-2xl md:text-3xl font-bold font-heading text-slate-900 mb-4">Varanasi boat ride prices (private boat, 2026)</h2>
+        <div className="overflow-x-auto rounded-3xl border border-slate-200/70 bg-white">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-100 text-slate-700">
               <tr><th className="p-3">Ride</th><th className="p-3">Starts</th><th className="p-3">Price</th></tr>
@@ -138,12 +138,10 @@ export default function BookPage() {
             </tbody>
           </table>
         </div>
-        <p className="text-sm text-slate-500 mt-3">Price is for the whole private boat, not per person. Book today or up to a week ahead.</p>
+        <p className="text-sm text-slate-500 mt-3">Price is for the whole private boat, not per person. Book today or up to a week ahead. Dates further out? Call us.</p>
       </section>
 
       {/* Boat-ride story, relocated from the old homepage */}
-      <PackagesSection />
-      <ReviewsSection />
       <FAQSection />
     </div>
   );

@@ -6,8 +6,8 @@ export default function HealthSafetySection() {
   return (
     <>
       {/* Belly Section */}
-      <section id="belly" className="py-24 bg-white">
-        <div className="max-w-3xl mx-auto px-6">
+      <section id="belly" className="scroll-mt-20 py-16 sm:py-24 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -22,7 +22,7 @@ export default function HealthSafetySection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
+            className="text-3xl sm:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
           >
             Beating "Delhi Belly"
           </motion.h2>
@@ -31,17 +31,17 @@ export default function HealthSafetySection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-xl text-slate-600 mb-10"
+            className="text-lg sm:text-xl text-slate-600 mb-10"
           >
             The single most common thing that derails a trip to India isn't crime — it's an upset stomach. The good news: it's almost entirely preventable.
           </motion.p>
 
-          <div className="space-y-6 text-lg text-slate-800 leading-relaxed font-sans">
+          <div className="space-y-6 text-[17px] text-slate-800 leading-relaxed font-sans">
             <p>
               "Delhi Belly" is just the local nickname for traveller's diarrhoea — your gut meeting unfamiliar bacteria, usually through <strong className="font-bold">water</strong> rather than food itself. Most cases trace back to one careless moment: ice in a drink, a rinsed salad, brushing teeth with tap water. Master a few rules and you can eat your way across India happily.
             </p>
 
-            <div className="my-8 p-6 rounded-2xl bg-pink-50 border border-pink-200 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+            <div className="my-8 p-6 rounded-3xl bg-pink-50 border border-pink-200 shadow-sm">
               <p className="font-bold font-heading text-lg text-pink-600 mb-2 flex items-center gap-2">
                 💧 The one rule that prevents most of it
               </p>
@@ -70,7 +70,7 @@ export default function HealthSafetySection() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
               {/* GO */}
-              <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+              <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 shadow-sm">
                 <h4 className="flex items-center gap-2 text-sm uppercase tracking-widest font-bold text-teal-800 mb-4">
                   <span className="w-3 h-3 rounded-full bg-teal-500"></span> Green — tuck in
                 </h4>
@@ -85,7 +85,7 @@ export default function HealthSafetySection() {
               </div>
               
               {/* CARE */}
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm">
                 <h4 className="flex items-center gap-2 text-sm uppercase tracking-widest font-bold text-amber-600 mb-4">
                   <span className="w-3 h-3 rounded-full bg-orange-500"></span> Amber — think twice
                 </h4>
@@ -99,7 +99,7 @@ export default function HealthSafetySection() {
               </div>
 
               {/* STOP */}
-              <div className="bg-pink-50 border border-pink-200 rounded-2xl p-6 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+              <div className="bg-pink-50 border border-pink-200 rounded-2xl p-6 shadow-sm">
                 <h4 className="flex items-center gap-2 text-sm uppercase tracking-widest font-bold text-pink-600 mb-4">
                   <span className="w-3 h-3 rounded-full bg-pink-500"></span> Red — skip it
                 </h4>
@@ -113,7 +113,7 @@ export default function HealthSafetySection() {
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-teal-50/50 border border-teal-200 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+            <div className="p-6 rounded-2xl bg-teal-50/50 border border-teal-200 shadow-sm">
               <p className="font-bold font-heading text-lg text-teal-700 mb-2 flex items-center gap-2">
                 ✓ Pro move: go (mostly) vegetarian
               </p>
@@ -126,8 +126,8 @@ export default function HealthSafetySection() {
       </section>
 
       {/* Safety Section */}
-      <section id="safety" className="py-24 bg-[#F4ECE0]">
-        <div className="max-w-3xl mx-auto px-6">
+      <section id="safety" className="scroll-mt-20 py-16 sm:py-24 bg-amber-50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -141,7 +141,7 @@ export default function HealthSafetySection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
+            className="text-3xl sm:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
           >
             Staying safe, calmly
           </motion.h2>
@@ -149,18 +149,18 @@ export default function HealthSafetySection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-xl text-slate-600 mb-10"
+            className="text-lg sm:text-xl text-slate-600 mb-10"
           >
             India sees far less violent crime against tourists than headlines suggest. The real challenges are stomach bugs, scams and culture shock. A little street-smarts handles the rest.
           </motion.p>
 
-          <div className="space-y-6 text-lg text-slate-800 leading-relaxed font-sans">
+          <div className="space-y-6 text-[17px] text-slate-800 leading-relaxed font-sans">
             <p>
               Let's be straight, because vagueness helps no one: India is generally <strong className="font-bold">safe for tourists</strong>, and crime against visitors is rarer than the media implies. It's also a place that rewards awareness — busy, intense, and in many regions conservative. Travel with the same instincts you'd use in any unfamiliar big city, dial them up a notch, and you'll be fine.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-10">
-              <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+              <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 shadow-sm">
                 <h4 className="text-sm uppercase tracking-widest font-bold text-teal-800 mb-4">Smart habits</h4>
                 <ul className="list-none space-y-3 text-base text-slate-700">
                   <li className="relative pl-6"><span className="absolute left-0 text-teal-600 font-bold">✓</span> Arrive in new cities <strong className="font-bold">before dark</strong></li>
@@ -170,7 +170,7 @@ export default function HealthSafetySection() {
                   <li className="relative pl-6"><span className="absolute left-0 text-teal-600 font-bold">✓</span> Stick to AC trains/buses &amp; reputable hotels with reviews</li>
                 </ul>
               </div>
-              <div className="bg-pink-50 border border-pink-200 rounded-2xl p-6 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+              <div className="bg-pink-50 border border-pink-200 rounded-2xl p-6 shadow-sm">
                 <h4 className="text-sm uppercase tracking-widest font-bold text-pink-600 mb-4">Avoid</h4>
                 <ul className="list-none space-y-3 text-base text-slate-700">
                   <li className="relative pl-6"><span className="absolute left-0 text-pink-600 font-bold">✕</span> Unregistered taxis &amp; empty late-night autos</li>
@@ -196,19 +196,19 @@ export default function HealthSafetySection() {
               <li><strong className="font-bold">Be reserved with men</strong> you don't know — over-friendliness or casual touching can be misread. Sit in the back of cabs.</li>
             </ul>
 
-            <div className="bg-slate-900 text-white rounded-2xl p-8 my-10 shadow-lg">
-              <h4 className="text-sm tracking-widest uppercase font-bold text-white mb-6 flex items-center gap-3">
+            <div className="bg-white border border-slate-200/70 rounded-3xl p-6 sm:p-8 my-10 shadow-sm">
+              <h4 className="text-sm tracking-widest uppercase font-bold text-slate-900 mb-6 flex items-center gap-3">
                 ☎ Emergency numbers — memorise 112
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-base">
-                <div className="flex justify-between border-b border-slate-700 pb-2"><span className="text-slate-300">All-in-one emergency</span><span className="font-mono font-bold text-orange-400">112</span></div>
-                <div className="flex justify-between border-b border-slate-700 pb-2"><span className="text-slate-300">Tourist helpline (24×7)</span><span className="font-mono font-bold text-orange-400">1363</span></div>
-                <div className="flex justify-between border-b border-slate-700 pb-2"><span className="text-slate-300">Women's helpline</span><span className="font-mono font-bold text-orange-400">1091</span></div>
-                <div className="flex justify-between border-b border-slate-700 pb-2"><span className="text-slate-300">Ambulance</span><span className="font-mono font-bold text-orange-400">108</span></div>
-                <div className="flex justify-between border-b border-slate-700 pb-2"><span className="text-slate-300">Police</span><span className="font-mono font-bold text-orange-400">100</span></div>
-                <div className="flex justify-between border-b border-slate-700 pb-2"><span className="text-slate-300">Fire</span><span className="font-mono font-bold text-orange-400">101</span></div>
+                <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-600">All-in-one emergency</span><span className="font-mono font-bold text-orange-600">112</span></div>
+                <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-600">Tourist helpline (24×7)</span><span className="font-mono font-bold text-orange-600">1363</span></div>
+                <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-600">Women's helpline</span><span className="font-mono font-bold text-orange-600">1091</span></div>
+                <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-600">Ambulance</span><span className="font-mono font-bold text-orange-600">108</span></div>
+                <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-600">Police</span><span className="font-mono font-bold text-orange-600">100</span></div>
+                <div className="flex justify-between border-b border-slate-100 pb-2"><span className="text-slate-600">Fire</span><span className="font-mono font-bold text-orange-600">101</span></div>
               </div>
-              <p className="mt-6 text-sm text-slate-400">Add your embassy's number and address before you fly, and screenshot this card so it works offline.</p>
+              <p className="mt-6 text-sm text-slate-500">Add your embassy's number and address before you fly, and screenshot this card so it works offline.</p>
             </div>
           </div>
         </div>

@@ -26,16 +26,16 @@ export default function IndiaGuideClient() {
   }, [router]);
 
   if (!isAuthorized) {
-    return <div className="min-h-screen bg-[#0c0c0e]"></div>;
+    return <div className="min-h-screen bg-white"></div>;
   }
 
   return (
     <div className="bg-white min-h-screen font-sans">
       <ProgressBar />
-      <div className="fixed bottom-8 right-6 md:top-24 md:bottom-auto z-[90]">
+      <div className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 md:top-24 md:bottom-auto md:right-6 z-[90]">
         <button
           onClick={() => setIsTocOpen(true)}
-          className="bg-slate-900 text-white font-bold font-heading px-6 py-3 rounded-full shadow-2xl hover:bg-orange-500 hover:scale-105 transition-all flex items-center gap-2"
+          className="h-12 px-5 bg-orange-500 hover:bg-orange-600 text-white font-semibold font-heading rounded-full shadow-lg transition-colors flex items-center gap-2"
         >
           <span>📑</span> Contents
         </button>
@@ -48,11 +48,11 @@ export default function IndiaGuideClient() {
       <ScamShield />
       <RoutePlanner />
       <Destinations />
-      <section className="bg-slate-900 text-center py-24 border-t border-slate-800">
-        <div className="max-w-2xl mx-auto px-6">
-          <p className="font-mono text-xs tracking-[0.2em] text-orange-500 uppercase mb-4">One Last Thing</p>
-          <h2 className="text-4xl md:text-5xl font-bold font-heading text-white mb-6">Go. Seriously — go.</h2>
-          <p className="text-lg text-slate-300 mb-8 font-sans">
+      <section className="bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50 text-center py-16 sm:py-24 px-4">
+        <div className="max-w-2xl mx-auto">
+          <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-700 mb-4">One last thing</span>
+          <h2 className="text-3xl sm:text-5xl font-bold font-heading text-slate-900 mb-4">Go. Seriously — go.</h2>
+          <p className="text-[17px] text-slate-600 leading-relaxed mb-8">
             No guide can fully prepare you for India, and that's the magic of it. You'll be overwhelmed, then enchanted, then changed.
           </p>
         </div>

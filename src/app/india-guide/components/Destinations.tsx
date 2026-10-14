@@ -15,36 +15,36 @@ function DestinationDossier({
   content
 }: any) {
   return (
-    <section id={id} className="py-24 border-t border-slate-100">
-      <div className="max-w-3xl mx-auto px-6">
-        <div className="bg-slate-900 text-white rounded-3xl overflow-hidden shadow-xl mb-12">
-          <div className="p-8 md:p-10 relative">
-            <div className="font-mono text-xs tracking-[0.2em] text-orange-400 uppercase mb-3">{num}</div>
-            <h2 className="text-4xl md:text-5xl font-bold font-heading mb-2">{name}</h2>
-            <div className="font-serif italic text-xl text-slate-300 mb-6">{aka}</div>
-            <p className="text-lg text-slate-200 max-w-2xl font-sans leading-relaxed">{verdict}</p>
+    <section id={id} className="scroll-mt-20 py-14 sm:py-20 border-t border-slate-100">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50 border border-slate-200/70 rounded-3xl overflow-hidden shadow-sm mb-10">
+          <div className="p-6 sm:p-10 relative">
+            <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-700 mb-3">{num}</span>
+            <h2 className="text-3xl sm:text-5xl font-bold font-heading text-slate-900 mb-2">{name}</h2>
+            <div className="text-lg text-teal-700 font-medium mb-4">{aka}</div>
+            <p className="text-[17px] text-slate-700 max-w-2xl font-sans leading-relaxed">{verdict}</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 border-t border-slate-800 bg-slate-800/50">
-            <div className="p-5 border-r border-b md:border-b-0 border-slate-800">
-              <div className="font-mono text-[10px] tracking-widest uppercase text-slate-400 mb-2">Days needed</div>
-              <div className="font-bold font-heading text-lg">{days}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 border-t border-slate-200/70 bg-white">
+            <div className="p-4 sm:p-5 border-r border-b md:border-b-0 border-slate-200/70">
+              <div className="font-mono text-[10px] tracking-widest uppercase text-slate-500 mb-2">Days needed</div>
+              <div className="font-bold font-heading text-base sm:text-lg text-slate-900">{days}</div>
             </div>
-            <div className="p-5 border-r border-b md:border-b-0 border-slate-800">
-              <div className="font-mono text-[10px] tracking-widest uppercase text-slate-400 mb-2">Best season</div>
-              <div className="font-bold font-heading text-lg">{season}</div>
+            <div className="p-4 sm:p-5 border-r border-b md:border-b-0 border-slate-200/70">
+              <div className="font-mono text-[10px] tracking-widest uppercase text-slate-500 mb-2">Best season</div>
+              <div className="font-bold font-heading text-base sm:text-lg text-slate-900">{season}</div>
             </div>
-            <div className="p-5 border-r border-slate-800">
-              <div className="font-mono text-[10px] tracking-widest uppercase text-slate-400 mb-2">Vibe</div>
-              <div className="font-bold font-heading text-lg">{vibe}</div>
+            <div className="p-4 sm:p-5 border-r border-slate-200/70">
+              <div className="font-mono text-[10px] tracking-widest uppercase text-slate-500 mb-2">Vibe</div>
+              <div className="font-bold font-heading text-base sm:text-lg text-slate-900">{vibe}</div>
             </div>
-            <div className="p-5">
-              <div className="font-mono text-[10px] tracking-widest uppercase text-slate-400 mb-2">{extraLabel}</div>
-              <div className="font-bold font-heading text-lg">{extra}</div>
+            <div className="p-4 sm:p-5">
+              <div className="font-mono text-[10px] tracking-widest uppercase text-slate-500 mb-2">{extraLabel}</div>
+              <div className="font-bold font-heading text-base sm:text-lg text-slate-900">{extra}</div>
             </div>
           </div>
         </div>
         
-        <div className="text-lg text-slate-800 leading-relaxed font-sans prose prose-lg prose-slate max-w-none">
+        <div className="text-[17px] text-slate-800 leading-relaxed font-sans prose prose-lg prose-slate max-w-none">
           {content}
         </div>
       </div>
@@ -55,11 +55,11 @@ function DestinationDossier({
 export default function Destinations() {
   return (
     <>
-      <section className="bg-slate-900 text-center py-32 border-b border-slate-800">
-        <div className="max-w-3xl mx-auto px-6">
-          <p className="font-mono text-xs tracking-[0.2em] text-orange-500 uppercase mb-4">Part Two</p>
-          <h2 className="text-5xl md:text-6xl font-bold font-heading text-white mb-6">The Destinations</h2>
-          <p className="text-xl text-slate-300">
+      <section className="bg-gradient-to-br from-teal-50 via-sky-50 to-amber-50 text-center py-16 sm:py-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-teal-100 text-teal-700 mb-4">Part two</span>
+          <h2 className="text-3xl sm:text-6xl font-bold font-heading text-slate-900 mb-4">The Destinations</h2>
+          <p className="text-lg sm:text-xl text-slate-600">
             Eight places, each with a one-screen dossier, what to see, what's safe to eat, the local scams — and the one insider tip we'd give a friend.
           </p>
         </div>

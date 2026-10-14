@@ -30,6 +30,7 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
         try {
             const data = await fetch("/api/coupon", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product: product.id, code: c }) }).then((r) => r.json());
             if (data.valid) { setRate(data.rate); setCodeMsg(`${Math.round(data.rate * 100)}% off applied`); return; }
+            if (data.message) { setRate(0); setCodeMsg(data.message); return; }
         } catch { }
         setRate(0); setCodeMsg("That code isn't valid.");
     };
@@ -77,7 +78,7 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
             <motion.div initial={{ y: 40 }} animate={{ y: 0 }} exit={{ y: 40 }} onClick={(e) => e.stopPropagation()}
-                className="bg-white text-slate-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 max-h-[92vh] overflow-y-auto relative">
+                className="bg-white text-slate-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] max-h-[92vh] overflow-y-auto relative">
                 <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700" aria-label="Close"><X /></button>
                 {received && !downloads ? (
                     <div className="space-y-4">
@@ -114,28 +115,28 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="First name" className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-orange-400 bg-white text-slate-900 placeholder:text-slate-400" />
-                            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email (we send your download here)" className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-orange-400 bg-white text-slate-900 placeholder:text-slate-400" />
+                            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="First name" className="w-full border border-slate-200 rounded-2xl px-4 h-12 text-[16px] outline-none focus:border-orange-400 bg-white text-slate-900 placeholder:text-slate-400" />
+                            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email (we send your download here)" className="w-full border border-slate-200 rounded-2xl px-4 h-12 text-[16px] outline-none focus:border-orange-400 bg-white text-slate-900 placeholder:text-slate-400" />
                         </div>
                         <div className="flex gap-2">
                             <div className="relative flex-1">
                                 <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                <input value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setCodeMsg(""); }} placeholder="Discount code" className="w-full border border-slate-200 rounded-xl pl-8 pr-3 py-2.5 text-sm outline-none focus:border-orange-400 bg-white text-slate-900 placeholder:text-slate-400" />
+                                <input value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setCodeMsg(""); }} placeholder="Discount code" className="w-full border border-slate-200 rounded-2xl pl-8 pr-3 h-12 text-[16px] outline-none focus:border-orange-400 bg-white text-slate-900 placeholder:text-slate-400" />
                             </div>
-                            <button onClick={applyCode} className="px-4 rounded-xl bg-slate-100 font-semibold text-sm">Apply</button>
+                            <button onClick={applyCode} className="px-5 h-12 rounded-2xl bg-slate-100 font-semibold text-sm">Apply</button>
                         </div>
                         {codeMsg && <p className={`text-xs ${rate > 0 ? "text-green-600" : "text-red-500"}`}>{codeMsg}</p>}
                         {!emailOk && <p className="text-xs text-slate-500">Enter your email to continue.</p>}
                         <div className={emailOk ? "" : "opacity-40 pointer-events-none"}>
                             {region === "inr" ? (
-                                <button onClick={payRazorpay} disabled={busy} className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold disabled:opacity-60">
+                                <button onClick={payRazorpay} disabled={busy} className="w-full bg-orange-500 hover:bg-orange-600 text-white h-14 rounded-full font-bold shadow-lg shadow-orange-500/30 disabled:opacity-60">
                                     {busy ? "Processing…" : `Pay ₹${finalInr.toLocaleString("en-IN")} — UPI / Card`}
                                 </button>
                             ) : (
                                 <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "AZH2zZoIp8p5E-_4wO5wPnBZL8r0OxYtNu1eX6pjl6xMN_GyIaInlW5frraQ8Tq7a2BhKfVavI1rpI5F", currency: "USD" }}>
                                     <PayPalButtons
                                         forceReRender={[finalUsd, product.id]}
-                                        style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay", height: 48 }}
+                                        style={{ layout: "vertical", color: "gold", shape: "pill", label: "pay", height: 48 }}
                                         createOrder={async () => {
                                             const o = await fetch("/api/paypal/create-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product: product.id, coupon }) }).then((r) => r.json());
                                             if (!o.success) throw new Error("Could not create PayPal order");

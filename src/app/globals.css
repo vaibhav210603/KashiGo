@@ -15,75 +15,55 @@
   --font-heading: var(--font-heading);
 }
 
+/* Light, warm, colourful — the site has no dark theme. */
 :root {
-  --background: #F8F9FA;
-  --foreground: #1A1A1A;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1A1A1A;
-    --foreground: #F8F9FA;
-  }
+html {
+  -webkit-tap-highlight-color: transparent;
+  /* Keep anchor jumps clear of the promo strip (2rem) above the fixed header. */
+  scroll-padding-top: 2rem;
+}
+
+/* Promo strip marquee: two identical halves, so moving by -50% loops seamlessly. */
+.promo-track {
+  animation: promo-scroll 40s linear infinite;
+}
+.promo-track:hover {
+  animation-play-state: paused;
+}
+@keyframes promo-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .promo-track { animation: none; }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Premium animated hero background ─────────────────────────────
-   Slow-drifting aurora orbs + a breathing spotlight. GPU-friendly
-   (transform/opacity only), respects reduced-motion.               */
-@keyframes aurora-drift-a {
-  0%,
-  100% {
-    transform: translate3d(-6%, -4%, 0);
-  }
-  50% {
-    transform: translate3d(9%, 7%, 0);
-  }
+/* Horizontal snap rails (ride cards, product shelves) */
+.rail {
+  display: flex;
+  gap: 0.875rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1rem;
+  padding-inline: 1rem;
+  scrollbar-width: none;
 }
-@keyframes aurora-drift-b {
-  0%,
-  100% {
-    transform: translate3d(6%, 8%, 0);
-  }
-  50% {
-    transform: translate3d(-9%, -7%, 0);
-  }
+.rail::-webkit-scrollbar {
+  display: none;
 }
-@keyframes aurora-drift-c {
-  0%,
-  100% {
-    transform: translate3d(0, 4%, 0);
-  }
-  50% {
-    transform: translate3d(5%, -9%, 0);
-  }
-}
-@keyframes hero-breathe {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 0.9;
-  }
-}
-
-.aurora-orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(56px);
-  transform: translateZ(0);
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .aurora-orb {
-    animation: none !important;
-  }
+.rail > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
 }

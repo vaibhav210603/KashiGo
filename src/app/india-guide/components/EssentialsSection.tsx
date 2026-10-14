@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 
 export default function EssentialsSection() {
   return (
-    <section id="essentials" className="py-24 bg-[#F4ECE0]">
-      <div className="max-w-3xl mx-auto px-6">
+    <section id="essentials" className="scroll-mt-20 py-16 sm:py-24 bg-amber-50">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -19,7 +19,7 @@ export default function EssentialsSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
+          className="text-3xl sm:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
         >
           The seven things to sort before you fly
         </motion.h2>
@@ -28,12 +28,12 @@ export default function EssentialsSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-xl text-slate-600 mb-10"
+          className="text-lg sm:text-xl text-slate-600 mb-10"
         >
           Visa, season, money, connectivity, insurance, vaccines, documents. Get these right and the rest is detail.
         </motion.p>
 
-        <div className="space-y-12 text-lg text-slate-800 leading-relaxed font-sans">
+        <div className="space-y-12 text-[17px] text-slate-800 leading-relaxed font-sans">
           
           {/* Section 1 */}
           <div>
@@ -44,7 +44,7 @@ export default function EssentialsSection() {
             <p className="mb-6">
               Most nationalities enter India on an <strong className="font-bold">e-Tourist Visa</strong>, applied for entirely online. Options usually run from a 30-day double-entry visa up to 1-year and 5-year multiple-entry visas. Apply roughly <strong className="font-bold">4 to 30 days before</strong> you travel.
             </p>
-            <div className="p-6 rounded-2xl bg-pink-50 border border-pink-200 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+            <div className="p-6 rounded-3xl bg-pink-50 border border-pink-200 shadow-sm">
               <p className="font-bold font-heading text-lg text-pink-600 mb-2 flex items-center gap-2">
                 ⚠ Use the official portal only
               </p>
@@ -98,7 +98,7 @@ export default function EssentialsSection() {
               <li><strong className="font-bold">Tell your bank</strong> you're travelling so your card isn't frozen on day one.</li>
               <li><strong className="font-bold">Tipping:</strong> ~10% at restaurants; ₹20–50 for porters and helpful drivers. Appreciated, not obligatory.</li>
             </ul>
-            <div className="p-6 rounded-2xl bg-teal-50 border border-teal-200 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+            <div className="p-6 rounded-3xl bg-teal-50 border border-teal-200 shadow-sm">
               <p className="font-bold font-heading text-lg text-teal-700 mb-2 flex items-center gap-2">
                 ✓ The "split your cash" habit
               </p>
@@ -127,7 +127,7 @@ export default function EssentialsSection() {
                 <div className="text-base">Providers like Airalo, Holafly or Saily activate <em>before</em> you land — no paperwork, no store queue. Slightly pricier, far simpler. Great for short trips.</div>
               </div>
             </div>
-            <div className="p-6 rounded-2xl bg-pink-50 border border-pink-200 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+            <div className="p-6 rounded-3xl bg-pink-50 border border-pink-200 shadow-sm">
               <p className="font-bold font-heading text-lg text-pink-600 mb-2 flex items-center gap-2">
                 ⚠ Buy SIMs from official stores only
               </p>

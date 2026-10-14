@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
-import ChooserScreen from "@/components/ChooserScreen";
 import { JsonLd } from "@/components/JsonLd";
-import BoatRidesHome from "@/components/sections/BoatRidesHome";
+import Hero from "@/components/home/Hero";
+import RideRail from "@/components/home/RideRail";
+import WhyKashiGo from "@/components/home/WhyKashiGo";
+import HowItWorks from "@/components/home/HowItWorks";
+import ShopShelf from "@/components/home/ShopShelf";
+import CheatSheetSignup from "@/components/home/CheatSheetSignup";
+import FAQSection from "@/components/sections/FAQSection";
 import { BOAT_RIDES, BOAT_PRICE_RANGE, boatPrice, inr } from "@/lib/boatRides";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 
 export const metadata: Metadata = {
   title: "KashiGo — Book Varanasi Boat Rides Online | Sunrise, Ganga Aarti & Sunset",
   description:
-    "Book a private Varanasi boat ride online — sunrise, Ganga Aarti and sunset on the Ganges with trusted local boatmen and life jackets. Fixed prices from ₹1,013 per boat, no haggling. Plus scam-free guides by a local.",
+    "Book a private Varanasi boat ride online — sunrise, Ganga Aarti and sunset on the Ganges with trusted local boatmen and life jackets. Fixed prices from ₹990 per boat, no haggling. Plus scam-free guides by a local.",
   keywords: [
     "Varanasi boat ride booking",
     "Ganga Aarti boat ride Varanasi",
@@ -135,8 +140,14 @@ export default function Home() {
           }
         ]
       }} />
-      <ChooserScreen />
-      <BoatRidesHome />
+      {/* Order = what most visitors came for, then highest value: book a boat → trust → guides */}
+      <Hero />
+      <RideRail />
+      <WhyKashiGo />
+      <HowItWorks />
+      <ShopShelf />
+      <FAQSection />
+      <CheatSheetSignup />
     </div>
   );
 }

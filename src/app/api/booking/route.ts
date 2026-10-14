@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 import Razorpay from "razorpay";
 import { createTransporter } from "@/lib/mailer";
 import { getBookingEmailTemplate } from "@/lib/emailTemplate";
-import { getAmountINR } from "@/lib/pricing";
+import { getAmountINR, getAmountUSD } from "@/lib/pricing";
+import { BOAT_RIDES, CUSTOM_RIDE, GHATS, bookingTimeProblem, rideStartMinutes, toMinutes, inr } from "@/lib/boatRides";
 import { rateLimited } from "@/lib/rateLimit";
 
 // Initialize Supabase Client
@@ -15,110 +17,231 @@ const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "";
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || "";
 const paypalBase = process.env.NODE_ENV === "production" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
 
-type Verified = { status: "paid" | "pending" | "unverified"; amount: number };
+type Verified = { status: "paid" | "pending" | "unverified"; amount: number; note?: string };
 
-// Confirms an online payment with the provider so we never trust the client's
-// word for it. This only decides what we record — it never blocks the booking,
-// because by the time this runs the customer has already paid.
-async function verifyPayment(data: any): Promise<Verified> {
-    const product = data.experienceType === "package" ? data.packageId : "custom-boat";
-    const listed = getAmountINR(product) ?? Number(data.amount) ?? 0;
-    const ref = String(data.razorpayPaymentId || "");
-    if (!ref) return { status: "pending", amount: listed }; // pay at the ghat
+const PAY_MODES = ["cod", "online_domestic", "online_international"] as const;
+type PayMode = (typeof PAY_MODES)[number];
+
+// Plain text only: strips control characters and HTML-significant characters, caps the length.
+const clean = (v: unknown, max = 100) => String(v ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, max);
+
+type Booking = {
+    product: string; // p1–p6 or custom-boat
+    rideName: string;
+    ghat: string;
+    rideDate: string;
+    startTime: string; // "5:30 AM" / "17:30"
+    timeOfDay: string;
+    custom: { time: string; tripType: "round" | "single"; destinationGhat: string } | null;
+    name: string;
+    phone: string;
+    email: string;
+    guests: number;
+    paymentMode: PayMode;
+    coupon: string;
+    paymentRef: string;
+};
+
+// Rebuilds the booking from the request using only values we recognise; everything shown to
+// the customer or the owner comes from here, never from raw client input.
+function parseBooking(data: any): { booking: Booking; problems: string[] } {
+    const problems: string[] = [];
+    const isCustom = data?.experienceType === "custom";
+    const ride = isCustom ? null : BOAT_RIDES.find((r) => r.id === data?.packageId);
+    if (!isCustom && !ride) problems.push("Unknown ride.");
+
+    const customTime = clean(data?.customDetails?.time, 5);
+    const tripType = data?.customDetails?.tripType === "single" ? "single" : "round";
+    const destinationGhat = tripType === "single" ? clean(data?.customDetails?.destinationGhat) : "";
+    const ghat = clean(data?.ghat);
+    if (!GHATS.includes(ghat)) problems.push("Unknown start ghat.");
+    if (isCustom && Number.isNaN(toMinutes(customTime))) problems.push("Custom ride needs a valid start time.");
+    if (isCustom && tripType === "single" && (!GHATS.includes(destinationGhat) || destinationGhat === ghat)) problems.push("Invalid drop-off ghat.");
+
+    const product = isCustom ? "custom-boat" : ride?.id || "";
+    const startTime = isCustom ? customTime : ride?.time || "";
+    const rideDate = clean(data?.rideDate, 10);
+    const timeProblem = bookingTimeProblem(rideDate, rideStartMinutes(product, customTime));
+    if (timeProblem) problems.push(timeProblem);
+
+    const p = data?.passengerDetails || {};
+    const name = clean(p.name, 80);
+    const phone = clean(p.phone, 20);
+    const email = clean(p.email, 120);
+    const guests = Math.trunc(Number(p.passengersCount));
+    if (!name) problems.push("Missing passenger name.");
+    if (phone.replace(/\D/g, "").length < 8) problems.push("Missing or invalid phone number.");
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) problems.push("Invalid email address.");
+    if (!(guests >= 1 && guests <= 20)) problems.push("Guests must be between 1 and 20.");
+
+    const paymentMode: PayMode = PAY_MODES.includes(data?.paymentMode) ? data.paymentMode : "cod";
+    const mins = toMinutes(startTime);
+    const slot = mins < 11 * 60 ? "Morning" : mins < 17 * 60 ? "Afternoon" : "Evening";
+
+    return {
+        booking: {
+            product,
+            rideName: isCustom ? CUSTOM_RIDE.name : ride?.name || "",
+            ghat,
+            rideDate,
+            startTime,
+            timeOfDay: startTime ? `${slot}, ${startTime}` : "",
+            custom: isCustom ? { time: customTime, tripType, destinationGhat } : null,
+            name,
+            phone,
+            email: email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : "",
+            guests: guests >= 1 && guests <= 20 ? guests : 1,
+            paymentMode,
+            // Codes only apply to online payments; the payment routes enforce their limits.
+            coupon: paymentMode === "cod" ? "" : clean(data?.coupon, 30).toUpperCase(),
+            paymentRef: paymentMode === "cod" ? "" : clean(data?.razorpayPaymentId, 64),
+        },
+        problems,
+    };
+}
+
+// Confirms an online payment with the provider — that it went through, that it was for this
+// ride, and that the full price was paid — so we never trust the client's word for it.
+async function verifyPayment(b: Booking): Promise<Verified> {
+    const listed = getAmountINR(b.product, b.coupon) ?? 0;
+    if (!b.paymentRef) return { status: "pending", amount: getAmountINR(b.product) ?? 0 }; // pay at the ghat
 
     try {
-        if (data.paymentMode === "online_domestic") {
+        if (b.paymentMode === "online_domestic") {
             const rz = new Razorpay({ key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!, key_secret: process.env.RAZORPAY_KEY_SECRET! });
-            const p: any = await rz.payments.fetch(ref);
-            if (p?.status === "captured" || p?.status === "authorized") return { status: "paid", amount: Number(p.amount) / 100 };
-        } else if (data.paymentMode === "online_international") {
+            const p: any = await rz.payments.fetch(b.paymentRef);
+            if (p?.status !== "captured" && p?.status !== "authorized") return { status: "unverified", amount: listed, note: `Razorpay payment status is "${p?.status}".` };
+            const paid = Number(p.amount) / 100;
+            const order: any = p.order_id ? await rz.orders.fetch(p.order_id) : null;
+            const orderProduct = order?.notes?.product;
+            if (orderProduct !== b.product) return { status: "unverified", amount: paid, note: `This payment was for "${orderProduct || "unknown"}", not ${b.product}.` };
+            const expected = getAmountINR(b.product, order?.notes?.coupon) ?? Infinity;
+            if (paid + 0.5 < expected) return { status: "unverified", amount: paid, note: `Paid ${inr(paid)} but the ride costs ${inr(expected)}.` };
+            return { status: "paid", amount: paid };
+        }
+        if (b.paymentMode === "online_international") {
             const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString("base64");
             const tok = await fetch(`${paypalBase}/v1/oauth2/token`, {
                 method: "POST",
                 body: "grant_type=client_credentials",
                 headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" },
             }).then((r) => r.json());
-            // The wizard sends the PayPal order id as the reference.
-            const order = await fetch(`${paypalBase}/v2/checkout/orders/${encodeURIComponent(ref)}`, {
+            // The booking screen sends the PayPal order id as the reference.
+            const order = await fetch(`${paypalBase}/v2/checkout/orders/${encodeURIComponent(b.paymentRef)}`, {
                 headers: { Authorization: `Bearer ${tok.access_token}` },
             }).then((r) => r.json());
-            if (order?.status === "COMPLETED") return { status: "paid", amount: listed };
+            if (order?.status !== "COMPLETED") return { status: "unverified", amount: listed, note: `PayPal order status is "${order?.status}".` };
+            const unit = order.purchase_units?.[0];
+            if (unit?.custom_id !== b.product) return { status: "unverified", amount: listed, note: `This PayPal payment was for "${unit?.custom_id || "unknown"}", not ${b.product}.` };
+            const paidUsd = Number(unit?.amount?.value);
+            const expectedUsd = getAmountUSD(b.product, b.coupon) ?? Infinity;
+            if (!(paidUsd + 0.01 >= expectedUsd)) return { status: "unverified", amount: listed, note: `Paid $${paidUsd} but the ride costs $${expectedUsd}.` };
+            return { status: "paid", amount: listed };
         }
     } catch (err) {
         console.error("Payment verification error:", err);
     }
-    return { status: "unverified", amount: listed };
+    return { status: "unverified", amount: listed, note: "Payment could not be confirmed with the provider." };
 }
 
-// Lets the owner act on a booking we couldn't save or verify, instead of the customer seeing an error.
-async function alertOwner(subject: string, data: any, rideId: string, note: string) {
+// One email to the owner for every booking, with everything needed to run the ride.
+async function notifyOwner(subject: string, b: Booking, rideId: string, v: Verified, notes: string[]) {
     const to = process.env.SMTP_FROM_EMAIL;
     if (!to) return;
-    const p = data.passengerDetails || {};
     const rows = [
-        ["Ride ID", rideId], ["Note", note], ["Name", p.name], ["Phone", p.phone], ["Email", p.email],
-        ["Passengers", p.passengersCount], ["Ghat", data.ghat], ["Date", data.rideDate], ["Time", data.timeOfDay],
-        ["Package", data.packageId || "custom"], ["Payment mode", data.paymentMode], ["Payment ref", data.razorpayPaymentId || "—"],
-        ["Amount", data.amount],
+        ["Ride ID", rideId],
+        ...notes.map((n) => ["⚠️ Check", n]),
+        ["Ride", b.rideName], ["Date", b.rideDate], ["Time", b.timeOfDay], ["From", b.ghat],
+        ...(b.custom ? [["Trip", b.custom.tripType === "single" ? `One way to ${b.custom.destinationGhat}` : "Round trip"]] : []),
+        ["Guests", b.guests], ["Name", b.name], ["Phone", b.phone], ["Email", b.email || "—"],
+        ["Payment", `${v.status === "paid" ? "PAID online" : v.status === "pending" ? "Pay at the ghat" : "UNVERIFIED"} · ${inr(v.amount)}`],
+        ["Payment mode", b.paymentMode], ["Payment ref", b.paymentRef || "—"], ["Code", b.coupon || "—"],
     ];
     try {
         await createTransporter().sendMail({
             from: `"KashiGo Bookings" <${to}>`,
             to,
             subject,
-            text: rows.map(([k, v]) => `${k}: ${v ?? ""}`).join("\n"),
+            text: rows.map(([k, val]) => `${k}: ${val ?? ""}`).join("\n"),
         });
     } catch (err) {
-        console.error("Owner alert failed:", err);
+        console.error("Owner email failed:", err);
     }
 }
 
-export async function POST(req: Request) {
-    if (rateLimited(req, "booking", 10, 60 * 60 * 1000)) {
-        return NextResponse.json({ success: false, message: "Too many bookings from this connection — please call +91 81759 66910." }, { status: 429 });
+async function saveOrder(b: Booking, rideId: string, v: Verified, notes: string[]) {
+    const base = {
+        ride_id: rideId,
+        ghat: b.ghat,
+        time_of_day: b.timeOfDay,
+        boat_type: "Private",
+        package_id: b.product === "custom-boat" ? "" : b.product,
+        passenger_name: b.name,
+        passenger_phone: b.phone,
+        passenger_email: b.email,
+        passengers_count: b.guests,
+        amount: v.amount,
+        payment_mode: b.paymentMode,
+        payment_status: v.status,
+        razorpay_payment_id: b.paymentRef || null,
+    };
+    const full = { ...base, ride_date: b.rideDate, custom_details: b.custom, coupon: b.coupon || null, check_notes: notes.join(" | ") || null };
+    let { error } = await supabase.from("orders").insert([full]);
+    // Columns from supabase/orders_booking_fields.sql not added yet: save what the table has,
+    // with the date folded into the time so it is never lost.
+    if (error && (error.code === "PGRST204" || error.code === "42703")) {
+        ({ error } = await supabase.from("orders").insert([{ ...base, time_of_day: `${b.rideDate} · ${b.timeOfDay}` }]));
     }
+    return error;
+}
+
+export async function POST(req: Request) {
     let data: any = {};
-    const rideId = `KASHI-${Math.floor(Math.random() * 1000000).toString().padStart(6, "0")}`;
     try {
         data = await req.json();
-        const verified = await verifyPayment(data);
-        data.amount = verified.amount;
+    } catch {
+        return NextResponse.json({ success: false, message: "Invalid request." }, { status: 400 });
+    }
+    const { booking: b, problems } = parseBooking(data);
 
-        const { error: dbError } = await supabase
-            .from("orders")
-            .insert([
-                {
-                    ride_id: rideId,
-                    ghat: data.ghat,
-                    time_of_day: data.timeOfDay,
-                    boat_type: data.boatType,
-                    package_id: data.packageId,
-                    passenger_name: data.passengerDetails?.name,
-                    passenger_phone: data.passengerDetails?.phone,
-                    passenger_email: data.passengerDetails?.email,
-                    passengers_count: data.passengerDetails?.passengersCount,
-                    amount: data.amount,
-                    payment_mode: data.paymentMode || "cod",
-                    payment_status: verified.status,
-                    razorpay_payment_id: data.razorpayPaymentId || null,
-                }
-            ]);
+    // Paid bookings are never turned away — by now the customer has paid — they are saved and flagged.
+    if (!b.paymentRef) {
+        if (rateLimited(req, "booking", 10, 60 * 60 * 1000)) {
+            return NextResponse.json({ success: false, message: "Too many bookings from this connection — please call +91 81759 66910." }, { status: 429 });
+        }
+        if (problems.length) {
+            return NextResponse.json({ success: false, message: problems[0] }, { status: 400 });
+        }
+    }
 
+    const rideId = `KASHI-${crypto.randomInt(0, 1_000_000).toString().padStart(6, "0")}`;
+    const verified = await verifyPayment(b);
+    const notes = [...problems, ...(verified.note ? [verified.note] : [])];
+
+    try {
+        const dbError = await saveOrder(b, rideId, verified, notes);
+        if (dbError?.code === "23505") {
+            // This payment is already attached to a booking (double submit or a reused payment).
+            await notifyOwner(`⚠️ Payment ${b.paymentRef} submitted again — check bookings`, b, rideId, verified, ["This payment reference is already on another booking. No new booking was saved."]);
+            return NextResponse.json({ success: false, duplicate: true, message: "This payment is already linked to a booking — check your email for the confirmation." }, { status: 409 });
+        }
         if (dbError) {
             console.error("Supabase Error:", dbError);
-            await alertOwner(`⚠️ Booking ${rideId} NOT saved — add manually`, data, rideId, `Database error: ${dbError.message}`);
-        } else if (verified.status === "unverified") {
-            await alertOwner(`⚠️ Check payment for booking ${rideId}`, data, rideId, "Payment could not be confirmed with the provider — check the dashboard.");
+            notes.unshift(`NOT SAVED to the database (${dbError.message}) — add it manually.`);
         }
 
-        // Booking confirmation email — sent whether or not the DB write worked,
-        // the owner alert above covers the follow-up.
-        if (data.passengerDetails?.email) {
+        const tag = notes.length ? "⚠️ " : "";
+        await notifyOwner(`${tag}New booking ${rideId} · ${b.rideDate} · ${b.timeOfDay} · ${b.rideName}`, b, rideId, verified, notes);
+
+        if (b.email) {
             try {
-                const emailHtml = await getBookingEmailTemplate({ ...data, rideDate: data.rideDate || "" }, rideId);
+                const emailHtml = await getBookingEmailTemplate({
+                    ghat: b.ghat, timeOfDay: b.timeOfDay, boatType: "Private", rideDate: b.rideDate, paymentMode: b.paymentMode,
+                    amount: verified.amount, passengerDetails: { name: b.name, passengersCount: b.guests },
+                }, rideId);
                 await createTransporter().sendMail({
                     from: `"KashiGo Bookings" <${process.env.SMTP_FROM_EMAIL}>`,
-                    to: data.passengerDetails.email,
+                    to: b.email,
                     subject: `Booking Confirmation - ${rideId}`,
                     html: emailHtml,
                 });
@@ -130,7 +253,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, rideId, message: "Ride successfully booked!" });
     } catch (error: any) {
         console.error("Booking Error:", error);
-        await alertOwner(`⚠️ Booking ${rideId} hit an error — follow up`, data, rideId, error?.message || "Unknown error");
+        await notifyOwner(`⚠️ Booking ${rideId} hit an error — follow up`, b, rideId, verified, [...notes, error?.message || "Unknown error"]);
         // Still confirm to the customer: if they paid, the owner has everything needed to honour it.
         return NextResponse.json({ success: true, rideId, message: "Ride booked!" });
     }

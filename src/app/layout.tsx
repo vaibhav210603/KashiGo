@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Dancing_Script, Playfair_Display, Outfit } from "next/font/google";
-import MiniBar from "@/components/layout/MiniBar";
+import Header from "@/components/layout/Header";
+import PromoStrip from "@/components/layout/PromoStrip";
 import Footer from "@/components/layout/Footer";
-import PopupGate from "@/components/PopupGate";
+import MobileActionBar from "@/components/layout/MobileActionBar";
 import "./globals.css";
 import Script from "next/script";
 
@@ -133,14 +134,16 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} ${playfair.variable} ${outfit.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} ${playfair.variable} ${outfit.variable} antialiased min-h-screen flex flex-col bg-white text-slate-900`}
       >
-        <PopupGate />
-        <MiniBar />
-        <main className="flex-grow">
+        <PromoStrip />
+        <Header />
+        {/* pt-8 = the promo strip; pages already pad for the header below it. */}
+        <main className="flex-grow pt-8">
           {children}
         </main>
         <Footer />
+        <MobileActionBar />
       </body>
     </html>
   );

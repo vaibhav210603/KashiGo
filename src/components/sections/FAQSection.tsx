@@ -34,62 +34,34 @@ const faqs = [
 ];
 
 export default function FAQSection() {
-  const [open, setOpen] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="py-20 bg-slate-50 border-t border-slate-100">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Header */}
-        <div className="text-center mb-14">
-          <h2 className="text-2xl md:text-3xl font-cursive text-orange-500 mb-3">FAQ</h2>
-          <h3 className="text-4xl md:text-5xl font-bold font-heading text-slate-900 mb-4">
-            Common Questions
-          </h3>
-          <p className="text-slate-500 text-base md:text-lg max-w-xl mx-auto">
-            Everything foreigners ask before their first Varanasi boat ride.
-          </p>
-        </div>
-
-        {/* Accordion */}
-        <div className="space-y-3">
+    <section id="faq" className="py-12 md:py-16 scroll-mt-16">
+      <div className="max-w-3xl mx-auto px-4">
+        <h2 className="font-heading font-bold text-3xl sm:text-4xl text-slate-900">Questions travellers ask</h2>
+        <div className="mt-6 divide-y divide-slate-200 rounded-3xl border border-slate-200/70 bg-white overflow-hidden">
           {faqs.map((faq, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-shadow hover:shadow-md"
-            >
+            <div key={faq.q}>
               <button
                 onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
+                className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left min-h-14"
                 aria-expanded={open === i}
               >
-                <span className="font-semibold text-slate-900 text-base md:text-lg leading-snug">
-                  {faq.q}
-                </span>
-                <ChevronDown
-                  size={20}
-                  className={`flex-shrink-0 text-orange-500 transition-transform duration-300 ${open === i ? "rotate-180" : ""}`}
-                />
+                <span className="font-semibold text-slate-900 leading-snug">{faq.q}</span>
+                <ChevronDown size={20} className={`shrink-0 text-orange-500 transition-transform ${open === i ? "rotate-180" : ""}`} />
               </button>
               {/* Always in the HTML (just hidden) so search engines and AI crawlers can read every answer */}
-              <div hidden={open !== i} className="px-6 pb-6 text-slate-600 text-base leading-relaxed border-t border-slate-100 pt-4">
+              <div hidden={open !== i} className="px-5 pb-5 -mt-1 text-slate-600 leading-relaxed">
                 {faq.a}
               </div>
             </div>
           ))}
         </div>
-
-        {/* CTA */}
-        <div className="text-center mt-12">
-          <p className="text-slate-500 mb-4">Still have questions?</p>
-          <Link
-            href="/book"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-xl transition-all shadow-lg shadow-orange-500/20 hover:-translate-y-0.5"
-          >
-            Book Your Boat Ride
-          </Link>
-        </div>
-
+        <p className="mt-5 text-slate-600">
+          Still unsure? Call <a href="tel:+918175966910" className="font-semibold text-teal-700">+91 81759 66910</a> or{" "}
+          <Link href="/book" className="font-semibold text-orange-600">book your ride</Link>.
+        </p>
       </div>
     </section>
   );

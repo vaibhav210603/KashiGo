@@ -39,7 +39,7 @@ export default function TableOfContents({ isOpen, onClose }: TOCProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110]"
+            className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[110]"
           />
           <motion.div
             initial={{ x: "100%" }}
@@ -51,7 +51,7 @@ export default function TableOfContents({ isOpen, onClose }: TOCProps) {
             <div className="p-6">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="font-heading font-bold text-xl text-slate-900">Contents</h3>
-                <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <button onClick={onClose} aria-label="Close contents" className="w-11 h-11 flex items-center justify-center hover:bg-slate-100 rounded-full transition-colors">
                   <X size={24} className="text-slate-500" />
                 </button>
               </div>

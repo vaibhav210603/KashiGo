@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 
 export default function WelcomeSection() {
   return (
-    <section id="welcome" className="py-24 bg-[#FCFAF5]">
-      <div className="max-w-3xl mx-auto px-6">
+    <section id="welcome" className="scroll-mt-20 py-16 sm:py-24 bg-orange-50/60">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -19,7 +19,7 @@ export default function WelcomeSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
+          className="text-3xl sm:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
         >
           Read this first. It'll save your trip.
         </motion.h2>
@@ -28,12 +28,12 @@ export default function WelcomeSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-xl text-slate-600 mb-10"
+          className="text-lg sm:text-xl text-slate-600 mb-10"
         >
           Three minutes here will make the other 280 pages make sense.
         </motion.p>
 
-        <div className="space-y-6 text-lg text-slate-800 leading-relaxed font-sans">
+        <div className="space-y-6 text-[17px] text-slate-800 leading-relaxed font-sans">
           <p>
             Here's the truth no glossy brochure will tell you: India will overwhelm you in the first 48 hours. The noise, the colour, the smells, the sheer <em className="italic">density</em> of life — it hits everyone, even seasoned travellers. People who've crossed forty countries still call India "the great exam."
           </p>
@@ -48,7 +48,7 @@ export default function WelcomeSection() {
           </div>
 
           <h3 className="text-2xl font-bold font-heading text-slate-900 mt-12 mb-4 flex items-center gap-3">
-            <span className="w-10 h-10 rounded-lg bg-[#F4ECE0] flex items-center justify-center text-xl">
+            <span className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-xl">
               🧭
             </span>
             How this book is built
@@ -61,7 +61,7 @@ export default function WelcomeSection() {
             <strong className="font-bold">The second half</strong> is a chapter per destination. Each one opens with a one-screen "dossier" — how many days you need, the best season, the vibe — then gives you what to see, what's safe to eat, the local scams to dodge, and the do's and don'ts that matter <em className="italic">in that specific place</em>. Skim the chapter the night before you arrive somewhere new.
           </p>
 
-          <div className="mt-10 p-6 rounded-2xl bg-amber-50 border border-amber-200 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+          <div className="mt-10 p-6 rounded-3xl bg-amber-50 border border-amber-200 shadow-sm">
             <p className="font-bold font-heading text-lg text-amber-600 mb-2 flex items-center gap-2">
               ⚑ A note on tone
             </p>

@@ -44,13 +44,13 @@ export default function ScamShield() {
   ];
 
   return (
-    <section id="scams" className="py-24 bg-slate-900 text-white">
-      <div className="max-w-3xl mx-auto px-6">
+    <section id="scams" className="scroll-mt-20 py-16 sm:py-24 bg-pink-50/60">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="font-mono text-xs tracking-[0.16em] uppercase text-orange-400 mb-4 flex items-center gap-3"
+          className="font-mono text-xs tracking-[0.16em] uppercase text-orange-600 mb-4 flex items-center gap-3"
         >
           <span className="w-6 h-[2px] bg-orange-500"></span>
           03 — The Scam Shield
@@ -59,7 +59,7 @@ export default function ScamShield() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold font-heading text-white mb-4 tracking-tight"
+          className="text-3xl sm:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
         >
           The core scams to know cold
         </motion.h2>
@@ -67,7 +67,7 @@ export default function ScamShield() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-xl text-slate-300 mb-10"
+          className="text-lg sm:text-xl text-slate-600 mb-10"
         >
           Almost every tourist scam in India follows a script. Learn these and you'll spot them mid-sentence — and most "scams" are just money, not danger.
         </motion.p>
@@ -76,21 +76,21 @@ export default function ScamShield() {
           {scams.map((scam) => (
             <motion.div 
               key={scam.id}
-              className="bg-white text-slate-900 rounded-2xl border-l-4 border-pink-500 overflow-hidden shadow-lg transition-all"
+              className="bg-white text-slate-900 rounded-3xl border border-slate-200/70 overflow-hidden shadow-sm"
             >
               <button 
                 onClick={() => setOpenId(openId === scam.id ? null : scam.id)}
-                className="w-full px-6 py-5 flex items-center justify-between text-left font-heading font-bold text-lg"
+                className="w-full min-h-[56px] px-5 py-4 flex items-center justify-between gap-3 text-left font-heading font-semibold text-base sm:text-lg"
               >
-                <div className="flex items-center gap-4">
-                  <span className="font-mono text-[10px] tracking-wider uppercase bg-pink-100 text-pink-600 px-2 py-1 rounded">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                  <span className="self-start rounded-full px-3 py-1 text-xs font-semibold bg-pink-100 text-pink-700">
                     {scam.tag}
                   </span>
                   {scam.title}
                 </div>
                 <motion.span 
                   animate={{ rotate: openId === scam.id ? 45 : 0 }}
-                  className="text-pink-500 text-2xl"
+                  className="text-pink-500 text-2xl flex-shrink-0"
                 >
                   +
                 </motion.span>
@@ -103,8 +103,8 @@ export default function ScamShield() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-6 pt-0 border-t border-slate-100 font-sans">
-                      <p className="text-slate-700 text-base mt-4 mb-4">
+                    <div className="px-5 pb-5 pt-0 border-t border-slate-100 font-sans">
+                      <p className="text-slate-700 text-[16px] leading-relaxed mt-4 mb-4">
                         {scam.desc}
                       </p>
                       <div className="bg-teal-50 rounded-xl p-4 text-base">
@@ -119,12 +119,12 @@ export default function ScamShield() {
           ))}
         </div>
 
-        <div className="mt-12 bg-teal-500/20 border border-teal-500/40 rounded-2xl p-6 shadow-sm">
-          <p className="font-bold font-heading text-lg text-teal-300 mb-2 flex items-center gap-2">
+        <div className="mt-10 bg-teal-50 border border-teal-200 rounded-3xl p-6 shadow-sm">
+          <p className="font-bold font-heading text-lg text-teal-700 mb-2 flex items-center gap-2">
             ✓ The universal shield
           </p>
-          <p className="text-slate-300 m-0 text-base font-sans">
-            99% of scams start the same way: <strong className="font-bold text-white">a stranger approaches you</strong> with unsolicited "help," a "deal," or "bad news." Real help in India rarely seeks you out and asks for money. A warm, firm "No thank you" — and continuing to walk — defeats almost everything in this section.
+          <p className="text-slate-700 m-0 text-base font-sans">
+            99% of scams start the same way: <strong className="font-bold text-slate-900">a stranger approaches you</strong> with unsolicited "help," a "deal," or "bad news." Real help in India rarely seeks you out and asks for money. A warm, firm "No thank you" — and continuing to walk — defeats almost everything in this section.
           </p>
         </div>
       </div>

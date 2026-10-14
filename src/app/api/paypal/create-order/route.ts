@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAmountUSD } from "@/lib/pricing";
+import { guardCoupon } from "@/lib/couponLimits";
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET!;
@@ -31,6 +32,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: "Invalid product" }, { status: 400 });
         }
 
+        const discounted = amountUSD < (getAmountUSD(product) ?? 0);
+        const guard = discounted ? await guardCoupon(req, coupon) : null;
+        if (guard && !guard.ok) {
+            return NextResponse.json({ success: false, message: guard.message }, { status: 409 });
+        }
+
         const amountInUSD = amountUSD.toFixed(2);
 
         const accessToken = await generateAccessToken();
@@ -60,7 +67,11 @@ export async function POST(req: Request) {
         const orderData = await response.json();
 
         if (orderData.id) {
-            return NextResponse.json({ success: true, orderId: orderData.id });
+            const res = NextResponse.json({ success: true, orderId: orderData.id });
+            if (guard && !(await guard.commit(res, `paypal:${orderData.id}`))) {
+                return NextResponse.json({ success: false, message: "This code has already been used." }, { status: 409 });
+            }
+            return res;
         } else {
             console.error("PayPal Order Creation Error:", orderData);
             return NextResponse.json({ success: false, message: "Failed to create PayPal order" }, { status: 500 });

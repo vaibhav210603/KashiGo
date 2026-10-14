@@ -48,9 +48,16 @@ export function isShopProduct(product: string): boolean {
     return ["india-scam-proof", "kashi-unveiled", "walk-the-ghats", "scam-proof-audiobook", "complete-bundle"].includes(product);
 }
 
+// Coupons valid on every product (fraction off). Usage limits live in couponLimits.ts.
+const ALL_PRODUCT_COUPONS: Record<string, number> = {
+    BLISS20: 0.2, // single use
+    WELCOME10: 0.1, // once per device
+};
+
 function couponRate(product: string, coupon?: string): number {
     const code = (coupon || "").trim().toUpperCase();
     if (!code) return 0;
+    if (ALL_PRODUCT_COUPONS[code]) return ALL_PRODUCT_COUPONS[code];
     if (product === "guide") return GUIDE_COUPONS[code] ?? (code === "LAUNCH40" ? 0.4 : 0);
     if (isShopProduct(product)) return SHOP_COUPONS[code] ?? 0;
     return 0;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
-import { ArrowRight, Calendar, Clock, BookOpen, MapPin, Compass } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
@@ -19,11 +19,19 @@ export const metadata: Metadata = {
   },
 };
 
+const ACCENTS = [
+  "bg-orange-100 text-orange-700",
+  "bg-teal-100 text-teal-700",
+  "bg-pink-100 text-pink-700",
+  "bg-sky-100 text-sky-700",
+  "bg-amber-100 text-amber-800",
+];
+
 export default function BlogPage() {
   const posts = getAllPosts();
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-20 relative">
+    <div className="min-h-screen bg-white">
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "CollectionPage",
@@ -31,91 +39,82 @@ export default function BlogPage() {
         "description": "Free travel guides for foreigners visiting Varanasi. Scam alerts, ghat tips, boat ride pricing, temple etiquette — written by a local born in the city.",
         "url": "https://kashigo.in/blog"
       }} />
-      {/* Background patterns for a premium feel */}
-      <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-orange-100/30 to-transparent pointer-events-none" />
-      <div className="absolute top-20 left-10 w-64 h-64 bg-orange-200/20 rounded-full blur-3xl pointer-events-none" />
-      
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Header Section */}
-        <div className="text-center mb-16 md:mb-24">
-          <div className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-white border border-orange-100 text-orange-600 font-bold text-[9px] tracking-[0.2em] uppercase mb-4 shadow-sm">
-            <BookOpen size={12} />
-            <span>Travel Journal</span>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-bold font-heading text-slate-900 mb-6 tracking-tight">
-            Varanasi Travel <span className="text-orange-500 font-cursive font-normal block md:inline mt-1 md:mt-0 text-5xl md:text-7xl">Guides</span>
+
+      {/* Header */}
+      <section className="pt-24 sm:pt-28 pb-10 sm:pb-14 px-4 bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50">
+        <div className="max-w-3xl mx-auto text-center">
+          <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-700">
+            Travel journal
+          </span>
+          <h1 className="mt-4 text-3xl sm:text-5xl font-bold font-heading text-slate-900 tracking-tight">
+            Varanasi travel guides
           </h1>
-          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium mb-12">
-            Expert insights, scam-prevention, and cultural wisdom for the modern traveler.
+          <p className="mt-3 text-[15px] sm:text-lg text-slate-600 leading-relaxed">
+            Scam alerts, boat prices, ghat tips and temple etiquette — free, and written by a local born in the city.
           </p>
         </div>
+      </section>
 
-        {/* Blog Grid */}
-        <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto mb-48 pt-4">
+      {/* Posts */}
+      <section className="px-4 py-10 sm:py-14">
+        <div className="max-w-6xl mx-auto">
           {posts.length > 0 ? (
-            posts.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="group h-full outline-none">
-                <article className="bg-white rounded-[2rem] p-8 md:p-10 pb-12 md:pb-14 h-full border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(249,115,22,0.1)] hover:-translate-y-1.5 transition-all duration-500 flex flex-col relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-orange-100 transition-colors duration-500" />
-                  
-                  <div className="flex gap-4 text-[9px] font-bold text-slate-400 mb-5 uppercase tracking-[0.15em] relative z-10">
-                    <span className="flex items-center gap-1.5"><Calendar size={13} className="text-orange-500/70" /> {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-                    <span className="flex items-center gap-1.5"><Clock size={13} className="text-orange-500/70" /> {post.readingTime}</span>
-                  </div>
-                  
-                  <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-3 font-heading group-hover:text-orange-600 transition-colors duration-300 leading-tight relative z-10">
-                    {post.title}
-                  </h2>
-                  
-                  <p className="text-slate-600 text-base mb-8 flex-grow leading-relaxed relative z-10">
-                    {post.description}
-                  </p>
-                  
-                  <div className="flex items-center text-xs font-bold text-slate-900 mt-auto pt-6 border-t border-slate-100 relative z-10 group-hover:border-orange-200 transition-colors">
-                    <span className="group-hover:text-orange-600 transition-all duration-300 flex items-center gap-2">
-                        Read Full Guide
-                        <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {posts.map((post, idx) => (
+                <Link key={post.slug} href={`/blog/${post.slug}`} className="group h-full rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
+                  <article className="h-full flex flex-col rounded-3xl bg-white border border-slate-200/70 shadow-sm p-5 sm:p-6 transition-shadow group-hover:shadow-md">
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <span className={`rounded-full px-3 py-1 font-semibold ${ACCENTS[idx % ACCENTS.length]}`}>
+                        {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                      <span className="inline-flex items-center gap-1"><Clock size={13} /> {post.readingTime}</span>
+                    </div>
+
+                    <h2 className="mt-4 text-lg sm:text-xl font-bold font-heading text-slate-900 leading-snug group-hover:text-orange-600 transition-colors">
+                      {post.title}
+                    </h2>
+
+                    <p className="mt-2 text-[15px] text-slate-600 leading-relaxed line-clamp-3 flex-grow">
+                      {post.description}
+                    </p>
+
+                    <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600">
+                      Read guide
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
                     </span>
-                  </div>
-                </article>
-              </Link>
-            ))
+                  </article>
+                </Link>
+              ))}
+            </div>
           ) : (
-            <p className="text-slate-500 italic col-span-full text-center py-20 bg-white rounded-[3rem] border border-slate-100">Coming soon...</p>
+            <p className="text-slate-500 text-center py-16 rounded-3xl bg-amber-50">Coming soon...</p>
           )}
         </div>
+      </section>
 
-        {/* Call to Action */}
-        <div className="relative overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-slate-900 p-8 md:p-24 text-center border border-slate-800 shadow-2xl mt-20">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600" />
-          <div className="absolute -top-32 -left-32 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
-          
-          <div className="relative z-10 max-w-3xl mx-auto">
-              <h3 className="text-2xl md:text-5xl font-bold mb-4 md:mb-6 font-heading text-white tracking-tight leading-tight">Ready to experience <span className="text-orange-500">Varanasi?</span></h3>
-              <p className="text-sm md:text-xl text-slate-400 mb-8 md:mb-12 leading-relaxed max-w-2xl mx-auto">
-                Get the complete 2026 local's travel guide or secure your sunrise boat ride before you arrive.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-5">
-                <Link
-                  href="/guide"
-                  className="w-full sm:w-auto flex items-center justify-center gap-3 bg-orange-500 text-white px-8 py-4 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/25 hover:-translate-y-1 active:scale-95"
-                >
-                  <MapPin size={20} className="md:w-[22px] md:h-[22px]" />
-                  <span className="text-sm md:text-base">Get The Full Guide — $14.99</span>
-                </Link>
-                <Link
-                  href="/book"
-                  className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/5 text-white px-8 py-4 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-bold hover:bg-white/10 transition-all border border-white/10 hover:border-white/20 backdrop-blur-md active:scale-95"
-                >
-                  <Compass size={20} className="md:w-[22px] md:h-[22px]" />
-                  <span className="text-sm md:text-base">Book a Boat Ride</span>
-                </Link>
-              </div>
+      {/* Call to Action */}
+      <section className="px-4 pb-16 sm:pb-24">
+        <div className="max-w-4xl mx-auto rounded-3xl bg-gradient-to-r from-orange-500 to-pink-500 p-6 sm:p-12 text-center text-white shadow-sm">
+          <h2 className="text-2xl sm:text-4xl font-bold font-heading tracking-tight">Ready to experience Varanasi?</h2>
+          <p className="mt-3 text-[15px] sm:text-lg text-white/90 max-w-2xl mx-auto">
+            Book a boat ride on the Ganges — from ₹990 per private boat — or get the complete local&apos;s guide before you arrive.
+          </p>
+          <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+            <Link
+              href="/book"
+              className="w-full sm:w-auto inline-flex items-center justify-center h-12 px-6 rounded-full bg-white text-orange-600 font-semibold hover:bg-orange-50 transition-colors"
+            >
+              Book a boat ride
+            </Link>
+            <Link
+              href="/guide"
+              className="w-full sm:w-auto inline-flex items-center justify-center h-12 px-6 rounded-full border border-white/70 text-white font-semibold hover:bg-white/10 transition-colors"
+            >
+              Get the guide — $14.99
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -12,8 +12,8 @@ export default function RoutePlanner() {
   ];
 
   return (
-    <section id="routes" className="py-24 bg-white">
-      <div className="max-w-3xl mx-auto px-6">
+    <section id="routes" className="scroll-mt-20 py-16 sm:py-24 bg-white">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -28,7 +28,7 @@ export default function RoutePlanner() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
+          className="text-3xl sm:text-5xl font-bold font-heading text-slate-900 mb-4 tracking-tight"
         >
           Don't try to "do" India
         </motion.h2>
@@ -37,12 +37,12 @@ export default function RoutePlanner() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-xl text-slate-600 mb-10"
+          className="text-lg sm:text-xl text-slate-600 mb-10"
         >
           India is the size of a continent. The happiest first-timers pick a lane and go deep — not a frantic dash across the map.
         </motion.p>
 
-        <div className="text-lg text-slate-800 leading-relaxed font-sans mb-10">
+        <div className="text-[17px] text-slate-800 leading-relaxed font-sans mb-10">
           <p>
             The data backs this up: the average foreign visitor stays about <strong className="font-bold">18 days</strong> and realistically sees <strong className="font-bold">three to six places</strong>. Trying to cram in twelve cities means you spend the whole trip in transit, exhausted and ill. Choose one of these proven routes, then steal days from it or add to it.
           </p>
@@ -54,9 +54,9 @@ export default function RoutePlanner() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`font-heading font-bold px-5 py-3 rounded-full transition-colors ${
+              className={`min-h-[44px] text-sm sm:text-base font-heading font-semibold px-4 sm:px-5 py-2.5 rounded-full transition-colors ${
                 activeTab === tab.id 
-                  ? "bg-slate-900 text-white border-slate-900" 
+                  ? "bg-orange-500 text-white" 
                   : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
               }`}
             >
@@ -66,7 +66,7 @@ export default function RoutePlanner() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
+        <div className="bg-white border border-slate-200/70 rounded-3xl p-5 sm:p-8 shadow-sm">
           <AnimatePresence mode="wait">
             {activeTab === "r1" && (
               <motion.div
@@ -133,7 +133,7 @@ export default function RoutePlanner() {
           </AnimatePresence>
         </div>
 
-        <div className="mt-10 p-6 rounded-2xl bg-teal-50 border border-teal-200 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+        <div className="mt-10 p-6 rounded-3xl bg-teal-50 border border-teal-200 shadow-sm">
           <p className="font-bold font-heading text-lg text-teal-700 mb-2 flex items-center gap-2">
             ✓ How to get between cities
           </p>
