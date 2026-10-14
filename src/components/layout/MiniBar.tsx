@@ -57,7 +57,7 @@ export default function MiniBar() {
                             href="/book"
                             className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2 rounded-full transition-all shadow-md hover:scale-105"
                         >
-                            Boat rides waitlist
+                            Book a boat ride
                         </Link>
                     )}
                 </div>

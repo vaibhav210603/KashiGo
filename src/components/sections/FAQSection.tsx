@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { BOAT_PRICES_INR } from "@/lib/boatPrices";
+import { inr } from "@/lib/boatRides";
 
 const faqs = [
   {
     q: "How much does a boat ride in Varanasi cost?",
-    a: "A private boat for up to 4 people costs ₹800–₹1,500 for a sunrise ride and ₹1,200–₹2,000 for the evening Ganga Aarti ride. Shared boats are ₹100–₹400 per person. KashiGo offers fixed, pre-agreed prices — no ghat-side haggling.",
+    a: `KashiGo's fixed prices for a private boat are ${inr(BOAT_PRICES_INR.p1)} for the sunrise ride, ${inr(BOAT_PRICES_INR.p5)} for the evening Ganga Aarti ride and ${inr(BOAT_PRICES_INR.p6)} for sunset — booked online, no ghat-side haggling. On the ghat steps a private boat usually goes for ₹800–₹2,000 after bargaining (first quotes to foreigners are often far higher), and shared boats are ₹100–₹400 per person. Pay a genuine price for comfort: a vetted boatman, life jackets and the price agreed before you board.`,
   },
   {
     q: "How do I book a Varanasi boat ride online?",
@@ -69,11 +71,10 @@ export default function FAQSection() {
                   className={`flex-shrink-0 text-orange-500 transition-transform duration-300 ${open === i ? "rotate-180" : ""}`}
                 />
               </button>
-              {open === i && (
-                <div className="px-6 pb-6 text-slate-600 text-base leading-relaxed border-t border-slate-100 pt-4">
-                  {faq.a}
-                </div>
-              )}
+              {/* Always in the HTML (just hidden) so search engines and AI crawlers can read every answer */}
+              <div hidden={open !== i} className="px-6 pb-6 text-slate-600 text-base leading-relaxed border-t border-slate-100 pt-4">
+                {faq.a}
+              </div>
             </div>
           ))}
         </div>

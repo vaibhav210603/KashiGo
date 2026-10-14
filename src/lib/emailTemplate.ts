@@ -99,7 +99,7 @@ export const getRefundEmailTemplate = ({
           <tr>
             <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 40px;text-align:center;">
               <p style="margin:0 0 4px;color:#94a3b8;font-size:13px;">Need help? We're here for you.</p>
-              <p style="margin:0;color:#0f172a;font-size:14px;font-weight:600;">support@kashigo.com</p>
+              <p style="margin:0;color:#0f172a;font-size:14px;font-weight:600;">support@kashigo.in · +91 81759 66910</p>
             </td>
           </tr>
 

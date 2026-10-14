@@ -31,8 +31,8 @@ const choices: Choice[] = [
     {
         href: "/book",
         eyebrow: "On the river Ganges",
-        title: "Boat Rides — Opening Soon",
-        blurb: "Sunrise, Ganga Aarti and sunset rides with trusted boatmen. Join the waitlist for launch.",
+        title: "Book a Boat Ride",
+        blurb: "Sunrise, Ganga Aarti and sunset on a private boat with a trusted boatman. Pay a genuine price for comfort.",
         icon: Sailboat,
     },
 ];

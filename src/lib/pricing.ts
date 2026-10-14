@@ -1,5 +1,6 @@
 // Server-side price catalog. Payment routes must NEVER trust a client-sent amount —
 // all prices are resolved here from the product id.
+import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 
 export type ProductId =
     | "guide"
@@ -17,13 +18,13 @@ const INR_PRICES: Record<ProductId, number> = {
     "scam-proof-audiobook": 499,
     "complete-bundle": 1699,
     "india-tour": 2374,
-    "custom-boat": 2534,
-    p1: 844,   // Sunrise + Bird Feeding
-    p2: 1182,  // Morning Ganga Aarti
-    p3: 675,   // Day Ghat Tour
-    p4: 1520,  // Temple + Boat Tour
-    p5: 1351,  // Dashashwamedh Evening Aarti
-    p6: 1013,  // Sunset Ride
+    "custom-boat": BOAT_PRICES_INR.custom,
+    p1: BOAT_PRICES_INR.p1,
+    p2: BOAT_PRICES_INR.p2,
+    p3: BOAT_PRICES_INR.p3,
+    p4: BOAT_PRICES_INR.p4,
+    p5: BOAT_PRICES_INR.p5,
+    p6: BOAT_PRICES_INR.p6,
 };
 
 const USD_PRICES: Partial<Record<ProductId, number>> = {

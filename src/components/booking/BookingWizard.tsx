@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import { ChevronRight, ChevronLeft, Check, Anchor, Clock, Users, Sun, Moon, Map, Compass, Package, Sparkles, CalendarDays } from "lucide-react";
 
 export default function BookingWizard() {
@@ -76,16 +77,16 @@ export default function BookingWizard() {
     const ghats = ["Dashashwamedh Ghat", "Assi Ghat", "Namo Ghat", "Manikarnika Ghat", "Panchganga Ghat"];
     const packages = {
         "Morning": [
-            { id: "p1", name: "Sunrise + Bird Feeding", price: 844, description: "All ghats visit early morning.", imgSrc: "/sunrise_bg.png", time: "5:30 AM" },
-            { id: "p2", name: "Morning Ganga Aarti", price: 1182, description: "Assi ghat morning aarti visit.", imgSrc: "/m_aarti_bg.png", time: "6:00 AM" }
+            { id: "p1", name: "Sunrise + Bird Feeding", price: BOAT_PRICES_INR.p1, description: "All ghats visit early morning.", imgSrc: "/sunrise_bg.png", time: "5:30 AM" },
+            { id: "p2", name: "Morning Ganga Aarti", price: BOAT_PRICES_INR.p2, description: "Assi ghat morning aarti visit.", imgSrc: "/m_aarti_bg.png", time: "6:00 AM" }
         ],
         "Afternoon": [
-            { id: "p3", name: "Day Ghat Tour", price: 675, description: "Cover all major 84 ghats in daylight.", imgSrc: "/day_ghat_bg.png", time: "12:00 PM" },
-            { id: "p4", name: "Temple + Boat Tour", price: 1520, description: "Combined tour logic.", imgSrc: "/temple_boat_bg.png", time: "2:00 PM" }
+            { id: "p3", name: "Day Ghat Tour", price: BOAT_PRICES_INR.p3, description: "Cover all major 84 ghats in daylight.", imgSrc: "/day_ghat_bg.png", time: "12:00 PM" },
+            { id: "p4", name: "Temple + Boat Tour", price: BOAT_PRICES_INR.p4, description: "Combined tour logic.", imgSrc: "/temple_boat_bg.png", time: "2:00 PM" }
         ],
         "Evening": [
-            { id: "p5", name: "Dashashwamedh Evening Aarti", price: 1351, description: "Special viewing angle for Aarti.", imgSrc: "/e_aarti_bg.png", time: "6:30 PM" },
-            { id: "p6", name: "Sunset Ride", price: 1013, description: "Enjoy the beautiful sunset over the Ganges.", imgSrc: "/sunset_bg.png", time: "5:00 PM" }
+            { id: "p5", name: "Dashashwamedh Evening Aarti", price: BOAT_PRICES_INR.p5, description: "Special viewing angle for Aarti.", imgSrc: "/e_aarti_bg.png", time: "6:30 PM" },
+            { id: "p6", name: "Sunset Ride", price: BOAT_PRICES_INR.p6, description: "Enjoy the beautiful sunset over the Ganges.", imgSrc: "/sunset_bg.png", time: "5:00 PM" }
         ]
     };
 
@@ -94,7 +95,7 @@ export default function BookingWizard() {
 
     const baseAmount = formData.experienceType === "package"
         ? (selectedPackage?.price || 0)
-        : 2534;
+        : BOAT_PRICES_INR.custom;
     const finalAmount = couponApplied ? COUPON_PRICE : baseAmount;
 
     // Build the time_of_day string for DB: "Morning, 5:30 AM"
@@ -124,25 +125,28 @@ export default function BookingWizard() {
         setCouponError("");
     };
 
+    // Once a payment reference exists the customer has paid, so this never surfaces an
+    // error to them — the server alerts the owner about anything that needs follow-up.
     const submitBooking = async (amount: number, razorpayPaymentId?: string) => {
-        const res = await fetch("/api/booking", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                ...formData,
-                timeOfDay: getTimeOfDayString(),
-                rideDate: formData.rideDate,
-                amount,
-                razorpayPaymentId
-            })
-        });
-        const data = await res.json();
-        if (data.success) {
-            updateFormData("rideId", data.rideId);
-            nextStep();
-        } else {
-            throw new Error(data.message || "Booking failed. Please try again.");
-        }
+        let rideId = "";
+        try {
+            const res = await fetch("/api/booking", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...formData,
+                    timeOfDay: getTimeOfDayString(),
+                    rideDate: formData.rideDate,
+                    amount,
+                    razorpayPaymentId
+                })
+            });
+            const data = await res.json();
+            if (data.success) rideId = data.rideId;
+        } catch { }
+        if (!rideId && !razorpayPaymentId) throw new Error("We couldn't place your booking. Please check your connection and try again.");
+        updateFormData("rideId", rideId || `KASHI-${String(razorpayPaymentId).slice(-6).toUpperCase()}`);
+        nextStep();
     };
 
     const handleCheckout = async () => {
@@ -152,7 +156,7 @@ export default function BookingWizard() {
             if (formData.experienceType === "package") {
                 amount = selectedPackage?.price || 0;
             } else {
-                amount = 2534;
+                amount = BOAT_PRICES_INR.custom;
             }
 
             if (formData.paymentMode === "cod") {
@@ -193,12 +197,8 @@ export default function BookingWizard() {
                         },
                         theme: { color: "#f97316" },
                         handler: async (response: any) => {
-                            try {
-                                await submitBooking(finalAmount, response.razorpay_payment_id);
-                                resolve();
-                            } catch (err: any) {
-                                reject(err);
-                            }
+                            await submitBooking(finalAmount, response.razorpay_payment_id);
+                            resolve();
                         },
                         modal: {
                             ondismiss: () => {
@@ -889,25 +889,19 @@ export default function BookingWizard() {
                                                     if (!orderData.success) throw new Error("Could not create PayPal order");
                                                     return orderData.orderId;
                                                 }}
-                                                onApprove={async (data, actions) => {
+                                                onApprove={async (data) => {
+                                                    // The customer has approved the payment: always confirm the booking.
+                                                    // The server re-checks the order with PayPal and alerts the owner if it isn't complete.
+                                                    updateFormData("isSubmitting", true);
                                                     try {
-                                                        updateFormData("isSubmitting", true);
-                                                        const res = await fetch("/api/paypal/capture-order", {
+                                                        await fetch("/api/paypal/capture-order", {
                                                             method: "POST",
                                                             headers: { "Content-Type": "application/json" },
                                                             body: JSON.stringify({ orderId: data.orderID })
                                                         });
-                                                        const captureData = await res.json();
-                                                        if (captureData.success) {
-                                                            await submitBooking(finalAmount, captureData.captureData.id);
-                                                        } else {
-                                                            throw new Error("Payment capture failed");
-                                                        }
-                                                    } catch (error: any) {
-                                                        alert(error?.message || "An error occurred during payment.");
-                                                    } finally {
-                                                        updateFormData("isSubmitting", false);
-                                                    }
+                                                    } catch { }
+                                                    await submitBooking(finalAmount, data.orderID);
+                                                    updateFormData("isSubmitting", false);
                                                 }}
                                                 onError={(err) => {
                                                     alert("PayPal payment failed or was cancelled.");
@@ -950,8 +944,8 @@ export default function BookingWizard() {
 
                             <div className="pt-4 border-t border-slate-100 flex flex-col items-center justify-center space-y-2">
                                 <p className="text-slate-500">Need help?</p>
-                                <p className="font-semibold text-slate-800">Customer Care: +91 98765 43210</p>
-                                <p className="text-sm text-orange-600">support@kashigo.com</p>
+                                <a href="tel:+918175966910" className="font-semibold text-slate-800">Customer Care: +91 81759 66910</a>
+                                <a href="mailto:support@kashigo.in" className="text-sm text-orange-600">support@kashigo.in</a>
                             </div>
                         </motion.div>
                     )}

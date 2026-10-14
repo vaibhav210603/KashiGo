@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 
 export default function PackagesSection() {
     const packages = [
@@ -9,7 +10,7 @@ export default function PackagesSection() {
             time: "Morning",
             title: "Sunrise & Bird Feeding",
             description: "Experience the tranquil morning vibes of Kashi. Perfect for photography and meditation.",
-            price: "₹844",
+            price: `₹${BOAT_PRICES_INR.p1.toLocaleString("en-IN")}`,
             features: ["Subah-e-Banaras", "Siberian Gull Feeding", "All Ghat Visit"],
             image: "/sunrise.png"
         },
@@ -17,7 +18,7 @@ export default function PackagesSection() {
             time: "Evening",
             title: "Majestic Sunset & Aarti",
             description: "Witness the magnificent Ganga Aarti from the best vantage point on the water.",
-            price: "₹1,351",
+            price: `₹${BOAT_PRICES_INR.p5.toLocaleString("en-IN")}`,
             features: ["Dashashwamedh Aarti", "Evening Lights", "Comfortable Seating"],
             image: "/sunset.png",
             featured: true
@@ -26,7 +27,7 @@ export default function PackagesSection() {
             time: "Night",
             title: "Mystic Night Cruise",
             description: "A serene, quiet ride exploring the mystical ghats under the moonlight.",
-            price: "₹1,689",
+            price: "₹2,027",
             features: ["Peaceful Ambiance", "Namo Ghat Visit", "Private Options"],
             image: "/night.png"
         }
@@ -79,7 +80,7 @@ export default function PackagesSection() {
                                         <div className="text-orange-600 text-2xl font-bold">{pkg.price}</div>
                                     </div>
                                     <Link href="/book#booking" className="bg-slate-900 hover:bg-orange-500 text-white px-5 py-2 rounded-lg font-medium transition-colors">
-                                        Join waitlist
+                                        Book now
                                     </Link>
                                 </div>
                             </div>

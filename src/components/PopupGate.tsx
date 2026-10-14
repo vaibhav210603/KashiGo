@@ -7,7 +7,7 @@ import NewsletterPopup from "@/components/NewsletterPopup";
 // Keep marketing popups off pages where the visitor is already buying.
 export default function PopupGate() {
     const pathname = usePathname();
-    if (pathname?.startsWith("/shop")) return null;
+    if (["/shop", "/ebooks", "/audiobooks"].some((p) => pathname?.startsWith(p))) return null;
     return (
         <>
             <GuidePopup />

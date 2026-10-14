@@ -5,6 +5,7 @@ import { getDownloads } from "@/lib/downloads";
 import { isShopProduct } from "@/lib/pricing";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
 import { SHOP_PRODUCTS } from "@/lib/products";
+import { rateLimited } from "@/lib/rateLimit";
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET!;
@@ -34,9 +35,27 @@ async function verifyPayPal(product: string, orderId: string) {
     return order?.status === "COMPLETED" && order?.purchase_units?.[0]?.custom_id === product;
 }
 
-export async function POST(req: Request) {
+// The buyer never sees a failure after paying; the owner gets what's needed to send the files by hand.
+async function alertOwner(subject: string, body: Record<string, unknown>, note: string) {
+    const to = process.env.SMTP_USER;
+    if (!to) return;
+    const { product, provider, email, name, razorpay_payment_id, paypalOrderId } = body as any;
     try {
-        const body = await req.json();
+        await createTransporter().sendMail({
+            from: `"KashiGo Shop" <${to}>`,
+            to,
+            subject,
+            text: [`Note: ${note}`, `Product: ${product}`, `Buyer: ${name || ""} <${email || ""}>`, `Provider: ${provider}`, `Payment ref: ${razorpay_payment_id || paypalOrderId || "—"}`].join("\n"),
+        });
+    } catch (e) {
+        console.error("Owner alert failed:", e);
+    }
+}
+
+export async function POST(req: Request) {
+    let body: any = {};
+    try {
+        body = await req.json();
         const { product, provider, email, name } = body;
 
         if (!isShopProduct(product)) {
@@ -53,7 +72,8 @@ export async function POST(req: Request) {
             reference = body.paypalOrderId;
         }
         if (!ok) {
-            return NextResponse.json({ success: false, message: "We couldn't verify this payment. Please email support@kashigo.in with your payment reference." }, { status: 402 });
+            if (!rateLimited(req, "shop-alert", 5, 60 * 60 * 1000)) await alertOwner(`⚠️ Shop order needs manual delivery: ${product}`, body, "Payment could not be verified automatically — check the provider dashboard, then email the files.");
+            return NextResponse.json({ success: false, pending: true }, { status: 202 });
         }
 
         const origin = new URL(req.url).origin.includes("localhost") ? new URL(req.url).origin : "https://kashigo.in";
@@ -86,6 +106,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, downloads });
     } catch (error: any) {
         console.error("Shop deliver error:", error);
-        return NextResponse.json({ success: false, message: "Something went wrong. Email support@kashigo.in with your payment reference." }, { status: 500 });
+        if (!rateLimited(req, "shop-alert", 5, 60 * 60 * 1000)) await alertOwner(`⚠️ Shop order needs manual delivery: ${body?.product}`, body, error?.message || "Delivery error");
+        return NextResponse.json({ success: false, pending: true }, { status: 202 });
     }
 }

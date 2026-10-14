@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import ChooserScreen from "@/components/ChooserScreen";
 import { JsonLd } from "@/components/JsonLd";
+import BoatRidesHome from "@/components/sections/BoatRidesHome";
+import { BOAT_RIDES, BOAT_PRICE_RANGE, boatPrice, inr } from "@/lib/boatRides";
+import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 
 export const metadata: Metadata = {
-  title: "KashiGo — Varanasi Boat Rides & Local Travel Guide",
+  title: "KashiGo — Book Varanasi Boat Rides Online | Sunrise, Ganga Aarti & Sunset",
   description:
-    "Book your Varanasi boat ride in seconds. Sunrise, Ganga Aarti, and sunset experiences. Get the #1 scam-free travel guide written by a local born in the city.",
+    "Book a private Varanasi boat ride online — sunrise, Ganga Aarti and sunset on the Ganges with trusted local boatmen and life jackets. Fixed prices from ₹1,013 per boat, no haggling. Plus scam-free guides by a local.",
   keywords: [
     "Varanasi boat ride booking",
     "Ganga Aarti boat ride Varanasi",
@@ -41,6 +44,8 @@ export default function Home() {
         "logo": "https://kashigo.in/icon-512.png",
         "image": "https://kashigo.in/og-image.jpg",
         "priceRange": "₹₹",
+        "telephone": "+91-8175966910",
+        "slogan": "Pay a genuine price for comfort",
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Varanasi",
@@ -68,41 +73,20 @@ export default function Home() {
         },
         "hasOfferCatalog": {
           "@type": "OfferCatalog",
-          "name": "KashiGo Services",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Service",
-                "name": "Varanasi Sunrise Boat Ride",
-                "description": "Private boat ride on the Ganges at sunrise — watch Varanasi awaken from the water"
-              }
-            },
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Service",
-                "name": "Ganga Aarti Boat Ride Varanasi",
-                "description": "Evening Ganga Aarti experience from a floating boat — panoramic view of the fire ceremony"
-              }
-            },
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Service",
-                "name": "Varanasi Sunset Boat Cruise",
-                "description": "Golden hour on the Ganges — a serene sunset cruise past the ancient ghats of Varanasi"
-              }
-            },
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Varanasi Travel Guide for Foreigners 2026",
-                "description": "Complete scam-free Varanasi guide for international visitors — all 84 ghats, 9 scam shields, 2-day itinerary"
-              }
+          "name": "Varanasi boat rides",
+          "itemListElement": BOAT_RIDES.map((r) => ({
+            "@type": "Offer",
+            "price": String(boatPrice(r.id)),
+            "priceCurrency": "INR",
+            "availability": "https://schema.org/InStock",
+            "url": "https://kashigo.in/book",
+            "itemOffered": {
+              "@type": "Service",
+              "name": `${r.name} — Varanasi`,
+              "description": r.summary,
+              "areaServed": "Varanasi"
             }
-          ]
+          }))
         }
       }} />
       <JsonLd data={{
@@ -114,7 +98,7 @@ export default function Home() {
             "name": "How much does a boat ride in Varanasi cost?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "A private boat ride in Varanasi costs between ₹800–₹2,000 depending on the experience. Sunrise boat rides cost ₹800–₹1,500 for a private boat (up to 4 people). Evening Ganga Aarti boat rides cost ₹1,200–₹2,000 because boats must arrive early to secure a good spot. Shared boats are available for ₹100–₹400 per person. KashiGo offers fixed, fair prices with no ghat-side haggling."
+              "text": `KashiGo's fixed online prices for a private boat in Varanasi are ${inr(BOAT_PRICES_INR.p1)} for the sunrise ride, ${inr(BOAT_PRICES_INR.p5)} for the evening Ganga Aarti ride at Dashashwamedh and ${inr(BOAT_PRICES_INR.p6)} for sunset (all rides ${inr(BOAT_PRICE_RANGE.low)}–${inr(BOAT_PRICE_RANGE.high)}), with a vetted boatman and life jackets. Bargained on the ghat steps, a private boat usually costs ₹800–₹2,000, and shared boats are ₹100–₹400 per person. Book at kashigo.in/book.`
             }
           },
           {
@@ -122,7 +106,7 @@ export default function Home() {
             "name": "How do I book a boat ride in Varanasi online?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "You can book a Varanasi boat ride online through KashiGo at kashigo.in/book. Select your experience (sunrise, Ganga Aarti, or sunset), pick your date and group size, and receive instant confirmation. KashiGo uses verified local boatmen and provides fixed, scam-free pricing."
+              "text": "Book online through KashiGo at kashigo.in/book. Choose your ghat, date and ride (sunrise, Ganga Aarti, sunset, day tour or a custom route), then pay by UPI, card or PayPal — or pay at the ghat. You get a ride number and email confirmation instantly. You can also call +91 81759 66910."
             }
           },
           {
@@ -152,6 +136,7 @@ export default function Home() {
         ]
       }} />
       <ChooserScreen />
+      <BoatRidesHome />
     </div>
   );
 }

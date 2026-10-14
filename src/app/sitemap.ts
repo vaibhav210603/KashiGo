@@ -14,7 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: baseUrl,
-      lastModified: new Date("2026-06-01"),
+      lastModified: new Date("2026-10-14"),
       changeFrequency: "weekly" as const,
       priority: 1.0,
     },
@@ -32,9 +32,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/book`,
-      lastModified: new Date("2026-06-01"),
+      lastModified: new Date("2026-10-14"),
       changeFrequency: "weekly" as const,
-      priority: 0.9,
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/ebooks`,
+      lastModified: new Date("2026-10-14"),
+      changeFrequency: "weekly" as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/audiobooks`,
+      lastModified: new Date("2026-10-14"),
+      changeFrequency: "weekly" as const,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/blog`,

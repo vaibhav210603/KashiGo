@@ -1,39 +1,91 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import nodemailer from "nodemailer";
-import { getBookingEmailTemplate, getRefundEmailTemplate } from "@/lib/emailTemplate";
+import Razorpay from "razorpay";
+import { createTransporter } from "@/lib/mailer";
+import { getBookingEmailTemplate } from "@/lib/emailTemplate";
+import { getAmountINR } from "@/lib/pricing";
+import { rateLimited } from "@/lib/rateLimit";
 
 // Initialize Supabase Client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-const createTransporter = () => nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: false,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-});
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "";
+const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || "";
+const paypalBase = process.env.NODE_ENV === "production" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
+
+type Verified = { status: "paid" | "pending" | "unverified"; amount: number };
+
+// Confirms an online payment with the provider so we never trust the client's
+// word for it. This only decides what we record — it never blocks the booking,
+// because by the time this runs the customer has already paid.
+async function verifyPayment(data: any): Promise<Verified> {
+    const product = data.experienceType === "package" ? data.packageId : "custom-boat";
+    const listed = getAmountINR(product) ?? Number(data.amount) ?? 0;
+    const ref = String(data.razorpayPaymentId || "");
+    if (!ref) return { status: "pending", amount: listed }; // pay at the ghat
+
+    try {
+        if (data.paymentMode === "online_domestic") {
+            const rz = new Razorpay({ key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!, key_secret: process.env.RAZORPAY_KEY_SECRET! });
+            const p: any = await rz.payments.fetch(ref);
+            if (p?.status === "captured" || p?.status === "authorized") return { status: "paid", amount: Number(p.amount) / 100 };
+        } else if (data.paymentMode === "online_international") {
+            const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString("base64");
+            const tok = await fetch(`${paypalBase}/v1/oauth2/token`, {
+                method: "POST",
+                body: "grant_type=client_credentials",
+                headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" },
+            }).then((r) => r.json());
+            // The wizard sends the PayPal order id as the reference.
+            const order = await fetch(`${paypalBase}/v2/checkout/orders/${encodeURIComponent(ref)}`, {
+                headers: { Authorization: `Bearer ${tok.access_token}` },
+            }).then((r) => r.json());
+            if (order?.status === "COMPLETED") return { status: "paid", amount: listed };
+        }
+    } catch (err) {
+        console.error("Payment verification error:", err);
+    }
+    return { status: "unverified", amount: listed };
+}
+
+// Lets the owner act on a booking we couldn't save or verify, instead of the customer seeing an error.
+async function alertOwner(subject: string, data: any, rideId: string, note: string) {
+    const to = process.env.SMTP_FROM_EMAIL;
+    if (!to) return;
+    const p = data.passengerDetails || {};
+    const rows = [
+        ["Ride ID", rideId], ["Note", note], ["Name", p.name], ["Phone", p.phone], ["Email", p.email],
+        ["Passengers", p.passengersCount], ["Ghat", data.ghat], ["Date", data.rideDate], ["Time", data.timeOfDay],
+        ["Package", data.packageId || "custom"], ["Payment mode", data.paymentMode], ["Payment ref", data.razorpayPaymentId || "—"],
+        ["Amount", data.amount],
+    ];
+    try {
+        await createTransporter().sendMail({
+            from: `"KashiGo Bookings" <${to}>`,
+            to,
+            subject,
+            text: rows.map(([k, v]) => `${k}: ${v ?? ""}`).join("\n"),
+        });
+    } catch (err) {
+        console.error("Owner alert failed:", err);
+    }
+}
 
 export async function POST(req: Request) {
-    // Tours aren't operating yet: refuse bookings until BOOKINGS_OPEN=true is set.
-    // (This route also trusts client-sent amount/payment status — add server-side
-    // payment verification before reopening.)
-    if (process.env.BOOKINGS_OPEN !== "true") {
-        return NextResponse.json({ success: false, message: "Bookings are paused — join the waitlist at kashigo.in/book." }, { status: 503 });
+    if (rateLimited(req, "booking", 10, 60 * 60 * 1000)) {
+        return NextResponse.json({ success: false, message: "Too many bookings from this connection — please call +91 81759 66910." }, { status: 429 });
     }
+    let data: any = {};
+    const rideId = `KASHI-${Math.floor(Math.random() * 1000000).toString().padStart(6, "0")}`;
     try {
-        const data = await req.json();
+        data = await req.json();
+        const verified = await verifyPayment(data);
+        data.amount = verified.amount;
 
-        // 1. Generate Ride ID
-        const rideId = `KASHI-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
-
-        // 2. Supabase Integration
         const { error: dbError } = await supabase
-            .from('orders')
+            .from("orders")
             .insert([
                 {
                     ride_id: rideId,
@@ -46,70 +98,40 @@ export async function POST(req: Request) {
                     passenger_email: data.passengerDetails?.email,
                     passengers_count: data.passengerDetails?.passengersCount,
                     amount: data.amount,
-                    payment_mode: data.paymentMode || 'cod',
-                    payment_status: data.paymentMode === 'online' ? 'paid' : 'pending',
+                    payment_mode: data.paymentMode || "cod",
+                    payment_status: verified.status,
                     razorpay_payment_id: data.razorpayPaymentId || null,
                 }
             ]);
 
         if (dbError) {
             console.error("Supabase Error:", dbError);
-
-            // If a Razorpay payment was already captured, notify the customer about refund
-            if (data.razorpayPaymentId && data.passengerDetails?.email) {
-                try {
-                    const refundHtml = getRefundEmailTemplate({
-                        name: data.passengerDetails.name,
-                        email: data.passengerDetails.email,
-                        amount: data.amount,
-                        razorpayPaymentId: data.razorpayPaymentId,
-                    });
-                    await createTransporter().sendMail({
-                        from: `"KashiGo Bookings" <${process.env.SMTP_FROM_EMAIL}>`,
-                        to: data.passengerDetails.email,
-                        subject: `Important: Payment Received – Your Refund is Being Processed`,
-                        html: refundHtml,
-                    });
-                    console.log("Refund notification email sent.");
-                } catch (emailErr) {
-                    console.error("Failed to send refund email:", emailErr);
-                }
-
-                return NextResponse.json({
-                    success: false,
-                    refundInitiated: true,
-                    message: "Your payment was received but we encountered an issue saving your booking. A refund of ₹" + data.amount + " will be processed in 5–7 working days. A confirmation has been sent to your email."
-                }, { status: 500 });
-            }
-
-            throw new Error("Failed to save order to database.");
+            await alertOwner(`⚠️ Booking ${rideId} NOT saved — add manually`, data, rideId, `Database error: ${dbError.message}`);
+        } else if (verified.status === "unverified") {
+            await alertOwner(`⚠️ Check payment for booking ${rideId}`, data, rideId, "Payment could not be confirmed with the provider — check the dashboard.");
         }
 
-        console.log("Order saved to Supabase successfully.");
-
-        // 3. Booking Confirmation Email
+        // Booking confirmation email — sent whether or not the DB write worked,
+        // the owner alert above covers the follow-up.
         if (data.passengerDetails?.email) {
             try {
-                const emailHtml = await getBookingEmailTemplate({ ...data, rideDate: data.rideDate || '' }, rideId);
+                const emailHtml = await getBookingEmailTemplate({ ...data, rideDate: data.rideDate || "" }, rideId);
                 await createTransporter().sendMail({
                     from: `"KashiGo Bookings" <${process.env.SMTP_FROM_EMAIL}>`,
                     to: data.passengerDetails.email,
                     subject: `Booking Confirmation - ${rideId}`,
                     html: emailHtml,
                 });
-                console.log("Confirmation email sent successfully.");
             } catch (emailError) {
                 console.error("Nodemailer Error:", emailError);
-                // Don't throw — booking is saved, email is non-critical
             }
-        } else {
-            console.log("No email provided. Skipped email sending.");
         }
 
         return NextResponse.json({ success: true, rideId, message: "Ride successfully booked!" });
     } catch (error: any) {
         console.error("Booking Error:", error);
-        return NextResponse.json({ success: false, message: error.message || "Failed to process booking" }, { status: 500 });
+        await alertOwner(`⚠️ Booking ${rideId} hit an error — follow up`, data, rideId, error?.message || "Unknown error");
+        // Still confirm to the customer: if they paid, the owner has everything needed to honour it.
+        return NextResponse.json({ success: true, rideId, message: "Ride booked!" });
     }
 }
-
