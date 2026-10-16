@@ -5,7 +5,7 @@ import ReviewsSection from "@/components/sections/ReviewsSection";
 import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
-  title: "About KashiGo — Varanasi Boat Rides & Local Travel Guides",
+  title: { absolute: "About KashiGo — Varanasi Boat Rides & Local Travel Guides" },
   description:
     "KashiGo is Varanasi's scam-free travel platform — instant boat-ride bookings on the Ganges and local's guides to Varanasi and India, written by someone born in the city.",
   alternates: {

@@ -4,7 +4,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { SHOP_PRODUCTS } from "@/lib/products";
 
 export const metadata: Metadata = {
-  title: "Varanasi & India Travel Ebooks and Audio Tours — KashiGo Shop",
+  title: { absolute: "Varanasi & India Travel Ebooks and Audio Tours — KashiGo Shop" },
   description:
     "Instant-download travel guides written by a Varanasi local: India Scam-Proof, Kashi Unveiled, the Walk the Ghats audio tour and the Varanasi Insider Guide. Bundle and save.",
   keywords: [

@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 
   title: {
     default: "KashiGo — Varanasi Boat Rides & Travel Guide for Foreigners",
-    template: "%s | KashiGo Varanasi",
+    template: "%s | KashiGo",
   },
 
   description:
@@ -106,6 +106,14 @@ export const metadata: Metadata = {
 
   alternates: {
     canonical: "https://kashigo.in",
+    types: { "application/rss+xml": "https://kashigo.in/blog/feed.xml" },
+  },
+
+  // Codes from Google Search Console / Bing Webmaster Tools (HTML-tag method), set in Vercel env.
+  // Bing matters doubly: its index is what ChatGPT search and Copilot answer from.
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION } : undefined,
   },
 
   category: "travel",

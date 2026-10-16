@@ -1,0 +1,36 @@
+name: SEO Monitor
+
+# Crawls the live site every 6 hours and fails (GitHub emails you) if a page 404s,
+# loses its title/description, turns noindex, breaks JSON-LD, robots.txt blocks
+# crawlers, or llms.txt disappears. Once a day it also re-submits the sitemap to
+# IndexNow so Bing (which feeds ChatGPT search and Copilot) picks up changes fast.
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Pushes are deployed by hand, so give the live site time to catch up.
+      - name: Wait for deploy
+        if: github.event_name == 'push'
+        run: sleep 600
+      - name: SEO health check
+        run: node scripts/seo-check.mjs https://kashigo.in
+      - name: Ping IndexNow
+        if: always()
+        run: |
+          hour=$(date -u +%H)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$hour" != "00" ]; then
+            echo "IndexNow runs once a day (00 UTC run) — skipping"; exit 0
+          fi
+          node scripts/indexnow.mjs

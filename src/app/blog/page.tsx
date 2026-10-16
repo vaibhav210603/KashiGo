@@ -5,7 +5,7 @@ import { ArrowRight, Clock } from "lucide-react";
 import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
-  title: "Varanasi Travel Tips & Local Guides | KashiGo Blog",
+  title: { absolute: "Varanasi Travel Tips & Local Guides | KashiGo Blog" },
   description:
     "Free travel guides for foreigners visiting Varanasi. Scam alerts, ghat tips, boat ride pricing, temple etiquette — written by a local born in the city.",
   alternates: {
@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     description:
       "Free Varanasi guides for foreigners — scam shields, boat prices, ghat tips. Written by a local.",
     url: "https://kashigo.in/blog",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
   },
 };
 
