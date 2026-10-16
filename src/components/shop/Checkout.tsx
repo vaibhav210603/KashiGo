@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Check, Download, Tag, X } from "lucide-react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import type { ShopProduct } from "@/lib/products";
+import { track } from "@/lib/analytics";
 
 type Dl = { label: string; url: string };
 
@@ -44,10 +45,11 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
         // Paid but files couldn't be released automatically: the owner has been alerted and sends them by email.
         if (!data.success) { setReceived(true); return; }
         setDownloads(data.downloads);
-        try { (window as any).gtag?.("event", "purchase", { currency: region === "inr" ? "INR" : "USD", value: region === "inr" ? finalInr : finalUsd, items: [{ item_id: product.id }] }); } catch { }
+        track("purchase", { transaction_id: payload.razorpay_payment_id || payload.paypalOrderId, currency: region === "inr" ? "INR" : "USD", value: region === "inr" ? finalInr : finalUsd, item_id: product.id });
     };
 
     const payRazorpay = async () => {
+        track("begin_checkout", { currency: "INR", value: finalInr, item_id: product.id, payment_type: "razorpay" });
         setBusy(true); setError("");
         try {
             const o = await fetch("/api/razorpay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product: product.id, coupon }) }).then((r) => r.json());

@@ -54,6 +54,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date("2026-10-14"),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/india-guide`,
+      lastModified: new Date("2026-10-14"),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/india-tour`,
+      lastModified: new Date("2026-10-14"),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
     ...blogPosts,
   ];
 }

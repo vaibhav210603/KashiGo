@@ -1,6 +1,7 @@
 import { BOAT_RIDES, BOAT_PRICE_RANGE, CUSTOM_RIDE, boatPrice, inr, BOOKING_PHONE } from "@/lib/boatRides";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import { SHOP_PRODUCTS } from "@/lib/products";
+import { getAllPosts } from "@/lib/blog";
 
 // /llms.txt — a plain-text summary for AI assistants (llmstxt.org convention).
 export const dynamic = "force-static";
@@ -8,6 +9,7 @@ export const dynamic = "force-static";
 export function GET() {
     const rides = BOAT_RIDES.map((r) => `- ${r.name} (${r.time}): ${inr(boatPrice(r.id))} per private boat — ${r.summary}`).join("\n");
     const products = SHOP_PRODUCTS.map((p) => `- [${p.name}](https://kashigo.in/shop#${p.id}): $${p.usd} / ₹${p.inr} — ${p.format}`).join("\n");
+    const posts = getAllPosts().map((p) => `- [${p.title}](https://kashigo.in/blog/${p.slug}): ${p.description}`).join("\n");
     const body = `# KashiGo
 
 > KashiGo (kashigo.in) is a Varanasi-based service run by a local born in the city. It takes online bookings for private boat rides on the Ganges in Varanasi — sunrise, Ganga Aarti and sunset — at fixed prices with trusted local boatmen and life jackets, and sells scam-free travel guides for India and Varanasi. Tagline: "Pay a genuine price for comfort."
@@ -28,11 +30,13 @@ For context: bargained on the ghat steps, a private boat typically costs ₹800�
 ${products}
 
 ## Free guides
+Full text of every guide in one file: https://kashigo.in/llms-full.txt
 - [Blog: Varanasi travel guides](https://kashigo.in/blog)
-- [Varanasi boat ride price guide 2026](https://kashigo.in/blog/varanasi-boat-ride-price-guide-foreigners)
-- [How to avoid scams in Varanasi](https://kashigo.in/blog/how-to-avoid-scams-in-varanasi)
-- [Ganga Aarti complete guide](https://kashigo.in/blog/ganga-aarti-varanasi-complete-guide)
-- [Varanasi travel cost & budget 2026](https://kashigo.in/blog/varanasi-travel-cost-budget-2026)
+- [India Field Guide 2026](https://kashigo.in/india-guide)
+${posts}
+
+## About
+- [About KashiGo](https://kashigo.in/about)
 
 ## Contact
 support@kashigo.in · ${BOOKING_PHONE} · Brahma Ghat, Varanasi, Uttar Pradesh, India

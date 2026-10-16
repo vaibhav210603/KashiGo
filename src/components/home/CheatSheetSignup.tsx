@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Gift } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 // Inline lead capture — replaces the old auto-popups.
 export default function CheatSheetSignup() {
@@ -15,7 +16,9 @@ export default function CheatSheetSignup() {
         try {
             const res = await fetch("/api/email-leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email }) });
             const json = await res.json();
-            setState(res.ok && json.success ? "done" : "error");
+            const ok = res.ok && json.success;
+            if (ok) track("generate_lead", { lead_source: "cheat_sheet" });
+            setState(ok ? "done" : "error");
         } catch { setState("error"); }
     };
 

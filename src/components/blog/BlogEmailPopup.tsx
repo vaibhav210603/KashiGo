@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Mail, ShieldCheck, Loader2 } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 const STORAGE_KEY = "kashigo_popup_dismissed";
 
@@ -64,6 +65,7 @@ export default function BlogEmailPopup() {
         throw new Error(data.message || "Something went wrong");
       }
 
+      track("generate_lead", { lead_source: "blog_newsletter" });
       setStatus("success");
       localStorage.setItem(STORAGE_KEY, "1");
     } catch (err: any) {

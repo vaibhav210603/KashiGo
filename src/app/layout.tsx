@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import MobileActionBar from "@/components/layout/MobileActionBar";
 import "./globals.css";
 import Script from "next/script";
+import AnalyticsEvents from "@/components/analytics/AnalyticsEvents";
 
 
 const geistSans = Geist({
@@ -129,7 +130,7 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-FERJSDDQ3J');
+            gtag('config', 'G-FERJSDDQ3J', { allow_google_signals: true });
           `}
         </Script>
       </head>
@@ -144,6 +145,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <MobileActionBar />
+        <AnalyticsEvents />
       </body>
     </html>
   );

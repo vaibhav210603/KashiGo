@@ -7,6 +7,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Check, Minus, Plus, Phone, Headphones, Wallet, Smartphone, Globe, Tag } from "lucide-react";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, BOOKING_WINDOW_DAYS } from "@/lib/boatRides";
+import { track } from "@/lib/analytics";
 
 type RideChoice = BoatRideId | "custom" | "";
 type PayMode = "cod" | "online_domestic" | "online_international";
@@ -168,8 +169,11 @@ export default function BookingFlow() {
             setNotice("We couldn't place your booking — please check your connection and try again, or call +91 81759 66910.");
             return;
         }
-        setDone({ rideId: rideId || `KASHI-${String(paymentRef).slice(-6).toUpperCase()}`, paid: Boolean(paymentRef) });
-        try { (window as any).gtag?.("event", "purchase", { currency: "INR", value: price, items: [{ item_id: product }] }); } catch { }
+        const finalRideId = rideId || `KASHI-${String(paymentRef).slice(-6).toUpperCase()}`;
+        setDone({ rideId: finalRideId, paid: Boolean(paymentRef) });
+        // Only paid rides are revenue; pay-at-ghat bookings are leads until the boatman is paid.
+        if (paymentRef) track("purchase", { transaction_id: finalRideId, currency: "INR", value: price, item_id: product });
+        else track("generate_lead", { lead_source: "boat_booking_pay_at_ghat", currency: "INR", value: price });
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
@@ -179,6 +183,7 @@ export default function BookingFlow() {
     useEffect(() => { submitRef.current = submitBooking; });
 
     const payRazorpay = async () => {
+        track("begin_checkout", { currency: "INR", value: price, item_id: product, payment_type: "razorpay" });
         const order = await fetch("/api/razorpay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product, coupon }) })
             .then((r) => r.json()).catch(() => ({ success: false }));
         if (!order.success && order.message) { setNotice(order.message); return; }

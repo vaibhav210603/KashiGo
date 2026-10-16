@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
 import { JsonLd } from "@/components/JsonLd";
+import { extractFaqs } from "@/lib/blogFaq";
 import { MDXRemote } from "next-mdx-remote/rsc";
 
 interface PageProps {
@@ -116,9 +117,31 @@ export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
   if (!post) notFound();
+  const faqs = extractFaqs(post.content);
+  const url = `https://kashigo.in/blog/${post.slug}`;
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://kashigo.in" },
+            { "@type": "ListItem", position: 2, name: "Blog", item: "https://kashigo.in/blog" },
+            { "@type": "ListItem", position: 3, name: post.title, item: url },
+          ],
+        }}
+      />
+      {faqs.length > 0 && (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+          }}
+        />
+      )}
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -127,9 +150,12 @@ export default async function BlogPostPage({ params }: PageProps) {
           description: post.description,
           author: {
             "@type": "Person",
-            name: "KashiGo",
-            url: "https://kashigo.in",
+            name: "KashiGo — a Varanasi local",
+            url: "https://kashigo.in/about",
           },
+          about: { "@type": "City", name: "Varanasi", sameAs: "https://en.wikipedia.org/wiki/Varanasi" },
+          keywords: post.keywords.join(", "),
+          inLanguage: "en",
           publisher: {
             "@type": "Organization",
             name: "KashiGo",
