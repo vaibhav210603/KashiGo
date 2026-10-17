@@ -13,7 +13,7 @@ import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 export const metadata: Metadata = {
   title: "KashiGo — Book Varanasi Boat Rides Online | Sunrise, Ganga Aarti & Sunset",
   description:
-    "Book a private Varanasi boat ride online — sunrise, Ganga Aarti and sunset on the Ganges with trusted local boatmen and life jackets. Fixed prices from ₹990 per boat, no haggling. Plus scam-free guides by a local.",
+    "Book a private Varanasi boat ride online — sunrise, Ganga Aarti and sunset on the Ganges with trusted local boatmen and life jackets. Fixed prices from ₹1,190 per boat, no haggling. Plus scam-free guides by a local.",
   keywords: [
     "Varanasi boat ride booking",
     "Ganga Aarti boat ride Varanasi",
@@ -53,6 +53,7 @@ export default function Home() {
         "slogan": "Pay a genuine price for comfort",
         "address": {
           "@type": "PostalAddress",
+          "streetAddress": "B-20/205, Brahma Ghat",
           "addressLocality": "Varanasi",
           "addressRegion": "Uttar Pradesh",
           "postalCode": "221001",
@@ -60,8 +61,8 @@ export default function Home() {
         },
         "geo": {
           "@type": "GeoCoordinates",
-          "latitude": "25.3176",
-          "longitude": "82.9739"
+          "latitude": "25.3157",
+          "longitude": "83.0189"
         },
         "email": "info.kashigo@gmail.com",
         "contactPoint": {
