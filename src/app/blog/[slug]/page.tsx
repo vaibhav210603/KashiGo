@@ -52,12 +52,14 @@ export async function generateMetadata({
 import { Calendar, Clock, ArrowLeft, ArrowRight, Lightbulb } from "lucide-react";
 import React from "react";
 import BlogEmailPopup from "@/components/blog/BlogEmailPopup";
+import PageHero, { Crumbs } from "@/components/layout/PageHero";
+import { FIRE_BTN, GHOST_BTN_DARK, GHOST_BTN_LIGHT, splitTitle } from "@/components/ui/styles";
 
 // MDX components — readable, mobile-first typography
 const mdxComponents = {
-  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="text-2xl sm:text-3xl font-bold font-heading text-slate-900 mt-12 mb-5 tracking-tight leading-tight" {...props} />,
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="text-2xl sm:text-[28px] font-bold font-heading text-slate-900 mt-12 mb-4 tracking-tight leading-snug" {...props} />,
-  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="text-xl font-bold font-heading text-slate-900 mt-10 mb-3 tracking-tight leading-snug" {...props} />,
+  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="font-display font-light text-3xl sm:text-4xl text-night mt-14 mb-5 tracking-[-0.02em] leading-[1.08]" {...props} />,
+  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="font-display font-light text-[1.9rem] sm:text-[2.35rem] text-night mt-14 mb-5 tracking-[-0.02em] leading-[1.08]" {...props} />,
+  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="font-display text-[1.4rem] text-night mt-10 mb-3 tracking-tight leading-snug" {...props} />,
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => {
     // Detect if this paragraph is a "Tip"
     const childrenArray = React.Children.toArray(props.children);
@@ -73,13 +75,13 @@ const mdxComponents = {
 
     if (isTip) {
       return (
-        <div className="my-8 p-5 bg-amber-50 border border-amber-200 rounded-3xl flex gap-3 items-start">
-          <div className="bg-amber-100 p-2 rounded-xl text-amber-700 flex-shrink-0">
+        <div className="grain my-9 p-5 sm:p-6 bg-night text-white rounded-[1.5rem] flex gap-4 items-start overflow-hidden">
+          <div className="relative bg-marigold/15 p-2.5 rounded-full text-marigold flex-shrink-0">
             <Lightbulb size={18} />
           </div>
-          <div className="flex-grow">
-            <span className="block text-amber-800 font-semibold text-xs uppercase tracking-wider mb-1">Local insight</span>
-            <div className="text-slate-800 leading-relaxed text-[17px]">
+          <div className="relative flex-grow min-w-0">
+            <span className="block text-marigold font-semibold text-[11px] uppercase tracking-[0.25em] mb-1.5">Local insight</span>
+            <div className="text-white/85 leading-relaxed text-[17px] [&_strong]:text-white [&_a]:text-marigold [&_a]:decoration-marigold/50">
                 {(firstChild.props.children as string).toLowerCase().startsWith('tip:') ?
                   childrenArray.slice(1) : childrenArray}
             </div>
@@ -88,29 +90,29 @@ const mdxComponents = {
       );
     }
 
-    return <p className="text-[17px] text-slate-700 mb-6 last:mb-0 leading-relaxed" {...props} />;
+    return <p className="text-[17px] sm:text-[18px] text-night/75 mb-6 last:mb-0 leading-[1.75]" {...props} />;
   },
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-none space-y-3 mb-8" {...props} />,
   li: (props: React.HTMLAttributes<HTMLLIElement>) => (
-    <li className="flex gap-3 text-[17px] text-slate-700 leading-relaxed items-start">
-      <span className="flex-shrink-0 w-2 h-2 rounded-full bg-orange-500 mt-[0.6rem]" aria-hidden="true" />
+    <li className="flex gap-3 text-[17px] sm:text-[18px] text-night/75 leading-[1.7] items-start">
+      <span className="flex-shrink-0 w-2 h-2 rotate-45 bg-gradient-to-br from-marigold to-ember mt-[0.7rem]" aria-hidden="true" />
       <div className="flex-grow min-w-0 [&>p]:mb-0">
         {props.children}
       </div>
     </li>
   ),
-  strong: (props: React.HTMLAttributes<HTMLElement>) => <strong className="font-semibold text-slate-900" {...props} />,
-  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a className="text-orange-600 hover:text-orange-700 font-semibold underline decoration-orange-300 decoration-2 underline-offset-4 break-words" {...props} />,
+  strong: (props: React.HTMLAttributes<HTMLElement>) => <strong className="font-semibold text-night" {...props} />,
+  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a className="text-night hover:text-fire font-semibold underline decoration-marigold decoration-2 underline-offset-4 break-words transition-colors" {...props} />,
   blockquote: (props: React.HTMLAttributes<HTMLElement>) => (
-    <blockquote className="border-l-4 border-teal-500 pl-5 py-2 my-8 bg-teal-50/60 rounded-r-2xl text-slate-700 text-lg leading-relaxed" {...props} />
+    <blockquote className="border-l-2 border-fire pl-6 py-1 my-10 font-display italic text-night/80 text-xl sm:text-2xl leading-snug [&_p]:font-display [&_p]:text-[inherit] [&_p]:leading-[inherit]" {...props} />
   ),
   table: (props: React.HTMLAttributes<HTMLTableElement>) => (
-    <div className="my-8 -mx-4 sm:mx-0 overflow-x-auto px-4 sm:px-0">
+    <div className="my-8 overflow-x-auto rounded-[1.25rem] border border-night/10 bg-[#fffaf0]">
       <table className="w-full text-[15px] text-left border-collapse" {...props} />
     </div>
   ),
-  th: (props: React.HTMLAttributes<HTMLTableCellElement>) => <th className="bg-orange-50 font-semibold text-slate-900 px-3 py-2 border-b border-slate-200" {...props} />,
-  td: (props: React.HTMLAttributes<HTMLTableCellElement>) => <td className="px-3 py-2 border-b border-slate-100 text-slate-700 align-top" {...props} />,
+  th: (props: React.HTMLAttributes<HTMLTableCellElement>) => <th className="bg-parchment-2/70 font-semibold text-night px-3 py-2.5 border-b border-night/10" {...props} />,
+  td: (props: React.HTMLAttributes<HTMLTableCellElement>) => <td className="px-3 py-2.5 border-b border-night/[0.07] text-night/75 align-top" {...props} />,
 };
 
 export default async function BlogPostPage({ params }: PageProps) {
@@ -177,70 +179,57 @@ export default async function BlogPostPage({ params }: PageProps) {
 
       <BlogEmailPopup />
 
-      <div className="min-h-screen bg-white selection:bg-orange-200 selection:text-orange-900">
-        <main className="pt-24 sm:pt-28 pb-16 sm:pb-24">
+      <div className="min-h-screen bg-parchment">
+        <PageHero
+          compact
+          {...splitTitle(post.title)}
+          deva="गंगा"
+          breadcrumb={<Crumbs items={[{ href: "/", label: "Home" }, { href: "/blog", label: "Blog" }]} />}
+          intro={post.description ? <p>{post.description}</p> : undefined}
+        >
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+            <span className="rounded-full border border-ganga/40 bg-ganga/10 px-3 py-1.5 text-ganga">By a local</span>
+            <time dateTime={post.date} className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-white/75">
+              <Calendar size={13} className="text-marigold" />
+              {new Date(post.date).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </time>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-white/75">
+              <Clock size={13} className="text-marigold" />
+              {post.readingTime}
+            </span>
+          </div>
+        </PageHero>
+
+        <div className="pb-16 sm:pb-24">
           <article className="max-w-2xl mx-auto px-4">
 
-            {/* Breadcrumb */}
-            <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-slate-500 mb-6 min-w-0">
-              <Link href="/" className="hover:text-orange-600 transition-colors">Home</Link>
-              <span aria-hidden="true">/</span>
-              <Link href="/blog" className="hover:text-orange-600 transition-colors">Blog</Link>
-            </nav>
-
-            {/* Header */}
-            <header className="mb-8 sm:mb-10">
-              <h1 className="text-3xl sm:text-5xl font-bold leading-tight font-heading text-slate-900 tracking-tight">
-                {post.title}
-              </h1>
-              {post.description && (
-                <p className="mt-4 text-lg text-slate-600 leading-relaxed">{post.description}</p>
-              )}
-              <div className="mt-5 flex flex-wrap items-center gap-2 text-xs">
-                <span className="rounded-full px-3 py-1 font-semibold bg-teal-100 text-teal-700">By a local</span>
-                <time dateTime={post.date} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold bg-orange-100 text-orange-700">
-                  <Calendar size={13} />
-                  {new Date(post.date).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </time>
-                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold bg-sky-100 text-sky-700">
-                  <Clock size={13} />
-                  {post.readingTime}
-                </span>
-              </div>
-            </header>
-
             {/* Post Content */}
-            <div className="border-t border-slate-200/70 pt-8">
+            <div className="pt-2 [&>p:first-of-type]:first-letter:float-left [&>p:first-of-type]:first-letter:mr-2 [&>p:first-of-type]:first-letter:font-display [&>p:first-of-type]:first-letter:text-[4.2rem] [&>p:first-of-type]:first-letter:leading-[0.85] [&>p:first-of-type]:first-letter:text-fire">
               <MDXRemote source={post.content} components={mdxComponents} />
             </div>
 
             {/* End-of-post CTA */}
-            <aside className="mt-14 rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50 border border-slate-200/70 p-6 sm:p-8">
-              <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-700">
+            <aside className="grain relative mt-16 overflow-hidden rounded-[2rem] bg-night p-6 sm:p-9 text-white">
+              <div aria-hidden className="flicker absolute -right-16 -top-20 h-60 w-60 rounded-full bg-fire/35 blur-[80px]" />
+              <p className="relative ornament text-[11px] font-semibold uppercase tracking-[0.28em] text-marigold">
                 Planning your Varanasi trip?
-              </span>
-              <h2 className="mt-3 text-2xl sm:text-3xl font-bold font-heading text-slate-900 tracking-tight">
-                Book a boat ride — from ₹1,190 per private boat
+              </p>
+              <h2 className="relative mt-4 font-display font-light text-3xl sm:text-4xl tracking-[-0.02em] leading-[1.05]">
+                Book a boat ride — <em className="text-fire pr-1">from ₹1,190 per private boat</em>
               </h2>
-              <p className="mt-2 text-[15px] sm:text-[17px] text-slate-600 leading-relaxed">
+              <p className="relative mt-3 text-[15px] sm:text-[17px] text-white/65 leading-relaxed">
                 Fair, fixed prices on the Ganges — no haggling at the ghats. Want everything else covered too? The local&apos;s guide has 9 scam shields, all 84 ghats and a 2-day itinerary.
               </p>
-              <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="/book"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors shadow-sm"
-                >
+              <div className="relative mt-7 flex flex-col sm:flex-row gap-3">
+                <Link href="/book" className={`${FIRE_BTN} w-full sm:w-auto h-12 px-6`}>
                   Book a boat ride
-                  <ArrowRight size={18} />
+                  <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link
-                  href="/guide"
-                  className="w-full sm:w-auto inline-flex items-center justify-center h-12 px-6 rounded-full border border-slate-300 bg-white text-slate-800 font-semibold hover:bg-slate-50 transition-colors"
-                >
+                <Link href="/guide" className={`${GHOST_BTN_DARK} w-full sm:w-auto h-12 px-6`}>
                   Get the guide — $14.99
                 </Link>
               </div>
@@ -248,17 +237,14 @@ export default async function BlogPostPage({ params }: PageProps) {
 
             {/* Back link */}
             <div className="mt-10 flex justify-center">
-              <Link
-                href="/blog"
-                className="inline-flex items-center gap-2 h-11 px-5 rounded-full border border-slate-300 bg-white text-slate-700 font-semibold hover:text-orange-600 transition-colors text-sm"
-              >
-                <ArrowLeft size={16} />
+              <Link href="/blog" className={`${GHOST_BTN_LIGHT} group h-11 px-5 text-sm font-semibold`}>
+                <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
                 All guides
               </Link>
             </div>
 
           </article>
-        </main>
+        </div>
       </div>
     </>
   );

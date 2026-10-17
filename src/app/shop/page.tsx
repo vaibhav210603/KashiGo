@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 
 export default function ShopPage() {
   return (
-    <main className="min-h-screen bg-white flex flex-col font-sans overflow-hidden">
+    <main className="min-h-screen bg-parchment flex flex-col font-sans overflow-hidden">
       <JsonLd
         data={{
           "@context": "https://schema.org",

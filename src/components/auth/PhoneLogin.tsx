@@ -38,7 +38,7 @@ export default function PhoneLogin({ tone = "light", title = "Log in with your p
     const dark = tone === "dark";
     const input = dark
         ? "h-12 rounded-2xl border border-white/15 bg-white/5 px-4 text-white placeholder:text-white/35 outline-none focus:border-marigold"
-        : "h-12 rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 placeholder:text-slate-400 outline-none focus:border-orange-400";
+        : "h-12 rounded-2xl border border-night/15 bg-white/80 px-4 text-night placeholder:text-night/35 outline-none focus:border-fire";
     const button = "h-12 px-5 shrink-0 whitespace-nowrap inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night font-semibold disabled:opacity-50";
 
     const friendly = (msg: string) =>
@@ -70,12 +70,12 @@ export default function PhoneLogin({ tone = "light", title = "Log in with your p
     };
 
     return (
-        <div className={dark ? "text-white" : "text-slate-900"}>
+        <div className={dark ? "text-white" : "text-night"}>
             <div className="flex items-center gap-3">
-                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${dark ? "bg-marigold/15 text-marigold" : "bg-orange-100 text-orange-600"}`}><Smartphone size={18} /></span>
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${dark ? "bg-marigold/15 text-marigold" : "bg-night text-marigold"}`}><Smartphone size={18} /></span>
                 <div>
                     <p className="font-semibold leading-tight">{phone ? "Enter the 6-digit code" : title}</p>
-                    <p className={`text-sm ${dark ? "text-white/55" : "text-slate-500"}`}>
+                    <p className={`text-sm ${dark ? "text-white/55" : "text-night/55"}`}>
                         {phone ? <>Sent by SMS to {formatPhone(phone)} · <button type="button" className="underline" onClick={() => { setPhone(null); setError(""); }}>change</button></> : subtitle ?? "We'll text you a one-time code. No password needed."}
                     </p>
                 </div>
@@ -100,11 +100,11 @@ export default function PhoneLogin({ tone = "light", title = "Log in with your p
                 </form>
             )}
             {phone && (
-                <button type="button" disabled={wait > 0 || busy} onClick={send} className={`mt-2 text-sm ${dark ? "text-white/60" : "text-slate-500"} disabled:opacity-60`}>
+                <button type="button" disabled={wait > 0 || busy} onClick={send} className={`mt-2 text-sm ${dark ? "text-white/60" : "text-night/55"} disabled:opacity-60`}>
                     {wait > 0 ? `Resend code in ${wait}s` : "Resend code"}
                 </button>
             )}
-            {error && <p role="alert" className={`mt-2 text-sm ${dark ? "text-ember" : "text-rose-600"}`}>{error}</p>}
+            {error && <p role="alert" className="mt-2 text-sm text-ember">{error}</p>}
         </div>
     );
 }

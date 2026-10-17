@@ -4,11 +4,15 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
-import { Check, ArrowRight, ChevronDown } from "lucide-react";
+import { Check, ArrowRight, Plus } from "lucide-react";
 import { SHOP_PRODUCTS, ShopProduct, ShopProductId, LAUNCH_CODE } from "@/lib/products";
 import Checkout from "@/components/shop/Checkout";
 import { useRegion } from "@/components/shop/useRegion";
-import { RegionToggle, TRUST } from "@/components/shop/ui";
+import { RegionToggle, TrustRow } from "@/components/shop/ui";
+import PageHero from "@/components/layout/PageHero";
+import Embers from "@/components/motion/Embers";
+import { Eyebrow, Reveal } from "@/components/motion/primitives";
+import { FIRE_BTN, H2_LIGHT, PAPER_CARD } from "@/components/ui/styles";
 
 type Faq = { q: string; a: string };
 
@@ -23,11 +27,13 @@ type Props = {
     video?: { src: string; poster: string; heading: string };
     faqs: Faq[];
     otherPage: { href: string; label: string };
+    // Faint Devanagari word behind the hero headline.
+    deva?: string;
 };
 
 type Row = { key: string; name: string; tagline: string; cover: string; inr: number; usd: number; bullets: string[]; format: string; badge?: string; product?: ShopProduct; href?: string };
 
-export default function ProductLanding({ eyebrow, title, highlight, intro, productIds, linkedProduct, video, faqs, otherPage }: Props) {
+export default function ProductLanding({ eyebrow, title, highlight, intro, productIds, linkedProduct, video, faqs, otherPage, deva }: Props) {
     const [region, setRegion] = useRegion();
     const [active, setActive] = useState<ShopProduct | null>(null);
     const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -44,99 +50,105 @@ export default function ProductLanding({ eyebrow, title, highlight, intro, produ
 
     return (
         <>
-            <section className="bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50 pt-24 pb-8 px-4">
-                <div className="max-w-5xl mx-auto">
-                    <p className="text-sm font-semibold text-pink-600">{eyebrow}</p>
-                    <h1 className="mt-1 font-heading font-bold text-3xl sm:text-5xl text-slate-900 tracking-tight">
-                        {title} <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">{highlight}</span>
-                    </h1>
-                    <p className="mt-3 text-slate-700 max-w-2xl">{intro}</p>
-                    <div className="mt-5 flex flex-wrap items-center gap-3">
-                        <RegionToggle region={region} setRegion={setRegion} />
-                        <p className="text-sm text-slate-600">Code <b className="font-mono text-slate-900">{LAUNCH_CODE}</b> = 40% off</p>
-                    </div>
+            <PageHero eyebrow={eyebrow} title={title} highlight={highlight} intro={<p>{intro}</p>} deva={deva}>
+                <div className="flex flex-wrap items-center gap-4">
+                    <RegionToggle region={region} setRegion={setRegion} dark />
+                    <p className="text-sm text-white/60">Code <b className="rounded border border-marigold/50 px-1.5 py-0.5 font-mono tracking-wider text-marigold">{LAUNCH_CODE}</b> = 40% off</p>
                 </div>
-            </section>
+            </PageHero>
 
-            <section className="py-8 px-4">
-                <div className="max-w-5xl mx-auto space-y-4">
-                    {rows.map((r) => (
-                        <article id={r.key} key={r.key} className="scroll-mt-24 rounded-3xl bg-white border border-slate-200/70 p-4 sm:p-6">
-                            <div className="flex gap-4 sm:gap-6">
-                                <div className="relative w-28 sm:w-44 shrink-0 aspect-[5/7] rounded-xl overflow-hidden bg-slate-100 shadow-md">
-                                    <Image src={r.cover} alt={`${r.name} cover`} fill className="object-cover" sizes="180px" />
-                                </div>
-                                <div className="flex-1 min-w-0 flex flex-col">
-                                    {r.badge && <span className="self-start rounded-full bg-orange-100 text-orange-700 px-2 py-0.5 text-[11px] font-bold mb-1">{r.badge}</span>}
-                                    <h2 className="font-heading font-bold text-xl sm:text-2xl text-slate-900 leading-tight">{r.name}</h2>
-                                    <p className="mt-1 text-sm sm:text-base text-slate-600 line-clamp-3 sm:line-clamp-none">{r.tagline}</p>
-                                    <p className="mt-1 text-xs text-slate-500">{r.format}</p>
-                                    <div className="mt-auto pt-3 flex flex-wrap items-center gap-3">
-                                        <span className="font-heading font-bold text-2xl text-slate-900">{fmt(r.inr, r.usd)}</span>
-                                        {r.product ? (
-                                            <button onClick={() => setActive(r.product!)} className="h-11 px-6 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-md shadow-orange-500/30">Buy now</button>
-                                        ) : (
-                                            <Link href={r.href!} className="h-11 px-6 inline-flex items-center rounded-full bg-slate-900 hover:bg-orange-500 text-white font-semibold">See the guide</Link>
-                                        )}
+            <section className="px-4 sm:px-6 pb-20 -mt-4">
+                <div className="max-w-5xl mx-auto">
+                    <div className="space-y-5">
+                        {rows.map((r, i) => (
+                            <Reveal key={r.key} y={40} delay={i * 0.06}>
+                                <article id={r.key} className={`${PAPER_CARD} scroll-mt-28 p-4 sm:p-7`}>
+                                    <div className="flex gap-4 sm:gap-7">
+                                        <div className="relative w-28 sm:w-44 shrink-0 aspect-[5/7] rounded-xl overflow-hidden bg-night-3 shadow-[0_20px_40px_-15px_rgba(7,11,24,0.6)] ring-1 ring-night/10">
+                                            <Image src={r.cover} alt={`${r.name} cover`} fill className="object-cover" sizes="180px" />
+                                            <span aria-hidden className="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/40 to-transparent" />
+                                        </div>
+                                        <div className="flex-1 min-w-0 flex flex-col">
+                                            {r.badge && <span className="self-start rounded-full bg-marigold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-night mb-2">{r.badge}</span>}
+                                            <h2 className="font-display text-2xl sm:text-[2rem] text-night leading-[1.05] tracking-tight">{r.name}</h2>
+                                            <p className="mt-2 text-sm sm:text-base text-night/65 line-clamp-3 sm:line-clamp-none">{r.tagline}</p>
+                                            <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-night/40">{r.format}</p>
+                                            <div className="mt-auto pt-4 flex flex-wrap items-center gap-3">
+                                                <span className="font-display text-3xl text-night">{fmt(r.inr, r.usd)}</span>
+                                                {r.product ? (
+                                                    <button onClick={() => setActive(r.product!)} className={`${FIRE_BTN} h-11 px-6`}>Buy now</button>
+                                                ) : (
+                                                    <Link href={r.href!} className="h-11 px-6 inline-flex items-center gap-1.5 rounded-full bg-night text-white font-semibold transition-colors hover:text-marigold">See the guide <ArrowRight size={16} /></Link>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
+                                    <ul className="mt-5 grid sm:grid-cols-2 gap-x-6 gap-y-2 border-t border-dashed border-night/15 pt-5">
+                                        {r.bullets.map((b) => <li key={b} className="flex gap-2.5 text-[15px] text-night/75"><Check size={17} className="text-[#1d7f76] shrink-0 mt-0.5" />{b}</li>)}
+                                    </ul>
+                                </article>
+                            </Reveal>
+                        ))}
+
+                        {/* Upsell: the bundle includes everything on this page */}
+                        <Reveal y={40}>
+                            <div className="grain relative overflow-hidden rounded-[2rem] bg-night p-6 sm:p-10 text-white shadow-[0_40px_90px_-30px_rgba(7,11,24,0.7)]">
+                                <Embers density={0.4} />
+                                <div aria-hidden className="flicker absolute -right-16 -top-20 h-60 w-60 rounded-full bg-fire/35 blur-[80px]" />
+                                <p className="relative text-[11px] font-semibold uppercase tracking-[0.28em] text-marigold">{bundle.badge} · includes everything above</p>
+                                <h2 className="relative mt-3 font-display font-light text-3xl sm:text-5xl tracking-tight">{bundle.name}</h2>
+                                <p className="relative mt-2 text-white/60 text-[15px]">{bundle.format}</p>
+                                <div className="relative mt-6 flex flex-wrap items-center gap-4">
+                                    <span className="font-display text-4xl">{fmt(bundle.inr, bundle.usd)}</span>
+                                    {region === "usd" && bundle.compareUsd && <span className="text-white/35 line-through">${bundle.compareUsd.toFixed(2)}</span>}
+                                    <button onClick={() => setActive(bundle)} className={`${FIRE_BTN} w-full sm:w-auto h-12 px-8`}>Get the bundle</button>
                                 </div>
                             </div>
-                            <ul className="mt-4 grid sm:grid-cols-2 gap-x-6 gap-y-2">
-                                {r.bullets.map((b) => <li key={b} className="flex gap-2 text-[15px] text-slate-700"><Check size={18} className="text-teal-600 shrink-0 mt-0.5" />{b}</li>)}
-                            </ul>
-                        </article>
-                    ))}
-
-                    {/* Upsell: the bundle includes everything on this page */}
-                    <div className="rounded-[2rem] bg-gradient-to-br from-orange-500 via-pink-500 to-fuchsia-500 p-6 sm:p-8 text-white shadow-xl shadow-pink-500/20">
-                        <p className="text-sm font-bold text-white/90">{bundle.badge} · includes everything above</p>
-                        <h2 className="mt-1 font-heading font-bold text-2xl sm:text-3xl">{bundle.name}</h2>
-                        <p className="mt-1 text-white/90 text-[15px]">{bundle.format}</p>
-                        <div className="mt-4 flex flex-wrap items-center gap-4">
-                            <span className="font-heading font-bold text-3xl">{fmt(bundle.inr, bundle.usd)}</span>
-                            {region === "usd" && bundle.compareUsd && <span className="text-white/70 line-through">${bundle.compareUsd.toFixed(2)}</span>}
-                            <button onClick={() => setActive(bundle)} className="w-full sm:w-auto h-12 px-8 rounded-full bg-white text-orange-600 font-bold">Get the bundle</button>
-                        </div>
+                        </Reveal>
                     </div>
 
                     {video && (
-                        <div className="pt-6">
-                            <h2 className="font-heading font-bold text-2xl text-slate-900">{video.heading}</h2>
-                            <div className="mt-3 aspect-video bg-slate-100 rounded-3xl overflow-hidden">
+                        <Reveal y={40} className="pt-16">
+                            <Eyebrow className="text-fire">Preview</Eyebrow>
+                            <h2 className={`${H2_LIGHT} mt-3 text-4xl md:text-5xl`}>{video.heading}</h2>
+                            <div className="mt-6 aspect-video bg-night rounded-[1.75rem] overflow-hidden ring-1 ring-night/10 shadow-[0_40px_80px_-40px_rgba(7,11,24,0.7)]">
                                 <video className="w-full h-full object-cover" controls playsInline preload="none" poster={video.poster}>
                                     <source src={video.src} type="video/mp4" />
                                 </video>
                             </div>
-                        </div>
+                        </Reveal>
                     )}
 
-                    <div className="grid sm:grid-cols-3 gap-3 pt-6">
-                        {TRUST.map(([Icon, t, d]) => (
-                            <div key={t} className="flex sm:flex-col gap-3 p-5 rounded-3xl bg-amber-50">
-                                <Icon className="text-orange-500 shrink-0" />
-                                <div><p className="font-semibold text-slate-900">{t}</p><p className="text-sm text-slate-600">{d}</p></div>
-                            </div>
-                        ))}
-                    </div>
+                    <div className="pt-16"><TrustRow /></div>
 
-                    <div className="pt-6">
-                        <h2 className="font-heading font-bold text-2xl text-slate-900">Questions</h2>
-                        <div className="mt-3 divide-y divide-slate-200 rounded-3xl border border-slate-200/70 bg-white overflow-hidden">
-                            {faqs.map((f, i) => (
-                                <div key={f.q}>
-                                    <button onClick={() => setOpenFaq(openFaq === i ? null : i)} aria-expanded={openFaq === i}
-                                        className="w-full flex items-center justify-between gap-4 text-left px-5 py-4 font-semibold text-slate-900">
-                                        {f.q}<ChevronDown size={20} className={`shrink-0 text-orange-500 transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
-                                    </button>
-                                    <p hidden={openFaq !== i} className="px-5 pb-5 -mt-1 text-slate-600 leading-relaxed">{f.a}</p>
-                                </div>
-                            ))}
+                    <div className="pt-16 grid gap-8 md:grid-cols-[0.7fr_1.3fr]">
+                        <div>
+                            <Eyebrow className="text-fire">FAQ</Eyebrow>
+                            <h2 className={`${H2_LIGHT} mt-3 text-4xl md:text-5xl`}><em className="text-fire-deep pr-1">Questions</em></h2>
+                        </div>
+                        <div className="border-t border-night/15">
+                            {faqs.map((f, i) => {
+                                const isOpen = openFaq === i;
+                                return (
+                                    <div key={f.q} className="border-b border-night/15">
+                                        <button onClick={() => setOpenFaq(isOpen ? null : i)} aria-expanded={isOpen}
+                                            className="group w-full flex items-start justify-between gap-4 text-left py-5">
+                                            <span className={`font-display text-lg sm:text-xl leading-snug transition-colors ${isOpen ? "text-night" : "text-night/80 group-hover:text-night"}`}>{f.q}</span>
+                                            <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-500 ${isOpen ? "rotate-45 border-transparent bg-night text-marigold" : "border-night/20 text-night group-hover:border-night"}`}><Plus size={16} /></span>
+                                        </button>
+                                        {/* Always in the HTML (just collapsed) so crawlers can read every answer */}
+                                        <div className="accordion" data-open={isOpen} aria-hidden={!isOpen}>
+                                            <div><p className="pb-6 pr-12 text-night/65 leading-relaxed">{f.a}</p></div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-4 text-sm">
-                        <Link href={otherPage.href} className="inline-flex items-center gap-1 font-semibold text-orange-600">{otherPage.label} <ArrowRight size={16} /></Link>
-                        <Link href="/shop" className="text-slate-500 hover:text-slate-900">Browse the whole shop</Link>
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center items-center pt-14 text-sm">
+                        <Link href={otherPage.href} className="group inline-flex items-center gap-1.5 font-semibold text-night hover:text-fire">{otherPage.label} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" /></Link>
+                        <Link href="/shop" className="text-night/50 hover:text-night">Browse the whole shop</Link>
                     </div>
                 </div>
             </section>

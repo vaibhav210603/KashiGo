@@ -34,7 +34,7 @@ const faqs = [
 
 export default function AudiobooksPage() {
   return (
-    <main className="min-h-screen bg-white flex flex-col font-sans overflow-hidden">
+    <main className="min-h-screen bg-parchment flex flex-col font-sans overflow-hidden">
       <JsonLd data={productListSchema(["walk-the-ghats", "scam-proof-audiobook", "complete-bundle"], "https://kashigo.in/audiobooks")} />
       <JsonLd data={{
         "@context": "https://schema.org",
@@ -48,6 +48,7 @@ export default function AudiobooksPage() {
         intro="Let a local walk you along the ghats story by story, or listen to the full India Scam-Proof field manual on the flight over. Works offline on any phone."
         productIds={["walk-the-ghats", "scam-proof-audiobook"]}
         faqs={faqs}
+        deva="श्रवण"
         otherPage={{ href: "/ebooks", label: "Prefer to read? See the ebooks" }}
       />
     </main>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Mail, ShieldCheck, Loader2 } from "lucide-react";
+import { FIRE_BTN } from "@/components/ui/styles";
 import { track } from "@/lib/analytics";
 
 const STORAGE_KEY = "kashigo_popup_dismissed";
@@ -80,7 +81,7 @@ export default function BlogEmailPopup() {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[60]"
+        className="fixed inset-0 bg-night/50 backdrop-blur-sm z-[60]"
         onClick={dismiss}
         aria-hidden="true"
       />
@@ -92,37 +93,38 @@ export default function BlogEmailPopup() {
         aria-labelledby="popup-title"
         className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-2rem)] max-w-lg max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-3xl animate-in fade-in slide-in-from-bottom-4 duration-300"
       >
-        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/70 relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-orange-500 via-amber-400 to-pink-500" aria-hidden="true" />
+        <div className="grain bg-night text-white rounded-3xl p-6 sm:p-8 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] border border-white/10 relative overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-marigold via-fire to-ember" aria-hidden="true" />
+          <div className="flicker absolute -right-16 -top-20 h-56 w-56 rounded-full bg-fire/30 blur-[80px]" aria-hidden="true" />
 
           {/* Close */}
           <button
             onClick={dismiss}
             aria-label="Close"
-            className="absolute top-3 right-3 w-11 h-11 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-100"
+            className="absolute top-3 right-3 w-11 h-11 flex items-center justify-center z-20 text-white/50 hover:text-white transition-colors rounded-full hover:bg-white/10"
           >
             <X size={20} />
           </button>
 
           {status === "success" ? (
             <div className="text-center py-4 relative z-10">
-              <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShieldCheck size={28} className="text-green-600" />
+              <div className="w-14 h-14 bg-ganga/15 ring-1 ring-ganga/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ShieldCheck size={28} className="text-ganga" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2 font-heading">You're in!</h3>
-              <p className="text-slate-600 text-[15px] leading-relaxed">
+              <h3 className="font-display text-3xl text-white mb-2">You're in!</h3>
+              <p className="text-white/65 text-[15px] leading-relaxed">
                 Check your inbox — your free Varanasi Safety Checklist is on its way.
               </p>
             </div>
           ) : (
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-5 pr-10">
-                <div className="w-10 h-10 bg-orange-100 rounded-2xl flex items-center justify-center shrink-0">
-                  <Mail size={20} className="text-orange-600" />
+                <div className="w-10 h-10 bg-marigold/15 rounded-full flex items-center justify-center shrink-0">
+                  <Mail size={19} className="text-marigold" />
                 </div>
                 <div>
-                  <p className="text-orange-600 text-xs font-semibold">Free for readers</p>
-                  <h2 id="popup-title" className="text-slate-900 font-bold font-heading text-lg leading-tight">
+                  <p className="text-marigold text-[11px] font-semibold uppercase tracking-[0.2em]">Free for readers</p>
+                  <h2 id="popup-title" className="mt-1 font-display text-2xl text-white leading-tight">
                     Get the Varanasi Safety Checklist
                   </h2>
                 </div>
@@ -134,8 +136,8 @@ export default function BlogEmailPopup() {
                   "The ghats you must visit (and ones to avoid at night)",
                   "A ready-to-use 2-day Varanasi itinerary",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-slate-600 text-[15px] leading-snug">
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-[0.5rem] shrink-0" />
+                  <li key={item} className="flex items-start gap-2.5 text-white/75 text-[15px] leading-snug">
+                    <div className="w-1.5 h-1.5 rotate-45 bg-marigold mt-[0.5rem] shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -148,12 +150,12 @@ export default function BlogEmailPopup() {
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 min-w-0 h-12 bg-white border border-slate-300 text-slate-900 placeholder-slate-400 rounded-full px-4 text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  className="flex-1 min-w-0 h-12 bg-white/5 border border-white/15 text-white placeholder:text-white/40 rounded-full px-5 text-base outline-none focus:border-marigold focus:bg-white/10 transition-colors"
                 />
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 rounded-full transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap shadow-sm"
+                  className={`${FIRE_BTN} h-12 px-6 whitespace-nowrap disabled:cursor-not-allowed`}
                 >
                   {status === "loading" ? (
                     <><Loader2 size={16} className="animate-spin" /> Sending...</>
@@ -164,10 +166,10 @@ export default function BlogEmailPopup() {
               </form>
 
               {status === "error" && (
-                <p className="text-red-600 text-xs mt-2">{errorMsg}</p>
+                <p className="text-ember text-xs mt-2">{errorMsg}</p>
               )}
 
-              <p className="text-slate-500 text-xs mt-3 text-center">
+              <p className="text-white/40 text-xs mt-3 text-center">
                 No spam. Unsubscribe anytime.
               </p>
             </div>

@@ -3,6 +3,9 @@ import Link from "next/link";
 import AboutSection from "@/components/sections/AboutSection";
 import ReviewsSection from "@/components/sections/ReviewsSection";
 import { JsonLd } from "@/components/JsonLd";
+import { ArrowRight } from "lucide-react";
+import PageHero from "@/components/layout/PageHero";
+import { FIRE_BTN, GHOST_BTN_DARK } from "@/components/ui/styles";
 
 export const metadata: Metadata = {
   title: { absolute: "About KashiGo — Varanasi Boat Rides & Local Travel Guides" },
@@ -22,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="w-full flex flex-col bg-white">
+    <div className="w-full flex flex-col bg-parchment">
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "AboutPage",
@@ -32,35 +35,28 @@ export default function AboutPage() {
       }} />
 
       {/* Intro */}
-      <section className="pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50">
-        <div className="max-w-3xl mx-auto text-center">
-          <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-700">
-            Namaste from Kashi
-          </span>
-          <h1 className="mt-4 font-heading font-bold text-slate-900 text-3xl sm:text-5xl leading-tight tracking-tight">
-            Travel Varanasi like you were born here.
-          </h1>
-          <p className="mt-4 text-[15px] sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
+      <PageHero
+        eyebrow="Namaste from Kashi"
+        title="Travel Varanasi"
+        highlight="like you were born here."
+        intro={
+          <p>
             KashiGo was built by a local to fix the two hardest parts of visiting India&apos;s
             oldest city — getting scammed, and not knowing where to begin. Fair-priced boat
             rides on the Ganges, and honest guides that read like a friend showing you around.
           </p>
-          <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
-            <Link
-              href="/book"
-              className="w-full sm:w-auto inline-flex items-center justify-center h-12 px-6 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors shadow-sm"
-            >
-              Book a boat ride
-            </Link>
-            <Link
-              href="/guide"
-              className="w-full sm:w-auto inline-flex items-center justify-center h-12 px-6 rounded-full border border-slate-300 bg-white text-slate-800 font-semibold hover:bg-slate-50 transition-colors"
-            >
-              Read the Varanasi guide
-            </Link>
-          </div>
+        }
+      >
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <Link href="/book" className={`${FIRE_BTN} w-full sm:w-auto h-14 px-8 text-lg`}>
+            Book a boat ride
+            <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+          </Link>
+          <Link href="/guide" className={`${GHOST_BTN_DARK} w-full sm:w-auto h-14 px-8`}>
+            Read the Varanasi guide
+          </Link>
         </div>
-      </section>
+      </PageHero>
 
       <AboutSection />
       <ReviewsSection />

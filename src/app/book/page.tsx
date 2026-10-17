@@ -7,6 +7,9 @@ import { BOAT_RIDES, BOAT_PRICE_RANGE, CUSTOM_RIDE, boatPrice, inr, BOOKING_PHON
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import Link from "next/link";
 import { ridePagePath } from "@/lib/ridePages";
+import PageHero from "@/components/layout/PageHero";
+import { Eyebrow } from "@/components/motion/primitives";
+import { H2_LIGHT, PAPER_CARD } from "@/components/ui/styles";
 
 export const metadata: Metadata = {
   title: { absolute: "Book Varanasi Boat Ride — Sunrise, Ganga Aarti & Sunset | KashiGo" },
@@ -36,7 +39,7 @@ export const metadata: Metadata = {
 
 export default function BookPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/40 to-white pt-20 pb-12">
+    <div className="min-h-screen bg-parchment">
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -102,45 +105,49 @@ export default function BookPage() {
           }))
         }
       }} />
-      <div className="max-w-3xl mx-auto px-4 pt-4 pb-5">
-        <p className="text-sm font-semibold text-teal-700">Now operating · private boats</p>
-        <h1 className="mt-1 font-heading font-bold text-3xl sm:text-4xl text-slate-900">Book a Varanasi Boat Ride</h1>
-        <p className="mt-2 text-slate-700"><strong className="font-semibold">Pay a genuine price for comfort.</strong> One fixed price per boat — no haggling.</p>
-        <ul className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-          <li className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-slate-700"><BadgeIndianRupee size={14} className="text-orange-500" />Fixed price</li>
-          <li className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-slate-700"><LifeBuoy size={14} className="text-teal-600" />Life jackets</li>
-          <li><a href={`tel:${BOOKING_PHONE.replace(/\s/g, "")}`} className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-3 py-1.5 text-slate-700"><Phone size={14} className="text-pink-500" />{BOOKING_PHONE}</a></li>
+      <PageHero
+        eyebrow="Now operating · private boats"
+        title="Book a Varanasi"
+        highlight="Boat Ride"
+        deva="नाव"
+        intro={<p><strong className="font-semibold text-white">Pay a genuine price for comfort.</strong> One fixed price per boat — no haggling.</p>}
+      >
+        <ul className="flex flex-wrap gap-2 text-xs font-semibold">
+          <li className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-white/85 backdrop-blur-md"><BadgeIndianRupee size={14} className="text-marigold" />Fixed price</li>
+          <li className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-white/85 backdrop-blur-md"><LifeBuoy size={14} className="text-ganga" />Life jackets</li>
+          <li><a href={`tel:${BOOKING_PHONE.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-white/85 backdrop-blur-md transition-colors hover:border-marigold hover:text-marigold"><Phone size={14} className="text-marigold" />{BOOKING_PHONE}</a></li>
         </ul>
-      </div>
+      </PageHero>
 
-      <div id="booking" className="max-w-3xl mx-auto px-4">
+      <div id="booking" className="relative max-w-3xl mx-auto px-4 -mt-6 md:-mt-10 scroll-mt-24">
         <BookingFlow />
       </div>
 
-      <section className="max-w-3xl mx-auto px-4 mt-4 scroll-mt-20" id="prices" aria-labelledby="prices-h">
-        <h2 id="prices-h" className="text-2xl md:text-3xl font-bold font-heading text-slate-900 mb-4">Varanasi boat ride prices (private boat, 2026)</h2>
-        <div className="overflow-x-auto rounded-3xl border border-slate-200/70 bg-white">
+      <section className="max-w-3xl mx-auto px-4 mt-16 md:mt-20 scroll-mt-24" id="prices" aria-labelledby="prices-h">
+        <Eyebrow className="text-fire">Price list</Eyebrow>
+        <h2 id="prices-h" className={`${H2_LIGHT} mt-3 mb-6 text-3xl md:text-[2.75rem]`}>Varanasi boat ride prices <em className="text-fire-deep pr-1">(private boat, 2026)</em></h2>
+        <div className={`${PAPER_CARD} overflow-x-auto`}>
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-100 text-slate-700">
-              <tr><th className="p-3">Ride</th><th className="p-3">Starts</th><th className="p-3">Price</th></tr>
+            <thead className="border-b border-night/10 font-mono text-[11px] uppercase tracking-[0.2em] text-night/45">
+              <tr><th className="p-3 sm:p-4 font-medium">Ride</th><th className="py-3 px-1 sm:p-4 font-medium">Starts</th><th className="p-3 sm:p-4 font-medium text-right">Price</th></tr>
             </thead>
             <tbody>
               {BOAT_RIDES.map((r) => (
-                <tr key={r.id} className="border-t border-slate-100 align-top">
-                  <td className="p-3"><Link href={ridePagePath(r.id)} className="font-semibold text-slate-900 underline decoration-orange-300 underline-offset-2 hover:text-orange-600">{r.name}</Link><p className="text-slate-500">{r.summary}</p></td>
-                  <td className="p-3 whitespace-nowrap text-slate-700">{r.time}</td>
-                  <td className="p-3 whitespace-nowrap font-bold text-slate-900">{inr(boatPrice(r.id))}</td>
+                <tr key={r.id} className="border-t border-night/[0.07] align-top transition-colors hover:bg-parchment-2/50">
+                  <td className="p-3 sm:p-4"><Link href={ridePagePath(r.id)} className="font-display text-base sm:text-lg leading-tight text-night underline decoration-marigold/60 decoration-1 underline-offset-4 hover:text-fire">{r.name}</Link><p className="mt-1 text-night/55">{r.summary}</p></td>
+                  <td className="py-3 px-1 sm:p-4 whitespace-nowrap text-night/70">{r.time}</td>
+                  <td className="p-3 sm:p-4 whitespace-nowrap text-right font-display text-lg sm:text-xl text-night">{inr(boatPrice(r.id))}</td>
                 </tr>
               ))}
-              <tr className="border-t border-slate-100 align-top">
-                <td className="p-3"><Link href={ridePagePath("custom")} className="font-semibold text-slate-900 underline decoration-orange-300 underline-offset-2 hover:text-orange-600">{CUSTOM_RIDE.name}</Link><p className="text-slate-500">{CUSTOM_RIDE.summary}</p></td>
-                <td className="p-3 text-slate-700">Any time</td>
-                <td className="p-3 whitespace-nowrap font-bold text-slate-900">{inr(BOAT_PRICES_INR.custom)}</td>
+              <tr className="border-t border-night/[0.07] align-top transition-colors hover:bg-parchment-2/50">
+                <td className="p-3 sm:p-4"><Link href={ridePagePath("custom")} className="font-display text-base sm:text-lg leading-tight text-night underline decoration-marigold/60 decoration-1 underline-offset-4 hover:text-fire">{CUSTOM_RIDE.name}</Link><p className="mt-1 text-night/55">{CUSTOM_RIDE.summary}</p></td>
+                <td className="py-3 px-1 sm:p-4 text-night/70">Any time</td>
+                <td className="p-3 sm:p-4 whitespace-nowrap text-right font-display text-lg sm:text-xl text-night">{inr(BOAT_PRICES_INR.custom)}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p className="text-sm text-slate-500 mt-3">Price is for the whole private boat, not per person. Book today or up to a week ahead. Dates further out? Call us.</p>
+        <p className="text-sm text-night/55 mt-4">Price is for the whole private boat, not per person. Book today or up to a week ahead. Dates further out? Call us.</p>
       </section>
 
       {/* Boat-ride story, relocated from the old homepage */}
