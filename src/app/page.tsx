@@ -49,6 +49,8 @@ export default function Home() {
         "description": "Varanasi boat ride bookings and scam-free travel guide for foreign tourists visiting Varanasi, India",
         "url": "https://kashigo.in",
         "logo": "https://kashigo.in/icon-512.png",
+        // The Google Business Profile listing (same place as GOOGLE_REVIEWS_URL in lib/googleReviews.ts).
+        "hasMap": "https://maps.google.com/?cid=12829428449133686124",
         "image": "https://kashigo.in/og-image.jpg",
         "priceRange": "₹₹",
         "telephone": "+91-8175966910",

@@ -1,5 +1,5 @@
 import { ArrowUpRight, PenLine } from "lucide-react";
-import { getGoogleReviews, MAPS_SEARCH_URL, type GoogleReview } from "@/lib/googleReviews";
+import { getGoogleReviews, GOOGLE_REVIEWS_URL, GOOGLE_WRITE_REVIEW_URL, type GoogleReview } from "@/lib/googleReviews";
 import { Eyebrow, Reveal, SplitWords } from "@/components/motion/primitives";
 
 // The Google "G", in Google's colours — shown wherever review content from Google appears (required attribution).
@@ -50,7 +50,7 @@ function ReviewCard({ r, hidden = false }: { r: GoogleReview; hidden?: boolean }
                     ) : <p className="truncate font-semibold text-night">{r.author}</p>}
                     <p className="text-xs text-night/50">{r.when}</p>
                 </div>
-                <a href={r.url ?? MAPS_SEARCH_URL} target="_blank" rel="noopener noreferrer" tabIndex={hidden ? -1 : undefined} aria-label={`Read ${r.author}'s review on Google`} className="shrink-0 rounded-full p-1.5 transition-colors hover:bg-night/5">
+                <a href={r.url ?? GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" tabIndex={hidden ? -1 : undefined} aria-label={`Read ${r.author}'s review on Google`} className="shrink-0 rounded-full p-1.5 transition-colors hover:bg-night/5">
                     <GoogleG />
                 </a>
             </div>
@@ -67,10 +67,16 @@ export default async function GoogleReviews() {
             <section className="bg-parchment-2 py-14">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
                     <p className="flex items-center gap-3 font-display text-2xl sm:text-3xl text-night"><GoogleG size={28} /> Read what travellers say about KashiGo on Google.</p>
-                    <a href={data?.mapsUrl ?? MAPS_SEARCH_URL} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full border border-night/20 px-6 font-medium text-night transition-colors hover:bg-night hover:text-parchment">
-                        Google reviews <ArrowUpRight size={16} />
-                    </a>
+                    <div className="flex flex-wrap gap-3">
+                        <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-night px-6 font-medium text-parchment transition-colors hover:bg-fire hover:text-night">
+                            Read our Google reviews <ArrowUpRight size={16} />
+                        </a>
+                        <a href={GOOGLE_WRITE_REVIEW_URL} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full border border-night/20 px-6 font-medium text-night transition-colors hover:bg-night hover:text-parchment">
+                            <PenLine size={16} /> Leave a review
+                        </a>
+                    </div>
                 </div>
             </section>
         );

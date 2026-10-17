@@ -1,5 +1,5 @@
 // Server-only. KashiGo's Google Business Profile rating and reviews, from the Google Places API (New).
-// Needs GOOGLE_PLACES_API_KEY; GOOGLE_PLACE_ID is optional (looked up by name if missing).
+// Needs GOOGLE_PLACES_API_KEY. The listing is KASHIGO_PLACE_ID (GOOGLE_PLACE_ID can override it).
 // Results are cached for a day. Google returns at most 5 reviews ("most relevant").
 
 export type GoogleReview = {
@@ -24,30 +24,20 @@ export type GoogleReviews = {
 
 const API = "https://places.googleapis.com/v1";
 const DAY = 60 * 60 * 24;
-export const MAPS_SEARCH_URL = "https://www.google.com/maps/search/?api=1&query=KashiGo%20Varanasi";
 
-async function findPlaceId(key: string): Promise<string | null> {
-    const res = await fetch(`${API}/places:searchText`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": "places.id,places.displayName" },
-        body: JSON.stringify({ textQuery: "KashiGo Varanasi", locationBias: { circle: { center: { latitude: 25.3157, longitude: 83.0189 }, radius: 20000 } } }),
-        next: { revalidate: DAY * 7 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    // Only accept a listing that is actually called KashiGo.
-    const hit = (data.places ?? []).find((p: { displayName?: { text?: string } }) => /kashi\s*go/i.test(p.displayName?.text ?? ""));
-    return hit?.id ?? null;
-}
+// KashiGo's own Google Business Profile (B-20/205, Brahma Ghat). Never look it up by name — this is the listing.
+export const KASHIGO_PLACE_ID = "ChIJsTBiHZcvjjkRbG3nhTNJC7I";
+// The listing's Reviews tab on Google Maps, and Google's official "write a review" link for it.
+export const GOOGLE_REVIEWS_URL = "https://www.google.com/maps/place/KashiGo/data=!4m8!3m7!1s0x398e2f971d6230b1:0xb20b493385e76d6c!8m2!3d25.3157706!4d83.018911!9m1!1b1!16s%2Fg%2F11p20z1pfl";
+export const GOOGLE_WRITE_REVIEW_URL = `https://search.google.com/local/writereview?placeid=${KASHIGO_PLACE_ID}`;
 
 export async function getGoogleReviews(): Promise<GoogleReviews | null> {
     const key = process.env.GOOGLE_PLACES_API_KEY;
     if (!key) return null;
     try {
-        const id = process.env.GOOGLE_PLACE_ID || (await findPlaceId(key));
-        if (!id) return null;
+        const id = process.env.GOOGLE_PLACE_ID || KASHIGO_PLACE_ID;
         const res = await fetch(`${API}/places/${encodeURIComponent(id)}?languageCode=en`, {
-            headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "displayName,rating,userRatingCount,reviews,googleMapsUri,googleMapsLinks" },
+            headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "displayName,rating,userRatingCount,reviews" },
             next: { revalidate: DAY },
         });
         if (!res.ok) {
@@ -70,8 +60,8 @@ export async function getGoogleReviews(): Promise<GoogleReviews | null> {
             name: p.displayName?.text ?? "KashiGo",
             rating: Number(p.rating) || 0,
             count: Number(p.userRatingCount) || 0,
-            mapsUrl: p.googleMapsUri ?? MAPS_SEARCH_URL,
-            writeReviewUrl: p.googleMapsLinks?.writeAReviewUri ?? null,
+            mapsUrl: GOOGLE_REVIEWS_URL,
+            writeReviewUrl: GOOGLE_WRITE_REVIEW_URL,
             reviews,
         };
     } catch (e) {
