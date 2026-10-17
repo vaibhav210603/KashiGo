@@ -31,7 +31,18 @@ export async function authHeaders(): Promise<Record<string, string>> {
     const h: Record<string, string> = { "Content-Type": "application/json" };
     const { data } = (await supabaseBrowser()?.auth.getSession()) ?? { data: { session: null } };
     if (data.session?.access_token) h.Authorization = `Bearer ${data.session.access_token}`;
+    const adminToken = getAdminToken();
+    if (adminToken) h["X-Admin-Token"] = adminToken;
     return h;
+}
+
+// Admin password-login token (works without Supabase). Kept in this browser only.
+const ADMIN_KEY = "kashigo-admin-token";
+export function getAdminToken(): string | null {
+    try { return localStorage.getItem(ADMIN_KEY); } catch { return null; }
+}
+export function setAdminToken(token: string | null) {
+    try { if (token) localStorage.setItem(ADMIN_KEY, token); else localStorage.removeItem(ADMIN_KEY); } catch { /* private mode */ }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON from our own API routes

@@ -1,10 +1,13 @@
 // Server-only helpers shared by the /api/admin routes.
 import { NextResponse } from "next/server";
 import { getAdmin, type Session } from "@/lib/auth";
-import { hasServiceRole, supabaseAdmin } from "@/lib/supabaseAdmin";
+import { verifyAdminToken } from "@/lib/adminToken";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+// An admin is either a phone in ADMIN_PHONES logged in with OTP, or someone holding a password-login token
+// (X-Admin-Token) — the second works even when Supabase is down. Routes that need the database report it themselves.
 export async function requireAdmin(req: Request): Promise<Session | NextResponse> {
-    if (!hasServiceRole()) return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY isn't set on the server." }, { status: 503 });
+    if (verifyAdminToken(req.headers.get("x-admin-token"))) return { phone: "admin-password", userId: "" };
     const admin = await getAdmin(req);
     if (!admin) return NextResponse.json({ error: "Not authorised." }, { status: 403 });
     return admin;

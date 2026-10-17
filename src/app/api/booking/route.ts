@@ -10,6 +10,7 @@ import { getRule } from "@/lib/coupons";
 import { getSession } from "@/lib/auth";
 import { finalize, prepareCheckout, refInfo, saveProfile } from "@/lib/checkout";
 import { normalizePhone } from "@/lib/phone";
+import { orderMailParts, type OrderRecord } from "@/lib/orderMail";
 import { BOAT_RIDES, CUSTOM_RIDE, GHATS, bookingTimeProblem, rideStartMinutes, toMinutes, inr } from "@/lib/boatRides";
 import { rateLimited } from "@/lib/rateLimit";
 
@@ -157,7 +158,20 @@ async function verifyPayment(b: Booking): Promise<Verified> {
 }
 
 // One email to the owner for every booking, with everything needed to run the ride.
-async function notifyOwner(subject: string, b: Booking, rideId: string, v: Verified, notes: string[]) {
+// The order as data, attached to the owner email so the admin panel can read orders from the mailbox
+// even when the database is unavailable (see lib/orderMail.ts).
+function orderRecord(b: Booking, rideId: string, v: Verified, notes: string[], customerPhone: string | null): OrderRecord {
+    return {
+        v: 1, kind: "boat", key: rideId, created_at: new Date().toISOString(), product: b.product,
+        name: b.name, customer_phone: customerPhone, phone: b.phone, email: b.email,
+        payment_mode: b.paymentMode, payment_status: v.status, payment_ref: b.paymentRef, amount: v.amount,
+        credits_used: v.credits, coupon: b.coupon || null, notes: notes.join(" | "),
+        ghat: b.ghat, ride_date: b.rideDate, time_of_day: b.timeOfDay, guests: b.guests, custom: b.custom,
+    };
+}
+
+// `record` is attached only for real bookings (not for "payment submitted twice" warnings).
+async function notifyOwner(subject: string, b: Booking, rideId: string, v: Verified, notes: string[], record?: OrderRecord) {
     const to = process.env.SMTP_FROM_EMAIL;
     if (!to) return;
     const rows = [
@@ -176,6 +190,7 @@ async function notifyOwner(subject: string, b: Booking, rideId: string, v: Verif
             to,
             subject,
             text: rows.map(([k, val]) => `${k}: ${val ?? ""}`).join("\n"),
+            ...(record ? orderMailParts(record) : {}),
         });
     } catch (err) {
         console.error("Owner email failed:", err);
@@ -265,7 +280,7 @@ export async function POST(req: Request) {
         }
 
         const tag = notes.length ? "⚠️ " : "";
-        await notifyOwner(`${tag}New booking ${rideId} · ${b.rideDate} · ${b.timeOfDay} · ${b.rideName}`, b, rideId, verified, notes);
+        await notifyOwner(`${tag}New booking ${rideId} · ${b.rideDate} · ${b.timeOfDay} · ${b.rideName}`, b, rideId, verified, notes, orderRecord(b, rideId, verified, notes, customerPhone));
 
         if (b.email) {
             try {
@@ -287,7 +302,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, rideId, message: "Ride successfully booked!" });
     } catch (error: any) {
         console.error("Booking Error:", error);
-        await notifyOwner(`⚠️ Booking ${rideId} hit an error — follow up`, b, rideId, verified, [...notes, error?.message || "Unknown error"]);
+        const errNotes = [...notes, error?.message || "Unknown error"];
+        await notifyOwner(`⚠️ Booking ${rideId} hit an error — follow up`, b, rideId, verified, errNotes, orderRecord(b, rideId, verified, errNotes, customerPhone));
         // Still confirm to the customer: if they paid, the owner has everything needed to honour it.
         return NextResponse.json({ success: true, rideId, message: "Ride booked!" });
     }

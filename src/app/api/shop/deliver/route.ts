@@ -9,6 +9,7 @@ import { getSession } from "@/lib/auth";
 import { finalize, prepareCheckout, refInfo, saveProfile } from "@/lib/checkout";
 import { normalizePhone } from "@/lib/phone";
 import { hasServiceRole, supabaseAdmin } from "@/lib/supabaseAdmin";
+import { orderMailParts, shopRow, type OrderRecord } from "@/lib/orderMail";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
 import { SHOP_PRODUCTS } from "@/lib/products";
 import { rateLimited } from "@/lib/rateLimit";
@@ -99,7 +100,9 @@ export async function POST(req: Request) {
 
         await finalize(ref);
         await saveProfile(customerPhone, name, email);
-        await recordShopOrder({ ref, product, provider, customerPhone, name, email, coupon: body.coupon });
+        const rec = await shopRecord({ ref, product, provider, customerPhone, name, email, phone: body.phone, coupon: body.coupon });
+        await recordShopOrder(rec);
+        await notifyShopSale(rec);
 
         const origin = new URL(req.url).origin.includes("localhost") ? new URL(req.url).origin : "https://kashigo.in";
         const downloads = getDownloads(product, origin)!;
@@ -136,27 +139,50 @@ export async function POST(req: Request) {
     }
 }
 
+// The purchase as data: saved to shop_orders and attached to the owner email (lib/orderMail.ts).
+async function shopRecord(o: { ref: string; product: string; provider: string; customerPhone: string | null; name?: string; email?: string; phone?: string; coupon?: string }): Promise<OrderRecord> {
+    const held = await refInfo(o.ref);
+    const coupon = held.coupon ?? (o.provider === "credits" ? String(o.coupon || "").toUpperCase() || null : null);
+    const price = priceOf(o.product, await getRule(coupon))!;
+    return {
+        v: 1, kind: "shop", key: o.ref, created_at: new Date().toISOString(), product: o.product,
+        name: String(o.name || "").slice(0, 80), customer_phone: o.customerPhone, phone: String(o.phone || "").slice(0, 20),
+        email: String(o.email || "").slice(0, 120), payment_mode: o.provider, payment_status: "paid", payment_ref: o.ref,
+        amount: Math.max(0, price.inr - held.creditsInr),
+        amount_usd: o.provider === "paypal" ? Math.max(0.01, Number((price.usd - held.creditsInr / INR_PER_USD).toFixed(2))) : null,
+        credits_used: held.creditsInr, coupon, notes: "",
+    };
+}
+
 // Every paid purchase is kept with the buyer's phone, so it shows in /admin and can be refunded as coins.
-async function recordShopOrder(o: { ref: string; product: string; provider: string; customerPhone: string | null; name?: string; email?: string; coupon?: string }) {
+async function recordShopOrder(rec: OrderRecord) {
     if (!hasServiceRole()) return;
     try {
-        const held = await refInfo(o.ref);
-        const price = priceOf(o.product, await getRule(held.coupon ?? (o.provider === "credits" ? o.coupon : null)))!;
-        const cashInr = Math.max(0, price.inr - held.creditsInr);
-        const { error } = await supabaseAdmin().from("shop_orders").upsert({
-            order_ref: o.ref,
-            product: o.product,
-            customer_phone: o.customerPhone,
-            name: String(o.name || "").slice(0, 80) || null,
-            email: String(o.email || "").slice(0, 120) || null,
-            provider: o.provider,
-            amount_inr: cashInr,
-            amount_usd: o.provider === "paypal" ? Math.max(0.01, Number((price.usd - held.creditsInr / INR_PER_USD).toFixed(2))) : null,
-            credits_used: held.creditsInr,
-            coupon: held.coupon,
-        }, { onConflict: "order_ref", ignoreDuplicates: true });
+        const { error } = await supabaseAdmin().from("shop_orders").upsert(shopRow(rec), { onConflict: "order_ref", ignoreDuplicates: true });
         if (error) console.error("Shop order save failed:", error);
     } catch (e) {
         console.error("Shop order save failed:", e);
+    }
+}
+
+// One email to the owner per sale — also how /admin lists purchases when the database is unavailable.
+async function notifyShopSale(rec: OrderRecord) {
+    const to = process.env.SMTP_USER;
+    if (!to) return;
+    const meta = SHOP_PRODUCTS.find((p) => p.id === rec.product);
+    try {
+        await createTransporter().sendMail({
+            from: `"KashiGo Shop" <${to}>`,
+            to,
+            subject: `New sale · ${meta?.name ?? rec.product} · ₹${rec.amount}${rec.credits_used ? ` + ${rec.credits_used} coins` : ""}`,
+            text: [
+                `Product: ${meta?.name ?? rec.product}`, `Buyer: ${rec.name} <${rec.email}>`, `Phone: ${rec.customer_phone || rec.phone || "—"}`,
+                `Paid: ₹${rec.amount}${rec.amount_usd ? ` ($${rec.amount_usd})` : ""} via ${rec.payment_mode}`, `Coins used: ${rec.credits_used}`,
+                `Code: ${rec.coupon || "—"}`, `Order ref: ${rec.key}`,
+            ].join("\n"),
+            ...orderMailParts(rec),
+        });
+    } catch (e) {
+        console.error("Shop sale email failed:", e);
     }
 }

@@ -1,10 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Coins, Loader2, LogOut, Plus, RefreshCw, Search, Tag, Ticket, Trash2, Undo2, X } from "lucide-react";
+import { Coins, Database, KeyRound, Loader2, LogOut, Mail, Plus, RefreshCw, Search, Tag, Ticket, Trash2, Undo2, X } from "lucide-react";
 import PhoneLogin from "@/components/auth/PhoneLogin";
-import { apiGet, apiPost, authHeaders, useAuth } from "@/components/auth/useAuth";
-import { useAccount } from "@/components/auth/useAccount";
+import { apiGet, apiPost, authHeaders, getAdminToken, setAdminToken, useAuth } from "@/components/auth/useAuth";
 import { formatPhone, normalizePhone } from "@/lib/phone";
 import { productName } from "@/lib/productNames";
 
@@ -14,8 +13,20 @@ const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString("en-IN
 
 export default function AdminClient() {
     const auth = useAuth();
-    const { account } = useAccount();
     const [tab, setTab] = useState<Tab>("orders");
+    // Admin check covers both ways in: phone OTP (needs Supabase) or the ADMIN_PASSWORD login (doesn't).
+    const [status, setStatus] = useState<{ admin: boolean; passwordLogin: boolean } | null>(null);
+    const [viaPassword, setViaPassword] = useState(false);
+    const check = useCallback(async () => {
+        const r = await apiGet("/api/admin/login");
+        setStatus({ admin: Boolean(r.data.admin), passwordLogin: Boolean(r.data.passwordLogin) });
+        setViaPassword(Boolean(r.data.admin) && Boolean(getAdminToken()));
+    }, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- re-check when the OTP login changes
+    useEffect(() => { if (auth.ready) check(); }, [auth.ready, auth.phone, check]);
+
+    const logout = () => { setAdminToken(null); if (auth.loggedIn) auth.signOut(); setViaPassword(false); check(); };
+    const isAdmin = status?.admin;
 
     return (
         <div className="min-h-screen bg-night text-white pt-28 pb-24">
@@ -25,21 +36,25 @@ export default function AdminClient() {
                         <p className="ornament text-[11px] font-semibold uppercase tracking-[0.28em] text-marigold">KashiGo admin</p>
                         <h1 className="mt-3 font-display font-light text-5xl tracking-[-0.03em]">Control <em className="text-fire">room.</em></h1>
                     </div>
-                    {auth.loggedIn && (
-                        <button onClick={() => auth.signOut()} className="h-10 px-4 inline-flex items-center gap-2 rounded-full border border-white/20 text-sm text-white/80 hover:bg-white hover:text-night">
-                            <LogOut size={15} /> {formatPhone(auth.phone)}
+                    {(isAdmin || auth.loggedIn) && (
+                        <button onClick={logout} className="h-10 px-4 inline-flex items-center gap-2 rounded-full border border-white/20 text-sm text-white/80 hover:bg-white hover:text-night">
+                            <LogOut size={15} /> {viaPassword ? "Admin (password)" : formatPhone(auth.phone)}
                         </button>
                     )}
                 </div>
 
-                {!auth.ready ? null : !auth.loggedIn ? (
-                    <div className="mt-10 max-w-lg rounded-3xl border border-white/10 bg-white/5 p-6">
-                        <PhoneLogin tone="dark" title="Admin login" subtitle="Use a phone number listed in ADMIN_PHONES." />
-                    </div>
-                ) : !account ? (
+                {!status ? (
                     <p className="mt-10 flex items-center gap-2 text-white/60"><Loader2 className="animate-spin" size={18} /> Checking access…</p>
-                ) : !account.admin ? (
-                    <p className="mt-10 rounded-2xl border border-ember/40 bg-ember/10 p-5 text-white/85">{formatPhone(auth.phone)} isn&apos;t an admin. Add it to <code className="text-marigold">ADMIN_PHONES</code> in the server environment.</p>
+                ) : !isAdmin ? (
+                    <div className="mt-10 grid gap-4 max-w-lg">
+                        {auth.loggedIn && <p className="rounded-2xl border border-ember/40 bg-ember/10 p-5 text-white/85">{formatPhone(auth.phone)} isn&apos;t an admin. Add it to <code className="text-marigold">ADMIN_PHONES</code> in the server environment.</p>}
+                        {!auth.loggedIn && (
+                            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+                                <PhoneLogin tone="dark" title="Admin login" subtitle="Use a phone number listed in ADMIN_PHONES." />
+                            </div>
+                        )}
+                        {status.passwordLogin && <PasswordLogin onDone={check} />}
+                    </div>
                 ) : (
                     <>
                         <nav className="mt-10 inline-flex rounded-full border border-white/15 p-1">
@@ -61,15 +76,48 @@ export default function AdminClient() {
     );
 }
 
+// Works even when Supabase (and so phone OTP) is unavailable.
+function PasswordLogin({ onDone }: { onDone: () => void }) {
+    const [open, setOpen] = useState(false);
+    const [pw, setPw] = useState("");
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState("");
+    const submit = async () => {
+        setBusy(true); setError("");
+        const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw }) });
+        const data = await res.json().catch(() => ({}));
+        setBusy(false);
+        if (!res.ok || !data.token) { setError(data.error || "Couldn't log in."); return; }
+        setAdminToken(data.token); setPw("");
+        onDone();
+    };
+    if (!open) return <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 self-start text-sm text-white/60 hover:text-white"><KeyRound size={15} /> Use the admin password instead</button>;
+    return (
+        <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <p className="flex items-center gap-2 font-semibold"><KeyRound size={16} className="text-marigold" /> Admin password</p>
+            <p className="text-sm text-white/55">Works even if Supabase is paused. Set as ADMIN_PASSWORD on the server.</p>
+            <div className="mt-4 flex gap-2">
+                <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" aria-label="Admin password"
+                    className="h-12 flex-1 min-w-0 rounded-2xl border border-white/15 bg-white/5 px-4 outline-none focus:border-marigold" />
+                <button disabled={busy || !pw} className="h-12 px-6 rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night font-semibold disabled:opacity-40">{busy ? "…" : "Log in"}</button>
+            </div>
+            {error && <p className="mt-2 text-sm text-ember">{error}</p>}
+        </form>
+    );
+}
+
 /* ───────────────────────── Orders + refunds ───────────────────────── */
 
 type BoatOrder = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any -- rows from the existing orders table
-type ShopOrder = { order_ref: string; product: string; customer_phone: string | null; name: string | null; email: string | null; provider: string; amount_inr: number; amount_usd: number | null; credits_used: number; coupon: string | null; refunded_inr: number; created_at: string };
+type Src = { email: boolean; db: boolean };
+type Sources = { email: { ok: boolean; count: number; error: string | null }; db: { ok: boolean; error: string | null }; synced: number; syncError: string | null };
+type OrdersResponse = { boats: BoatOrder[]; shop: ShopOrder[]; errors: string[]; sources: Sources | null };
+type ShopOrder = { _src?: Src; order_ref: string; product: string; customer_phone: string | null; name: string | null; email: string | null; provider: string; amount_inr: number; amount_usd: number | null; credits_used: number; coupon: string | null; refunded_inr: number; created_at: string };
 type RefundTarget = { kind: "boat" | "shop"; key: string; label: string; paid: number; refunded: number; phone: string | null; fallbackPhone: string | null };
 
 function Orders() {
     const [q, setQ] = useState("");
-    const [data, setData] = useState<{ boats: BoatOrder[]; shop: ShopOrder[]; errors: string[] } | null>(null);
+    const [data, setData] = useState<OrdersResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [view, setView] = useState<"boats" | "shop">("boats");
     const [refund, setRefund] = useState<RefundTarget | null>(null);
@@ -77,7 +125,7 @@ function Orders() {
     const load = useCallback(async (term = "") => {
         setLoading(true);
         const r = await apiGet(`/api/admin/orders${term ? `?q=${encodeURIComponent(term)}` : ""}`);
-        setData(r.ok ? r.data : { boats: [], shop: [], errors: [r.data.error || "Couldn't load orders."] });
+        setData(r.ok ? r.data : { boats: [], shop: [], errors: [r.data.error || "Couldn't load orders."], sources: null });
         setLoading(false);
     }, []);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial load
@@ -96,6 +144,7 @@ function Orders() {
                 </div>
                 <button onClick={() => load(q)} aria-label="Refresh" className="h-11 w-11 inline-flex items-center justify-center rounded-full border border-white/15 hover:bg-white/10"><RefreshCw size={16} className={loading ? "animate-spin" : ""} /></button>
             </div>
+            {data?.sources && <SourceBar s={data.sources} />}
             {data?.errors?.map((e) => <p key={e} className="mt-3 text-sm text-ember">{e}</p>)}
 
             <div className="mt-5 overflow-x-auto rounded-2xl border border-white/10" data-lenis-prevent>
@@ -113,14 +162,14 @@ function Orders() {
                             const phone = o.customer_phone || null;
                             return (
                                 <tr key={o.ride_id + (o.id ?? "")} className="border-t border-white/10 align-top">
-                                    <Td><b>{o.ride_id}</b><span className="block text-white/55">{productName(o.package_id)} · {o.ghat}</span></Td>
+                                    <Td><b>{o.ride_id}</b> <SrcBadges s={o._src} /><span className="block text-white/55">{productName(o.package_id)} · {o.ghat}</span></Td>
                                     <Td>{o.ride_date || ""}<span className="block text-white/55">{o.time_of_day}</span></Td>
                                     <Td>{o.passenger_name}<span className="block text-white/55">{formatPhone(phone) || o.passenger_phone}{o.passengers_count ? ` · ${o.passengers_count} guests` : ""}</span></Td>
                                     <Td><Status s={o.payment_status} /><span className="block text-white/55">{o.payment_mode}{o.coupon ? ` · ${o.coupon}` : ""}</span>{o.check_notes && <span className="block text-xs text-ember">{o.check_notes}</span>}</Td>
                                     <Td className="text-right">{rupees(paid)}{o.credits_used ? <span className="block text-xs text-white/50">{o.credits_used} in coins</span> : null}</Td>
                                     <Td className="text-right">{o.refunded_inr ? rupees(o.refunded_inr) : "—"}</Td>
                                     <Td className="text-right">
-                                        <button disabled={paid - (o.refunded_inr || 0) <= 0} onClick={() => setRefund({ kind: "boat", key: o.ride_id, label: `${o.ride_id} · ${o.passenger_name}`, paid, refunded: o.refunded_inr || 0, phone, fallbackPhone: normalizePhone(o.passenger_phone) })}
+                                        <button disabled={paid - (o.refunded_inr || 0) <= 0 || !o._src?.db} title={o._src?.db ? undefined : "Refunds need the database — this order is only in email so far."} onClick={() => setRefund({ kind: "boat", key: o.ride_id, label: `${o.ride_id} · ${o.passenger_name}`, paid, refunded: o.refunded_inr || 0, phone, fallbackPhone: normalizePhone(o.passenger_phone) })}
                                             className="h-9 px-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 hover:bg-marigold hover:text-night hover:border-marigold disabled:opacity-30 disabled:pointer-events-none"><Undo2 size={14} /> Refund</button>
                                     </Td>
                                 </tr>
@@ -130,14 +179,14 @@ function Orders() {
                             const paid = o.amount_inr + o.credits_used;
                             return (
                                 <tr key={o.order_ref} className="border-t border-white/10 align-top">
-                                    <Td><b>{productName(o.product)}</b><span className="block text-white/55 break-all">{o.order_ref}</span></Td>
+                                    <Td><b>{productName(o.product)}</b> <SrcBadges s={o._src} /><span className="block text-white/55 break-all">{o.order_ref}</span></Td>
                                     <Td>{when(o.created_at)}</Td>
                                     <Td>{o.name || "—"}<span className="block text-white/55">{formatPhone(o.customer_phone)} {o.email}</span></Td>
                                     <Td>{o.provider}{o.coupon ? <span className="block text-white/55">{o.coupon}</span> : null}</Td>
                                     <Td className="text-right">{rupees(paid)}{o.amount_usd ? <span className="block text-xs text-white/50">${Number(o.amount_usd).toFixed(2)} via PayPal</span> : null}</Td>
                                     <Td className="text-right">{o.refunded_inr ? rupees(o.refunded_inr) : "—"}</Td>
                                     <Td className="text-right">
-                                        <button disabled={paid - o.refunded_inr <= 0} onClick={() => setRefund({ kind: "shop", key: o.order_ref, label: `${productName(o.product)} · ${o.name || o.email || ""}`, paid, refunded: o.refunded_inr, phone: o.customer_phone, fallbackPhone: null })}
+                                        <button disabled={paid - (o.refunded_inr || 0) <= 0 || !o._src?.db} title={o._src?.db ? undefined : "Refunds need the database — this order is only in email so far."} onClick={() => setRefund({ kind: "shop", key: o.order_ref, label: `${productName(o.product)} · ${o.name || o.email || ""}`, paid, refunded: o.refunded_inr, phone: o.customer_phone, fallbackPhone: null })}
                                             className="h-9 px-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 hover:bg-marigold hover:text-night hover:border-marigold disabled:opacity-30 disabled:pointer-events-none"><Undo2 size={14} /> Refund</button>
                                     </Td>
                                 </tr>
@@ -391,6 +440,29 @@ function CoinsTool() {
         </div>
     );
 }
+
+// Where the order list came from: the mailbox (primary) and the database (copy).
+function SourceBar({ s }: { s: Sources }) {
+    return (
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${s.email.ok ? "border-ganga/40 text-ganga" : "border-ember/40 text-ember"}`}>
+                <Mail size={13} /> {s.email.ok ? `Email: ${s.email.count} orders` : `Email unavailable — ${s.email.error}`}
+            </span>
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${s.db.ok ? "border-ganga/40 text-ganga" : "border-marigold/40 text-marigold"}`}>
+                <Database size={13} /> {s.db.ok ? "Database: connected" : `Database unavailable — showing email copies; refunds wait until it's back${s.db.error ? ` (${s.db.error})` : ""}`}
+            </span>
+            {s.synced > 0 && <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1.5 text-white/75">Copied {s.synced} order{s.synced === 1 ? "" : "s"} from email into the database</span>}
+            {s.syncError && <span className="inline-flex items-center gap-1.5 rounded-full border border-ember/40 px-3 py-1.5 text-ember">Copy to database failed: {s.syncError}</span>}
+        </div>
+    );
+}
+
+const SrcBadges = ({ s }: { s?: Src }) => !s ? null : (
+    <span className="ml-1 inline-flex gap-1 align-middle">
+        {s.email && <span title="Found in the order emails" className="inline-flex items-center rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70"><Mail size={10} /></span>}
+        {s.db && <span title="Saved in the database" className="inline-flex items-center rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70"><Database size={10} /></span>}
+    </span>
+);
 
 /* ───────────────────────── bits ───────────────────────── */
 
