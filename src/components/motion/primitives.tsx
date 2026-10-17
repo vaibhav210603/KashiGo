@@ -21,7 +21,8 @@ export function Reveal({ children, delay = 0, y = 28, className, as = "div" }: {
 }
 
 // Headline whose words rise out of a mask one after another. Text stays real text for SEO/a11y.
-export function SplitWords({ text, className, delay = 0, stagger = 0.06, as: Tag = "span", wordClassName, inView = true }: { text: string; className?: string; delay?: number; stagger?: number; as?: ElementType; wordClassName?: (word: string, i: number) => string | undefined; inView?: boolean }) {
+// `wordClass` styles every word and can be passed from server components; `wordClassName` (a function) is client-only.
+export function SplitWords({ text, className, delay = 0, stagger = 0.06, as: Tag = "span", wordClassName, wordClass, inView = true }: { text: string; className?: string; delay?: number; stagger?: number; as?: ElementType; wordClassName?: (word: string, i: number) => string | undefined; wordClass?: string; inView?: boolean }) {
     const ref = useRef<HTMLElement>(null);
     const seen = useInView(ref, { once: true, margin: "0px 0px -10% 0px" });
     const reduce = useReducedMotion();
@@ -31,7 +32,7 @@ export function SplitWords({ text, className, delay = 0, stagger = 0.06, as: Tag
         <Tag ref={ref} className={className} aria-label={text}>
             {words.map((w, i) => (
                 <span key={i} aria-hidden className="inline-block overflow-hidden align-bottom pb-[0.3em] -mb-[0.3em] pr-[0.04em] -mr-[0.04em]">
-                    <motion.span className={`inline-block will-change-transform ${wordClassName?.(w, i) ?? ""}`}
+                    <motion.span className={`inline-block will-change-transform ${wordClassName?.(w, i) ?? wordClass ?? ""}`}
                         initial={reduce ? false : { y: "110%", rotate: 4 }}
                         animate={show ? { y: "0%", rotate: 0 } : undefined}
                         transition={{ duration: 1, ease: EASE, delay: delay + i * stagger }}>

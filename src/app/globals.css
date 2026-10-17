@@ -144,8 +144,14 @@ body {
 
 }
 
+/* Google reviews drift: the cards are rendered twice, so -50% loops seamlessly. */
+.reviews-track { animation: promo-scroll 70s linear infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .promo-track, .flicker, .bob, .wave-drift, .wave-drift-slow, .spin-slow { animation: none; }
+  /* Still: show each review once and let the row scroll by hand. */
+  .reviews-track { animation: none; overflow-x: auto; max-width: 100vw; }
+  .reviews-dup { display: none; }
   .accordion { transition: none; }
 }
 

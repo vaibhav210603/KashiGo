@@ -5,6 +5,7 @@ import RideRail from "@/components/home/RideRail";
 import WhyKashiGo from "@/components/home/WhyKashiGo";
 import GhatMarquee from "@/components/home/GhatMarquee";
 import HowItWorks from "@/components/home/HowItWorks";
+import GoogleReviews from "@/components/home/GoogleReviews";
 import ShopShelf from "@/components/home/ShopShelf";
 import CheatSheetSignup from "@/components/home/CheatSheetSignup";
 import FAQSection from "@/components/sections/FAQSection";
@@ -148,6 +149,7 @@ export default function Home() {
       <GhatMarquee />
       <WhyKashiGo />
       <HowItWorks />
+      <GoogleReviews />
       <ShopShelf />
       <FAQSection />
       <CheatSheetSignup />
