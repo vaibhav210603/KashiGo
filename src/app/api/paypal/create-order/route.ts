@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAmountUSD } from "@/lib/pricing";
-import { guardCoupon } from "@/lib/couponLimits";
+import { prepareCheckout } from "@/lib/checkout";
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET!;
@@ -23,22 +22,13 @@ async function generateAccessToken() {
 
 export async function POST(req: Request) {
     try {
-        const { product, coupon } = await req.json();
+        const { product, coupon, useCredits } = await req.json();
 
-        // Price is resolved server-side from the product id. Client-sent amounts are ignored.
-        const amountUSD = getAmountUSD(product, coupon);
+        // Price is resolved server-side from the product id, the coupon and the buyer's coins. Client-sent amounts are ignored.
+        const prep = await prepareCheckout(req, { product: String(product), coupon, useCredits: Boolean(useCredits), provider: "paypal" });
+        if (!prep.ok) return NextResponse.json({ success: false, message: prep.message }, { status: prep.status });
 
-        if (amountUSD === null || amountUSD <= 0) {
-            return NextResponse.json({ success: false, message: "Invalid product" }, { status: 400 });
-        }
-
-        const discounted = amountUSD < (getAmountUSD(product) ?? 0);
-        const guard = discounted ? await guardCoupon(req, coupon) : null;
-        if (guard && !guard.ok) {
-            return NextResponse.json({ success: false, message: guard.message }, { status: 409 });
-        }
-
-        const amountInUSD = amountUSD.toFixed(2);
+        const amountInUSD = prep.payUsd.toFixed(2);
 
         const accessToken = await generateAccessToken();
         const url = `${base}/v2/checkout/orders`;
@@ -67,11 +57,9 @@ export async function POST(req: Request) {
         const orderData = await response.json();
 
         if (orderData.id) {
-            const res = NextResponse.json({ success: true, orderId: orderData.id });
-            if (guard && !(await guard.commit(res, `paypal:${orderData.id}`))) {
-                return NextResponse.json({ success: false, message: "This code has already been used." }, { status: 409 });
-            }
-            return res;
+            const problem = await prep.commit(`paypal:${orderData.id}`);
+            if (problem) return NextResponse.json({ success: false, message: problem }, { status: 409 });
+            return NextResponse.json({ success: true, orderId: orderData.id, credits: prep.creditsInr });
         } else {
             console.error("PayPal Order Creation Error:", orderData);
             return NextResponse.json({ success: false, message: "Failed to create PayPal order" }, { status: 500 });

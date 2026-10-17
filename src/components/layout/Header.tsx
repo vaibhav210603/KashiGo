@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SHOW_ON } from "@/components/layout/MobileActionBar";
 import CurrencyToggle from "@/components/layout/CurrencyToggle";
-import { Phone, Sailboat, BookOpen, Headphones, ShoppingBag, Newspaper, Info } from "lucide-react";
+import { Phone, Sailboat, BookOpen, Headphones, ShoppingBag, Newspaper, Info, UserRound } from "lucide-react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
 
 const NAV = [
@@ -73,6 +73,10 @@ export default function Header() {
 
                     <div className="flex items-center gap-2">
                         <CurrencyToggle />
+                        <Link href="/account" aria-label="Your account and KashiGo coins" title="Your account & coins"
+                            className={`hidden md:inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${pathname === "/account" ? "border-marigold text-marigold" : "border-white/20 text-white/80 hover:text-white hover:border-white/40"}`}>
+                            <UserRound size={18} />
+                        </Link>
                         {!onBook && (
                             <Link href="/book" className={`${SHOW_ON(pathname || "") ? "hidden md:inline-flex" : "inline-flex"} btn-sheen h-10 px-5 items-center rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(255,122,26,0.8)]`}>
                                 Book a boat
@@ -109,6 +113,9 @@ export default function Header() {
                             ))}
                             <motion.div className="mt-auto pt-10 grid gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
                                 <Link href="/book" className="h-14 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night font-semibold">Book a boat ride</Link>
+                                <Link href="/account" className="flex items-center justify-center gap-2 h-14 rounded-full border border-white/20 font-medium text-white">
+                                    <UserRound size={18} className="text-marigold" /> Your account &amp; coins
+                                </Link>
                                 <a href="tel:+918175966910" className="flex items-center justify-center gap-2 h-14 rounded-full border border-white/20 font-medium text-white">
                                     <Phone size={18} className="text-marigold" /> Call +91 81759 66910
                                 </a>

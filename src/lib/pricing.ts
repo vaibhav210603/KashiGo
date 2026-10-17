@@ -1,5 +1,5 @@
 // Server-side price catalog. Payment routes must NEVER trust a client-sent amount —
-// all prices are resolved here from the product id.
+// all prices are resolved here from the product id (and a coupon rule from lib/coupons).
 import { BOAT_PRICES_INR, INR_PER_USD } from "@/lib/boatPrices";
 
 export type ProductId =
@@ -27,6 +27,7 @@ const INR_PRICES: Record<ProductId, number> = {
     p6: BOAT_PRICES_INR.p6,
 };
 
+// Products sold with their own dollar price. Everything else (boat rides) converts at INR_PER_USD.
 const USD_PRICES: Partial<Record<ProductId, number>> = {
     guide: 14.99,
     "india-tour": 29,
@@ -37,72 +38,72 @@ const USD_PRICES: Partial<Record<ProductId, number>> = {
     "complete-bundle": 24.99,
 };
 
-// Coupons for the digital shop products (fraction off)
-const SHOP_COUPONS: Record<string, number> = {
-    LAUNCH40: 0.4,
-    INSIDER20: 0.2,
-    KASHISECRET: 0.5,
-};
+const SHOP_PRODUCTS = ["india-scam-proof", "kashi-unveiled", "walk-the-ghats", "scam-proof-audiobook", "complete-bundle"];
 
 export function isShopProduct(product: string): boolean {
-    return ["india-scam-proof", "kashi-unveiled", "walk-the-ghats", "scam-proof-audiobook", "complete-bundle"].includes(product);
+    return SHOP_PRODUCTS.includes(product);
 }
 
-// Coupons valid on every product (fraction off). Usage limits live in couponLimits.ts.
-const ALL_PRODUCT_COUPONS: Record<string, number> = {
-    BLISS20: 0.2, // single use
-    WELCOME10: 0.1, // once per device
-};
-
-function couponRate(product: string, coupon?: string): number {
-    const code = (coupon || "").trim().toUpperCase();
-    if (!code) return 0;
-    if (ALL_PRODUCT_COUPONS[code]) return ALL_PRODUCT_COUPONS[code];
-    if (product === "guide") return GUIDE_COUPONS[code] ?? (code === "LAUNCH40" ? 0.4 : 0);
-    if (isShopProduct(product)) return SHOP_COUPONS[code] ?? 0;
-    return 0;
-}
-
-// Guide discount coupons (fraction off)
-const GUIDE_COUPONS: Record<string, number> = {
-    KASHISECRET: 0.5,
-    EXCLUSIVE20: 0.2,
-};
-
-// Boat booking coupon: fixed ₹10 price
-const BOAT_COUPON_CODE = "KASHIGO21";
-const BOAT_COUPON_PRICE_INR = 10;
-
-const INR_TO_USD_RATE = INR_PER_USD;
-
-function isBoatProduct(product: string): boolean {
+export function isBoatProduct(product: string): boolean {
     return product === "custom-boat" || /^p[1-6]$/.test(product);
 }
 
-export function getAmountINR(product: string, coupon?: string): number | null {
-    const base = INR_PRICES[product as ProductId];
-    if (!base) return null;
-    const code = (coupon || "").trim().toUpperCase();
-    const rate = couponRate(product, coupon);
-    if (rate > 0) {
-        return Math.round(base * (1 - rate));
-    }
-    if (isBoatProduct(product) && code === BOAT_COUPON_CODE) {
-        return BOAT_COUPON_PRICE_INR;
-    }
-    return base;
+export const isProduct = (product: string): product is ProductId => product in INR_PRICES;
+
+// The groups a coupon's `applies_to` can name, besides individual product ids.
+export function scopesFor(product: string): string[] {
+    const s = ["all", product];
+    if (isBoatProduct(product)) s.push("boat");
+    if (isShopProduct(product)) s.push("shop");
+    return s;
 }
 
-export function getAmountUSD(product: string, coupon?: string): number | null {
-    const usdBase = USD_PRICES[product as ProductId];
-    if (usdBase !== undefined) {
-        const rate = couponRate(product, coupon);
-        if (rate > 0) {
-            return Number((usdBase * (1 - rate)).toFixed(2));
-        }
-        return usdBase;
+// A coupon as stored in the `coupons` table (see supabase/accounts_credits_admin.sql).
+export type CouponRule = {
+    code: string;
+    kind: "percent" | "amount_off" | "fixed_price";
+    value: number; // percent 1–100, or rupees
+    applies_to: string[];
+};
+
+// Used only if the coupons table isn't there yet (before the migration runs) — the old hard-coded codes.
+export const LEGACY_RULES: CouponRule[] = [
+    { code: "WELCOME10", kind: "percent", value: 10, applies_to: ["all"] },
+    { code: "BLISS20", kind: "percent", value: 20, applies_to: ["all"] },
+    { code: "LAUNCH40", kind: "percent", value: 40, applies_to: ["shop", "guide"] },
+    { code: "INSIDER20", kind: "percent", value: 20, applies_to: ["shop"] },
+    { code: "KASHISECRET", kind: "percent", value: 50, applies_to: ["shop", "guide"] },
+    { code: "EXCLUSIVE20", kind: "percent", value: 20, applies_to: ["guide"] },
+    { code: "KASHIGO21", kind: "fixed_price", value: 10, applies_to: ["boat"] },
+];
+
+export const ruleApplies = (rule: CouponRule, product: string) => rule.applies_to.some((s) => scopesFor(product).includes(s));
+
+export type Price = { inr: number; usd: number };
+
+// Price of a product, with a coupon rule if one applies. Null for an unknown product.
+// A coupon never makes anything free here: the floor is ₹1 / $0.01 so a payment provider is always involved.
+export function priceOf(product: string, rule?: CouponRule | null): Price | null {
+    if (!isProduct(product)) return null;
+    const baseInr = INR_PRICES[product];
+    const ownUsd = USD_PRICES[product];
+    const baseUsd = ownUsd ?? Number((baseInr / INR_PER_USD).toFixed(2));
+    if (!rule || !ruleApplies(rule, product)) return { inr: baseInr, usd: baseUsd };
+
+    let inr = baseInr;
+    let usd = baseUsd;
+    if (rule.kind === "percent") {
+        const f = 1 - Math.min(rule.value, 100) / 100;
+        inr = Math.round(baseInr * f);
+        usd = ownUsd !== undefined ? Number((ownUsd * f).toFixed(2)) : Number((inr / INR_PER_USD).toFixed(2));
+    } else if (rule.kind === "amount_off") {
+        inr = baseInr - rule.value;
+        usd = ownUsd !== undefined ? Number((ownUsd - rule.value / INR_PER_USD).toFixed(2)) : Number((inr / INR_PER_USD).toFixed(2));
+    } else {
+        inr = rule.value;
+        usd = Number((rule.value / INR_PER_USD).toFixed(2));
     }
-    const inr = getAmountINR(product, coupon);
-    if (inr === null) return null;
-    return Number((inr / INR_TO_USD_RATE).toFixed(2));
+    return { inr: Math.max(1, Math.min(inr, baseInr)), usd: Math.max(0.01, Math.min(usd, baseUsd)) };
 }
+
+export const INR_TO_USD_RATE = INR_PER_USD;

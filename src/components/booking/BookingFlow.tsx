@@ -4,11 +4,15 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import Image from "next/image";
 import Link from "next/link";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import { Check, Minus, Plus, Phone, Headphones, Wallet, Smartphone, Globe, Tag } from "lucide-react";
+import { Check, Minus, Plus, Phone, Headphones, Wallet, Smartphone, Globe, Tag, Coins, LogOut } from "lucide-react";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, BOOKING_WINDOW_DAYS } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
 import { money, useCurrency } from "@/lib/currency";
+import { formatPhone } from "@/lib/phone";
+import { apiPost, authHeaders, useAuth } from "@/components/auth/useAuth";
+import { useAccount } from "@/components/auth/useAccount";
+import PhoneLogin from "@/components/auth/PhoneLogin";
 
 type RideChoice = BoatRideId | "custom" | "";
 type PayMode = "cod" | "online_domestic" | "online_international";
@@ -80,6 +84,17 @@ export default function BookingFlow() {
     const [applied, setApplied] = useState<{ product: string; inr: number } | null>(null);
     const [codeMsg, setCodeMsg] = useState("");
     const [done, setDone] = useState<{ rideId: string; paid: boolean } | null>(null);
+    // Phone login unlocks discount codes and KashiGo coins (refunds come back as coins).
+    const auth = useAuth();
+    const { account, refresh: refreshAccount } = useAccount();
+    const [showLogin, setShowLogin] = useState(false);
+    const [useCoins, setUseCoins] = useState(true);
+    // Logged in with an empty phone field: fill in the verified number for the boatman.
+    const [filledFor, setFilledFor] = useState<string | null>(null);
+    if (auth.phone && auth.phone !== filledFor) {
+        setFilledFor(auth.phone);
+        if (!phone.trim()) setPhone(formatPhone(auth.phone));
+    }
     const topRef = useRef<HTMLDivElement>(null);
 
     // Arrive with a ride already chosen from the homepage (/book?ride=p5). The way to pay follows the
@@ -101,7 +116,15 @@ export default function BookingFlow() {
     // A code is priced for one ride and only applies to online payment.
     const codePrice = applied && applied.product === product ? applied.inr : null;
     const coupon = codePrice !== null && pay !== "cod" ? code.trim().toUpperCase() : undefined;
-    const price = coupon ? codePrice! : listPrice;
+    const afterCode = coupon ? codePrice! : listPrice;
+    // Coins only apply to online payment. If they cover the whole ride, there's nothing to pay (mode "credits");
+    // otherwise at least ₹1 is left for Razorpay / PayPal. The server recomputes all of this.
+    const balance = account?.credits ?? 0;
+    const coinsOn = useCoins && balance > 0 && pay !== "cod" && afterCode > 0;
+    const coversAll = coinsOn && balance >= afterCode;
+    const coinsUsed = !coinsOn ? 0 : coversAll ? afterCode : Math.min(balance, afterCode - 1);
+    const price = afterCode - coinsUsed;
+    const payMode = coversAll ? "credits" : pay;
     const rideLabel = ride === "custom" ? CUSTOM_RIDE.short : selected?.short || "";
     const dateLabel = dates.find((d) => d.iso === selectedDate);
     // Shown live under the date picker as soon as a ride (and custom start time) is chosen.
@@ -114,7 +137,9 @@ export default function BookingFlow() {
         if (!c) return;
         if (!product) { setCodeMsg("Choose a ride first."); return; }
         try {
-            const data = await fetch("/api/coupon", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product, code: c }) }).then((r) => r.json());
+            if (!auth.loggedIn) { setShowLogin(true); setCodeMsg("Log in with your phone number to use a code."); return; }
+            const { data } = await apiPost("/api/coupon", { product, code: c });
+            if (data.needsLogin) { setShowLogin(true); setCodeMsg(data.message); return; }
             if (data.valid && typeof data.inr === "number") { setApplied({ product, inr: data.inr }); setCodeMsg(`Code applied — you pay ${money(data.inr, currency)}`); return; }
             if (data.message) { setApplied(null); setCodeMsg(data.message); return; }
         } catch { }
@@ -156,7 +181,7 @@ export default function BookingFlow() {
         experienceType: ride === "custom" ? "custom" : "package",
         packageId: ride === "custom" ? "" : ride,
         customDetails: { time: customTime, tripType, destinationGhat: tripType === "single" ? dest : "" },
-        paymentMode: pay,
+        paymentMode: payMode,
         passengerDetails: { name: name.trim(), phone: phone.trim(), email: email.trim(), passengersCount: guests },
         amount: price,
         coupon,
@@ -167,18 +192,21 @@ export default function BookingFlow() {
     const submitBooking = async (paymentRef?: string) => {
         let rideId = "";
         try {
-            const res = await fetch("/api/booking", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload(paymentRef)) });
+            const res = await fetch("/api/booking", { method: "POST", headers: await authHeaders(), body: JSON.stringify(payload(paymentRef)) });
             const data = await res.json();
             if (data.success) rideId = data.rideId;
+            else if (payMode === "credits" && data.message) { setNotice(data.message); refreshAccount(); return; }
         } catch { }
         if (!rideId && !paymentRef) {
             setNotice("We couldn't place your booking — please check your connection and try again, or call +91 81759 66910.");
             return;
         }
         const finalRideId = rideId || `KASHI-${String(paymentRef).slice(-6).toUpperCase()}`;
-        setDone({ rideId: finalRideId, paid: Boolean(paymentRef) });
+        const paid = Boolean(paymentRef) || payMode === "credits";
+        setDone({ rideId: finalRideId, paid });
+        if (coinsUsed) refreshAccount();
         // Only paid rides are revenue; pay-at-ghat bookings are leads until the boatman is paid.
-        if (paymentRef) track("purchase", { transaction_id: finalRideId, currency: "INR", value: price, item_id: product });
+        if (paid) track("purchase", { transaction_id: finalRideId, currency: "INR", value: price, item_id: product });
         else track("generate_lead", { lead_source: "boat_booking_pay_at_ghat", currency: "INR", value: price });
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
@@ -190,8 +218,7 @@ export default function BookingFlow() {
 
     const payRazorpay = async () => {
         track("begin_checkout", { currency: "INR", value: price, item_id: product, payment_type: "razorpay" });
-        const order = await fetch("/api/razorpay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product, coupon }) })
-            .then((r) => r.json()).catch(() => ({ success: false }));
+        const order = await apiPost("/api/razorpay", { product, coupon, useCredits: coinsOn }).then((r) => r.data).catch(() => ({ success: false }));
         if (!order.success && order.message) { setNotice(order.message); return; }
         if (!order.success) { setNotice("Online payment isn't available right now — choose “Pay at the ghat” or try again."); return; }
         await new Promise<void>((resolve, reject) => {
@@ -216,13 +243,13 @@ export default function BookingFlow() {
     const confirm = async () => {
         setNotice("");
         if (!showErrors()) return;
-        if (pay === "online_international") {
+        if (payMode === "online_international") {
             document.getElementById("paypal")?.scrollIntoView({ behavior: "smooth", block: "center" });
             return;
         }
         setBusy(true);
         try {
-            if (pay === "cod") await submitBooking();
+            if (payMode === "cod" || payMode === "credits") await submitBooking();
             else await payRazorpay();
         } catch {
             setNotice("Couldn't open the payment window — check your connection or choose “Pay at the ghat”.");
@@ -378,15 +405,50 @@ export default function BookingFlow() {
                     </div>
                 )}
 
-                {pay === "online_international" && (
+                {/* Phone login: needed for codes, and where refunded KashiGo coins are spent */}
+                {pay !== "cod" && (
+                    <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        {auth.loggedIn ? (
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-slate-600">Logged in as <b className="text-slate-900">{formatPhone(auth.phone)}</b></span>
+                                    <button type="button" onClick={() => { auth.signOut(); setApplied(null); setCodeMsg(""); }} className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-800"><LogOut size={14} /> Log out</button>
+                                </div>
+                                {balance > 0 ? (
+                                    <label className="flex items-center gap-3 rounded-xl bg-white border border-amber-200 p-3 cursor-pointer">
+                                        <input type="checkbox" checked={useCoins} onChange={(e) => setUseCoins(e.target.checked)} className="h-5 w-5 accent-orange-500" />
+                                        <Coins size={20} className="text-amber-500 shrink-0" />
+                                        <span className="flex-1 text-sm">
+                                            <span className="block font-semibold text-slate-900">Use my KashiGo coins</span>
+                                            <span className="block text-slate-500">{balance.toLocaleString("en-IN")} coins available (1 coin = ₹1){coinsOn ? ` · using ${coinsUsed.toLocaleString("en-IN")}` : ""}</span>
+                                        </span>
+                                    </label>
+                                ) : (
+                                    <p className="text-xs text-slate-500">No KashiGo coins yet — refunds come back here as coins you can spend on any ride or guide.</p>
+                                )}
+                                {coversAll && <p className="text-sm font-medium text-teal-700">Your coins cover this ride — no payment needed.</p>}
+                            </div>
+                        ) : showLogin ? (
+                            <PhoneLogin defaultCode={currency === "inr" ? "+91" : "+1"} subtitle="Unlocks discount codes and your KashiGo coins." onDone={() => { setShowLogin(false); setCodeMsg(""); }} />
+                        ) : (
+                            <button type="button" onClick={() => setShowLogin(true)} className="flex w-full items-center gap-3 text-left">
+                                <Coins size={20} className="text-amber-500 shrink-0" />
+                                <span className="flex-1 text-sm"><span className="block font-semibold text-slate-900">Have a code or KashiGo coins?</span><span className="block text-slate-500">Log in with your phone number — takes 20 seconds.</span></span>
+                                <span className="text-sm font-semibold text-orange-600">Log in</span>
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {payMode === "online_international" && (
                     <div id="paypal" className="mt-4 scroll-mt-24">
                         {isValid ? (
                             <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "ATMGtSsoMxvX5hrhLzFYYuN1yNCAonxN-vV1xAtNKBRvL7cbgpMQ_EG1Nf7j-43XGcyyUlN6Eb4Our_0", currency: "USD" }}>
                                 <PayPalButtons
-                                    forceReRender={[product, coupon]}
+                                    forceReRender={[product, coupon, coinsOn]}
                                     style={{ layout: "vertical", color: "gold", shape: "pill", label: "pay", height: 48 }}
                                     createOrder={async () => {
-                                        const o = await fetch("/api/paypal/create-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product, coupon }) }).then((r) => r.json());
+                                        const { data: o } = await apiPost("/api/paypal/create-order", { product, coupon, useCredits: coinsOn });
                                         if (!o.success) { if (o.message) setNotice(o.message); throw new Error("Could not create PayPal order"); }
                                         return o.orderId;
                                     }}
@@ -417,11 +479,11 @@ export default function BookingFlow() {
                     <div className="flex-1 min-w-0">
                         <p className="text-xs text-slate-500 truncate">{rideLabel ? `${rideLabel} · ${dateLabel?.top}` : "Choose a ride"}</p>
                         <p className="font-heading font-bold text-xl text-slate-900">
-                            {coupon && <s className="mr-2 text-sm font-medium text-slate-400">{money(listPrice, currency)}</s>}
-                            {price ? money(price, currency) : "—"}
+                            {(coupon || coinsUsed > 0) && <s className="mr-2 text-sm font-medium text-slate-400">{money(listPrice, currency)}</s>}
+                            {price || coversAll ? money(price, currency) : "—"}
                         </p>
                         {/* The payment method decides the currency actually charged — say so when it differs from the display. */}
-                        {price > 0 && (pay === "online_international" ? currency === "inr" : currency === "usd") && (
+                        {price > 0 && payMode !== "credits" && (pay === "online_international" ? currency === "inr" : currency === "usd") && (
                             <p className="text-[11px] text-slate-500 truncate">
                                 {pay === "online_international" ? `Charged ${money(price, "usd")} via PayPal` : pay === "cod" ? `Pay ${inr(price)} at the ghat` : `Charged ${inr(price)} via Razorpay`}
                             </p>
@@ -429,7 +491,7 @@ export default function BookingFlow() {
                     </div>
                     <button onClick={confirm} disabled={busy}
                         className="h-12 px-6 sm:px-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg shadow-orange-500/30 disabled:opacity-60">
-                        {busy ? "Processing…" : pay === "cod" ? "Confirm booking" : pay === "online_international" ? "Pay with PayPal" : "Pay & book"}
+                        {busy ? "Processing…" : payMode === "credits" ? "Book with coins" : pay === "cod" ? "Confirm booking" : pay === "online_international" ? "Pay with PayPal" : "Pay & book"}
                     </button>
                 </div>
             </div>

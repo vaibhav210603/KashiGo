@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import Razorpay from "razorpay";
 import { getDownloads } from "@/lib/downloads";
-import { isShopProduct } from "@/lib/pricing";
+import { isShopProduct, priceOf } from "@/lib/pricing";
+import { INR_PER_USD } from "@/lib/boatPrices";
+import { getRule } from "@/lib/coupons";
+import { getSession } from "@/lib/auth";
+import { finalize, prepareCheckout, refInfo, saveProfile } from "@/lib/checkout";
+import { normalizePhone } from "@/lib/phone";
+import { hasServiceRole, supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
 import { SHOP_PRODUCTS } from "@/lib/products";
 import { rateLimited } from "@/lib/rateLimit";
@@ -62,19 +68,38 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: "Unknown product" }, { status: 400 });
         }
 
+        const session = await getSession(req);
+        const customerPhone = session?.phone ?? normalizePhone(body.phone);
+
         let ok = false;
         let reference = "";
+        let ref = ""; // the checkout ref any coupon / coins were held under
         if (provider === "razorpay") {
             ok = await verifyRazorpay(product, body.razorpay_order_id, body.razorpay_payment_id, body.razorpay_signature);
             reference = body.razorpay_payment_id;
+            ref = `razorpay:${body.razorpay_order_id}`;
         } else if (provider === "paypal") {
             ok = await verifyPayPal(product, body.paypalOrderId);
             reference = body.paypalOrderId;
+            ref = `paypal:${body.paypalOrderId}`;
+        } else if (provider === "credits") {
+            // Paid entirely in KashiGo coins — nothing charged yet, so a problem here can still refuse.
+            const prep = await prepareCheckout(req, { product, coupon: body.coupon, provider: "credits" });
+            if (!prep.ok) return NextResponse.json({ success: false, message: prep.message }, { status: prep.status });
+            ref = `credits:shop-${crypto.randomUUID()}`;
+            const problem = await prep.commit(ref);
+            if (problem) return NextResponse.json({ success: false, message: problem }, { status: 409 });
+            ok = true;
+            reference = ref;
         }
         if (!ok) {
             if (!rateLimited(req, "shop-alert", 5, 60 * 60 * 1000)) await alertOwner(`⚠️ Shop order needs manual delivery: ${product}`, body, "Payment could not be verified automatically — check the provider dashboard, then email the files.");
             return NextResponse.json({ success: false, pending: true }, { status: 202 });
         }
+
+        await finalize(ref);
+        await saveProfile(customerPhone, name, email);
+        await recordShopOrder({ ref, product, provider, customerPhone, name, email, coupon: body.coupon });
 
         const origin = new URL(req.url).origin.includes("localhost") ? new URL(req.url).origin : "https://kashigo.in";
         const downloads = getDownloads(product, origin)!;
@@ -108,5 +133,30 @@ export async function POST(req: Request) {
         console.error("Shop deliver error:", error);
         if (!rateLimited(req, "shop-alert", 5, 60 * 60 * 1000)) await alertOwner(`⚠️ Shop order needs manual delivery: ${body?.product}`, body, error?.message || "Delivery error");
         return NextResponse.json({ success: false, pending: true }, { status: 202 });
+    }
+}
+
+// Every paid purchase is kept with the buyer's phone, so it shows in /admin and can be refunded as coins.
+async function recordShopOrder(o: { ref: string; product: string; provider: string; customerPhone: string | null; name?: string; email?: string; coupon?: string }) {
+    if (!hasServiceRole()) return;
+    try {
+        const held = await refInfo(o.ref);
+        const price = priceOf(o.product, await getRule(held.coupon ?? (o.provider === "credits" ? o.coupon : null)))!;
+        const cashInr = Math.max(0, price.inr - held.creditsInr);
+        const { error } = await supabaseAdmin().from("shop_orders").upsert({
+            order_ref: o.ref,
+            product: o.product,
+            customer_phone: o.customerPhone,
+            name: String(o.name || "").slice(0, 80) || null,
+            email: String(o.email || "").slice(0, 120) || null,
+            provider: o.provider,
+            amount_inr: cashInr,
+            amount_usd: o.provider === "paypal" ? Math.max(0.01, Number((price.usd - held.creditsInr / INR_PER_USD).toFixed(2))) : null,
+            credits_used: held.creditsInr,
+            coupon: held.coupon,
+        }, { onConflict: "order_ref", ignoreDuplicates: true });
+        if (error) console.error("Shop order save failed:", error);
+    } catch (e) {
+        console.error("Shop order save failed:", e);
     }
 }

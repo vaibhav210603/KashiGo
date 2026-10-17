@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { getAmountINR } from "@/lib/pricing";
-import { guardCoupon } from "@/lib/couponLimits";
+import { prepareCheckout } from "@/lib/checkout";
 
 const razorpay = new Razorpay({
     key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
@@ -10,46 +9,32 @@ const razorpay = new Razorpay({
 
 export async function POST(req: Request) {
     try {
-        const { product, coupon } = await req.json();
+        const { product, coupon, useCredits } = await req.json();
 
-        // Price is resolved server-side from the product id. Client-sent amounts are ignored.
-        const base = getAmountINR(product);
-        let amount = getAmountINR(product, coupon);
-
-        if (base === null || amount === null || amount <= 0) {
-            return NextResponse.json(
-                { success: false, message: "Invalid product" },
-                { status: 400 }
-            );
-        }
-
-        const discounted = amount < base;
-        const guard = discounted ? await guardCoupon(req, coupon) : null;
-        if (guard && !guard.ok) {
-            return NextResponse.json({ success: false, message: guard.message }, { status: 409 });
-        }
-        if (!discounted) amount = base;
+        // Price is resolved server-side from the product id, the coupon and the buyer's coins. Client-sent amounts are ignored.
+        const prep = await prepareCheckout(req, { product: String(product), coupon, useCredits: Boolean(useCredits), provider: "razorpay" });
+        if (!prep.ok) return NextResponse.json({ success: false, message: prep.message }, { status: prep.status });
 
         // Razorpay expects amount in paise (INR * 100)
         const order = await razorpay.orders.create({
-            amount: Math.round(amount * 100),
+            amount: Math.round(prep.payInr * 100),
             currency: "INR",
             receipt: `kashigo_${Date.now()}`,
             // Stamped server-side so payment checks can confirm what this order was for.
-            notes: { product: String(product), coupon: discounted ? String(coupon).trim().toUpperCase() : "" },
+            notes: { product: String(product), coupon: prep.rule?.code ?? "", credits: String(prep.creditsInr), phone: prep.phone ?? "" },
         });
 
-        const res = NextResponse.json({
+        const problem = await prep.commit(`razorpay:${order.id}`);
+        if (problem) return NextResponse.json({ success: false, message: problem }, { status: 409 });
+
+        return NextResponse.json({
             success: true,
             orderId: order.id,
             amount: order.amount,
             currency: order.currency,
+            credits: prep.creditsInr,
             keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         });
-        if (guard && !(await guard.commit(res, `razorpay:${order.id}`))) {
-            return NextResponse.json({ success: false, message: "This code has already been used." }, { status: 409 });
-        }
-        return res;
     } catch (error: any) {
         console.error("Razorpay Order Creation Error:", error);
         return NextResponse.json(

@@ -4,7 +4,12 @@ import crypto from "crypto";
 import Razorpay from "razorpay";
 import { createTransporter } from "@/lib/mailer";
 import { getBookingEmailTemplate } from "@/lib/emailTemplate";
-import { getAmountINR, getAmountUSD } from "@/lib/pricing";
+import { priceOf } from "@/lib/pricing";
+import { INR_PER_USD } from "@/lib/boatPrices";
+import { getRule } from "@/lib/coupons";
+import { getSession } from "@/lib/auth";
+import { finalize, prepareCheckout, refInfo, saveProfile } from "@/lib/checkout";
+import { normalizePhone } from "@/lib/phone";
 import { BOAT_RIDES, CUSTOM_RIDE, GHATS, bookingTimeProblem, rideStartMinutes, toMinutes, inr } from "@/lib/boatRides";
 import { rateLimited } from "@/lib/rateLimit";
 
@@ -17,9 +22,10 @@ const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "";
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || "";
 const paypalBase = process.env.NODE_ENV === "production" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
 
-type Verified = { status: "paid" | "pending" | "unverified"; amount: number; note?: string };
+// amount = cash paid in rupees; credits = KashiGo coins used; ref = the checkout ref coins/coupon were held under.
+type Verified = { status: "paid" | "pending" | "unverified"; amount: number; credits: number; ref: string; note?: string };
 
-const PAY_MODES = ["cod", "online_domestic", "online_international"] as const;
+const PAY_MODES = ["cod", "online_domestic", "online_international", "credits"] as const;
 type PayMode = (typeof PAY_MODES)[number];
 
 // Plain text only: strips control characters and HTML-significant characters, caps the length.
@@ -94,32 +100,38 @@ function parseBooking(data: any): { booking: Booking; problems: string[] } {
             paymentMode,
             // Codes only apply to online payments; the payment routes enforce their limits.
             coupon: paymentMode === "cod" ? "" : clean(data?.coupon, 30).toUpperCase(),
-            paymentRef: paymentMode === "cod" ? "" : clean(data?.razorpayPaymentId, 64),
+            paymentRef: paymentMode === "cod" || paymentMode === "credits" ? "" : clean(data?.razorpayPaymentId, 64),
         },
         problems,
     };
 }
 
 // Confirms an online payment with the provider — that it went through, that it was for this
-// ride, and that the full price was paid — so we never trust the client's word for it.
+// ride, and that the full price was paid (after any coupon and coins) — so we never trust the client's word for it.
 async function verifyPayment(b: Booking): Promise<Verified> {
-    const listed = getAmountINR(b.product, b.coupon) ?? 0;
-    if (!b.paymentRef) return { status: "pending", amount: getAmountINR(b.product) ?? 0 }; // pay at the ghat
+    const list = priceOf(b.product)?.inr ?? 0;
+    if (!b.paymentRef) return { status: "pending", amount: list, credits: 0, ref: "" }; // pay at the ghat
 
     try {
         if (b.paymentMode === "online_domestic") {
             const rz = new Razorpay({ key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!, key_secret: process.env.RAZORPAY_KEY_SECRET! });
             const p: any = await rz.payments.fetch(b.paymentRef);
-            if (p?.status !== "captured" && p?.status !== "authorized") return { status: "unverified", amount: listed, note: `Razorpay payment status is "${p?.status}".` };
+            if (p?.status !== "captured" && p?.status !== "authorized") return { status: "unverified", amount: list, credits: 0, ref: "", note: `Razorpay payment status is "${p?.status}".` };
             const paid = Number(p.amount) / 100;
             const order: any = p.order_id ? await rz.orders.fetch(p.order_id) : null;
+            const ref = p.order_id ? `razorpay:${p.order_id}` : "";
+            const credits = Number(order?.notes?.credits || 0);
             const orderProduct = order?.notes?.product;
-            if (orderProduct !== b.product) return { status: "unverified", amount: paid, note: `This payment was for "${orderProduct || "unknown"}", not ${b.product}.` };
-            const expected = getAmountINR(b.product, order?.notes?.coupon) ?? Infinity;
-            if (paid + 0.5 < expected) return { status: "unverified", amount: paid, note: `Paid ${inr(paid)} but the ride costs ${inr(expected)}.` };
-            return { status: "paid", amount: paid };
+            if (orderProduct !== b.product) return { status: "unverified", amount: paid, credits, ref, note: `This payment was for "${orderProduct || "unknown"}", not ${b.product}.` };
+            const expected = (priceOf(b.product, await getRule(order?.notes?.coupon))?.inr ?? Infinity) - credits;
+            if (paid + 0.5 < expected) return { status: "unverified", amount: paid, credits, ref, note: `Paid ${inr(paid)} but the ride costs ${inr(expected)}.` };
+            return { status: "paid", amount: paid, credits, ref };
         }
         if (b.paymentMode === "online_international") {
+            const ref = `paypal:${b.paymentRef}`;
+            const held = await refInfo(ref);
+            const price = priceOf(b.product, await getRule(held.coupon ?? b.coupon));
+            const listed = (price?.inr ?? list) - held.creditsInr;
             const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString("base64");
             const tok = await fetch(`${paypalBase}/v1/oauth2/token`, {
                 method: "POST",
@@ -130,18 +142,18 @@ async function verifyPayment(b: Booking): Promise<Verified> {
             const order = await fetch(`${paypalBase}/v2/checkout/orders/${encodeURIComponent(b.paymentRef)}`, {
                 headers: { Authorization: `Bearer ${tok.access_token}` },
             }).then((r) => r.json());
-            if (order?.status !== "COMPLETED") return { status: "unverified", amount: listed, note: `PayPal order status is "${order?.status}".` };
+            if (order?.status !== "COMPLETED") return { status: "unverified", amount: listed, credits: held.creditsInr, ref, note: `PayPal order status is "${order?.status}".` };
             const unit = order.purchase_units?.[0];
-            if (unit?.custom_id !== b.product) return { status: "unverified", amount: listed, note: `This PayPal payment was for "${unit?.custom_id || "unknown"}", not ${b.product}.` };
+            if (unit?.custom_id !== b.product) return { status: "unverified", amount: listed, credits: held.creditsInr, ref, note: `This PayPal payment was for "${unit?.custom_id || "unknown"}", not ${b.product}.` };
             const paidUsd = Number(unit?.amount?.value);
-            const expectedUsd = getAmountUSD(b.product, b.coupon) ?? Infinity;
-            if (!(paidUsd + 0.01 >= expectedUsd)) return { status: "unverified", amount: listed, note: `Paid $${paidUsd} but the ride costs $${expectedUsd}.` };
-            return { status: "paid", amount: listed };
+            const expectedUsd = Math.max(0.01, (price?.usd ?? Infinity) - held.creditsInr / INR_PER_USD);
+            if (!(paidUsd + 0.02 >= expectedUsd)) return { status: "unverified", amount: listed, credits: held.creditsInr, ref, note: `Paid $${paidUsd} but the ride costs $${expectedUsd.toFixed(2)}.` };
+            return { status: "paid", amount: listed, credits: held.creditsInr, ref };
         }
     } catch (err) {
         console.error("Payment verification error:", err);
     }
-    return { status: "unverified", amount: listed, note: "Payment could not be confirmed with the provider." };
+    return { status: "unverified", amount: list, credits: 0, ref: "", note: "Payment could not be confirmed with the provider." };
 }
 
 // One email to the owner for every booking, with everything needed to run the ride.
@@ -154,7 +166,8 @@ async function notifyOwner(subject: string, b: Booking, rideId: string, v: Verif
         ["Ride", b.rideName], ["Date", b.rideDate], ["Time", b.timeOfDay], ["From", b.ghat],
         ...(b.custom ? [["Trip", b.custom.tripType === "single" ? `One way to ${b.custom.destinationGhat}` : "Round trip"]] : []),
         ["Guests", b.guests], ["Name", b.name], ["Phone", b.phone], ["Email", b.email || "—"],
-        ["Payment", `${v.status === "paid" ? "PAID online" : v.status === "pending" ? "Pay at the ghat" : "UNVERIFIED"} · ${inr(v.amount)}`],
+        ["Payment", `${v.status === "paid" ? (b.paymentMode === "credits" ? "PAID in KashiGo coins" : "PAID online") : v.status === "pending" ? "Pay at the ghat" : "UNVERIFIED"} · ${inr(v.amount)}`],
+        ...(v.credits ? [["Coins used", inr(v.credits)]] : []),
         ["Payment mode", b.paymentMode], ["Payment ref", b.paymentRef || "—"], ["Code", b.coupon || "—"],
     ];
     try {
@@ -169,7 +182,7 @@ async function notifyOwner(subject: string, b: Booking, rideId: string, v: Verif
     }
 }
 
-async function saveOrder(b: Booking, rideId: string, v: Verified, notes: string[]) {
+async function saveOrder(b: Booking, rideId: string, v: Verified, notes: string[], customerPhone: string | null) {
     const base = {
         ride_id: rideId,
         ghat: b.ghat,
@@ -185,9 +198,12 @@ async function saveOrder(b: Booking, rideId: string, v: Verified, notes: string[
         payment_status: v.status,
         razorpay_payment_id: b.paymentRef || null,
     };
-    const full = { ...base, ride_date: b.rideDate, custom_details: b.custom, coupon: b.coupon || null, check_notes: notes.join(" | ") || null };
+    const full = {
+        ...base, ride_date: b.rideDate, custom_details: b.custom, coupon: b.coupon || null, check_notes: notes.join(" | ") || null,
+        customer_phone: customerPhone, credits_used: v.credits,
+    };
     let { error } = await supabase.from("orders").insert([full]);
-    // Columns from supabase/orders_booking_fields.sql not added yet: save what the table has,
+    // Columns from supabase/orders_booking_fields.sql / accounts_credits_admin.sql not added yet: save what the table has,
     // with the date folded into the time so it is never lost.
     if (error && (error.code === "PGRST204" || error.code === "42703")) {
         ({ error } = await supabase.from("orders").insert([{ ...base, time_of_day: `${b.rideDate} · ${b.timeOfDay}` }]));
@@ -215,11 +231,29 @@ export async function POST(req: Request) {
     }
 
     const rideId = `KASHI-${crypto.randomInt(0, 1_000_000).toString().padStart(6, "0")}`;
-    const verified = await verifyPayment(b);
+    // The profile is keyed by the logged-in phone when there is one, else the passenger phone typed in.
+    const session = await getSession(req);
+    const customerPhone = session?.phone ?? normalizePhone(b.phone);
+
+    let verified: Verified;
+    if (b.paymentMode === "credits") {
+        // Paid entirely in KashiGo coins: reserve them now (nothing has been charged yet, so problems can still refuse).
+        const prep = await prepareCheckout(req, { product: b.product, coupon: b.coupon, provider: "credits" });
+        if (!prep.ok) return NextResponse.json({ success: false, message: prep.message }, { status: prep.status });
+        const ref = `credits:${rideId}`;
+        const problem = await prep.commit(ref);
+        if (problem) return NextResponse.json({ success: false, message: problem }, { status: 409 });
+        b.paymentRef = ref;
+        verified = { status: "paid", amount: 0, credits: prep.creditsInr, ref };
+    } else {
+        verified = await verifyPayment(b);
+    }
+    if (verified.status === "paid" && verified.ref) await finalize(verified.ref);
+    await saveProfile(customerPhone, b.name, b.email);
     const notes = [...problems, ...(verified.note ? [verified.note] : [])];
 
     try {
-        const dbError = await saveOrder(b, rideId, verified, notes);
+        const dbError = await saveOrder(b, rideId, verified, notes, customerPhone);
         if (dbError?.code === "23505") {
             // This payment is already attached to a booking (double submit or a reused payment).
             await notifyOwner(`⚠️ Payment ${b.paymentRef} submitted again — check bookings`, b, rideId, verified, ["This payment reference is already on another booking. No new booking was saved."]);
@@ -237,7 +271,7 @@ export async function POST(req: Request) {
             try {
                 const emailHtml = await getBookingEmailTemplate({
                     ghat: b.ghat, timeOfDay: b.timeOfDay, boatType: "Private", rideDate: b.rideDate, paymentMode: b.paymentMode,
-                    amount: verified.amount, passengerDetails: { name: b.name, passengersCount: b.guests },
+                    amount: verified.amount + verified.credits, passengerDetails: { name: b.name, passengersCount: b.guests },
                 }, rideId);
                 await createTransporter().sendMail({
                     from: `"KashiGo Bookings" <${process.env.SMTP_FROM_EMAIL}>`,
