@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { getAllPosts } from "@/lib/blog";
+import { RIDE_PAGES } from "@/lib/ridePages";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://kashigo.in";
@@ -72,6 +73,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.7,
     },
+    ...RIDE_PAGES.map((p) => ({
+      url: `${baseUrl}/boat-rides/${p.slug}`,
+      lastModified: new Date("2026-10-17"),
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+    })),
     ...blogPosts,
   ];
 }

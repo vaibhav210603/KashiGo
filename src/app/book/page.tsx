@@ -5,6 +5,8 @@ import FAQSection from "@/components/sections/FAQSection";
 import { JsonLd } from "@/components/JsonLd";
 import { BOAT_RIDES, BOAT_PRICE_RANGE, CUSTOM_RIDE, boatPrice, inr, BOOKING_PHONE } from "@/lib/boatRides";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
+import Link from "next/link";
+import { ridePagePath } from "@/lib/ridePages";
 
 export const metadata: Metadata = {
   title: { absolute: "Book Varanasi Boat Ride — Sunrise, Ganga Aarti & Sunset | KashiGo" },
@@ -96,7 +98,7 @@ export default function BookPage() {
             "price": String(boatPrice(r.id)),
             "priceCurrency": "INR",
             "availability": "https://schema.org/InStock",
-            "url": "https://kashigo.in/book"
+            "url": `https://kashigo.in${ridePagePath(r.id)}`
           }))
         }
       }} />
@@ -125,13 +127,13 @@ export default function BookPage() {
             <tbody>
               {BOAT_RIDES.map((r) => (
                 <tr key={r.id} className="border-t border-slate-100 align-top">
-                  <td className="p-3"><p className="font-semibold text-slate-900">{r.name}</p><p className="text-slate-500">{r.summary}</p></td>
+                  <td className="p-3"><Link href={ridePagePath(r.id)} className="font-semibold text-slate-900 underline decoration-orange-300 underline-offset-2 hover:text-orange-600">{r.name}</Link><p className="text-slate-500">{r.summary}</p></td>
                   <td className="p-3 whitespace-nowrap text-slate-700">{r.time}</td>
                   <td className="p-3 whitespace-nowrap font-bold text-slate-900">{inr(boatPrice(r.id))}</td>
                 </tr>
               ))}
               <tr className="border-t border-slate-100 align-top">
-                <td className="p-3"><p className="font-semibold text-slate-900">{CUSTOM_RIDE.name}</p><p className="text-slate-500">{CUSTOM_RIDE.summary}</p></td>
+                <td className="p-3"><Link href={ridePagePath("custom")} className="font-semibold text-slate-900 underline decoration-orange-300 underline-offset-2 hover:text-orange-600">{CUSTOM_RIDE.name}</Link><p className="text-slate-500">{CUSTOM_RIDE.summary}</p></td>
                 <td className="p-3 text-slate-700">Any time</td>
                 <td className="p-3 whitespace-nowrap font-bold text-slate-900">{inr(BOAT_PRICES_INR.custom)}</td>
               </tr>

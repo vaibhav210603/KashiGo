@@ -1,4 +1,5 @@
 import { BOAT_RIDES, BOAT_PRICE_RANGE, CUSTOM_RIDE, boatPrice, inr, BOOKING_PHONE } from "@/lib/boatRides";
+import { ridePagePath } from "@/lib/ridePages";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import { SHOP_PRODUCTS } from "@/lib/products";
 import { getAllPosts } from "@/lib/blog";
@@ -7,7 +8,7 @@ import { getAllPosts } from "@/lib/blog";
 export const dynamic = "force-static";
 
 export function GET() {
-    const rides = BOAT_RIDES.map((r) => `- ${r.name} (${r.time}): ${inr(boatPrice(r.id))} per private boat — ${r.summary}`).join("\n");
+    const rides = BOAT_RIDES.map((r) => `- ${r.name} (${r.time}): ${inr(boatPrice(r.id))} per private boat — ${r.summary} Details: https://kashigo.in${ridePagePath(r.id)}`).join("\n");
     const products = SHOP_PRODUCTS.map((p) => `- [${p.name}](https://kashigo.in/shop#${p.id}): $${p.usd} / ₹${p.inr} — ${p.format}`).join("\n");
     const posts = getAllPosts().map((p) => `- [${p.title}](https://kashigo.in/blog/${p.slug}): ${p.description}`).join("\n");
     const body = `# KashiGo

@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
         destination: "https://kashigo.in/:path*",
         permanent: true,
       },
+      { source: "/boat-rides", destination: "/book", permanent: true },
     ];
   },
 
