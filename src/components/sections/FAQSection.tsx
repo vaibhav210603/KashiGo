@@ -9,7 +9,7 @@ import { inr } from "@/lib/boatRides";
 const faqs = [
   {
     q: "How much does a boat ride in Varanasi cost?",
-    a: `KashiGo's fixed prices for a private boat are ${inr(BOAT_PRICES_INR.p1)} for the sunrise ride, ${inr(BOAT_PRICES_INR.p5)} for the evening Ganga Aarti ride and ${inr(BOAT_PRICES_INR.p6)} for sunset — booked online, no ghat-side haggling. On the ghat steps a private boat usually goes for ₹800–₹2,000 after bargaining (first quotes to foreigners are often far higher), and shared boats are ₹100–₹400 per person. Pay a genuine price for comfort: a vetted boatman, life jackets and the price agreed before you board.`,
+    a: `KashiGo's fixed prices for a private boat are ${inr(BOAT_PRICES_INR.p1)} for the sunrise ride, ${inr(BOAT_PRICES_INR.p5)} for the evening Ganga Aarti ride and ${inr(BOAT_PRICES_INR.p6)} for sunset — booked online, no ghat-side haggling. On the ghat steps a private boat usually goes for ₹800–₹2,000 after bargaining (first quotes to foreigners are often far higher), and shared boats are ₹100–₹400 per person. Pay a genuine price for comfort: a vetted boatman and the price agreed before you board.`,
   },
   {
     q: "How do I book a Varanasi boat ride online?",
@@ -29,7 +29,7 @@ const faqs = [
   },
   {
     q: "What is included in a KashiGo boat ride?",
-    a: "A private hand-rowed wooden boat, a verified local boatman who has been rowing the Ganges for years, life jackets (rare in Varanasi), and a fixed pre-agreed price with no surprise charges at the end.",
+    a: "A private hand-rowed wooden boat, a verified local boatman who has been rowing the Ganges for years, and a fixed pre-agreed price with no surprise charges at the end.",
   },
 ];
 

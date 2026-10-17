@@ -10,7 +10,7 @@ import { SplitWords, Magnetic } from "@/components/motion/primitives";
 import Embers from "@/components/motion/Embers";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
-const TRUST = ["Fixed price", "Life jackets", "Pay at ghat or online", "Run by a Varanasi local"];
+const TRUST = ["Fixed price", "Private boat", "Pay at ghat or online", "Run by a Varanasi local"];
 
 // The next ride leaving today in Varanasi time (or tomorrow's first). Client-only to avoid hydration drift.
 function useNextDeparture() {
@@ -88,7 +88,7 @@ export default function Hero() {
                 <div className="mt-8 grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
                     <motion.div initial={reduce ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: EASE, delay: 1.1 }}>
                         <p className="max-w-xl text-lg md:text-xl leading-relaxed text-white/75">
-                            <strong className="font-semibold text-white">Pay a genuine price for comfort</strong> — a private boat, a trusted local boatman and life jackets, at one fixed price from <span className="text-marigold font-semibold">{money(BOAT_PRICE_RANGE.low, currency)}</span>.
+                            <strong className="font-semibold text-white">Pay a genuine price for comfort</strong> — a private boat and a trusted local boatman, at one fixed price from <span className="text-marigold font-semibold">{money(BOAT_PRICE_RANGE.low, currency)}</span>.
                         </p>
                         <div className="mt-8 flex flex-col sm:flex-row gap-3">
                             <Magnetic>

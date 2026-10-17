@@ -14,7 +14,7 @@ import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 export const metadata: Metadata = {
   title: "KashiGo — Book Varanasi Boat Rides Online | Sunrise, Ganga Aarti & Sunset",
   description:
-    "Book a private Varanasi boat ride online — sunrise, Ganga Aarti and sunset on the Ganges with trusted local boatmen and life jackets. Fixed prices from ₹1,190 per boat, no haggling. Plus scam-free guides by a local.",
+    "Book a private Varanasi boat ride online — sunrise, Ganga Aarti and sunset on the Ganges with trusted local boatmen. Fixed prices from ₹1,190 per boat, no haggling. Plus scam-free guides by a local.",
   keywords: [
     "Varanasi boat ride booking",
     "Ganga Aarti boat ride Varanasi",
@@ -105,7 +105,7 @@ export default function Home() {
             "name": "How much does a boat ride in Varanasi cost?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": `KashiGo's fixed online prices for a private boat in Varanasi are ${inr(BOAT_PRICES_INR.p1)} for the sunrise ride, ${inr(BOAT_PRICES_INR.p5)} for the evening Ganga Aarti ride at Dashashwamedh and ${inr(BOAT_PRICES_INR.p6)} for sunset (all rides ${inr(BOAT_PRICE_RANGE.low)}–${inr(BOAT_PRICE_RANGE.high)}), with a vetted boatman and life jackets. Bargained on the ghat steps, a private boat usually costs ₹800–₹2,000, and shared boats are ₹100–₹400 per person. Book at kashigo.in/book.`
+              "text": `KashiGo's fixed online prices for a private boat in Varanasi are ${inr(BOAT_PRICES_INR.p1)} for the sunrise ride, ${inr(BOAT_PRICES_INR.p5)} for the evening Ganga Aarti ride at Dashashwamedh and ${inr(BOAT_PRICES_INR.p6)} for sunset (all rides ${inr(BOAT_PRICE_RANGE.low)}–${inr(BOAT_PRICE_RANGE.high)}), with a vetted local boatman. Bargained on the ghat steps, a private boat usually costs ₹800–₹2,000, and shared boats are ₹100–₹400 per person. Book at kashigo.in/book.`
             }
           },
           {

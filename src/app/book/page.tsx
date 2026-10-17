@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import BookingFlow from "@/components/booking/BookingFlow";
-import { LifeBuoy, BadgeIndianRupee, Phone } from "lucide-react";
+import { Sailboat, BadgeIndianRupee, Phone } from "lucide-react";
 import FAQSection from "@/components/sections/FAQSection";
 import { JsonLd } from "@/components/JsonLd";
 import { BOAT_RIDES, BOAT_PRICE_RANGE, CUSTOM_RIDE, boatPrice, inr, BOOKING_PHONE } from "@/lib/boatRides";
@@ -114,7 +114,7 @@ export default function BookPage() {
       >
         <ul className="flex flex-wrap gap-2 text-xs font-semibold">
           <li className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-white/85 backdrop-blur-md"><BadgeIndianRupee size={14} className="text-marigold" />Fixed price</li>
-          <li className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-white/85 backdrop-blur-md"><LifeBuoy size={14} className="text-ganga" />Life jackets</li>
+          <li className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-white/85 backdrop-blur-md"><Sailboat size={14} className="text-ganga" />Private boat</li>
           <li><a href={`tel:${BOOKING_PHONE.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-white/85 backdrop-blur-md transition-colors hover:border-marigold hover:text-marigold"><Phone size={14} className="text-marigold" />{BOOKING_PHONE}</a></li>
         </ul>
       </PageHero>

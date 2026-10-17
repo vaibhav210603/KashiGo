@@ -31,7 +31,7 @@ export const RIDE_PAGES: RidePage[] = [
         rideId: "p1",
         title: "Sunrise Boat Ride in Varanasi — Book a Private Boat Online",
         description:
-            "Book a private sunrise boat ride on the Ganges in Varanasi. Morning rituals along the main ghats, Siberian gulls in winter, fixed price per boat, life jackets, local boatman.",
+            "Book a private sunrise boat ride on the Ganges in Varanasi. Morning rituals along the main ghats, Siberian gulls in winter, fixed price per boat, local boatman.",
         h1: "Sunrise Boat Ride in Varanasi",
         keywords: [
             "sunrise boat ride varanasi",
@@ -79,7 +79,7 @@ export const RIDE_PAGES: RidePage[] = [
         faqs: [
             {
                 q: "How much is a sunrise boat ride in Varanasi?",
-                a: "KashiGo's sunrise ride is {price} for the whole private boat, not per person. That's a fixed price with life jackets and a local boatman — no bargaining on the ghat.",
+                a: "KashiGo's sunrise ride is {price} for the whole private boat, not per person. That's a fixed price with a local boatman — no bargaining on the ghat.",
             },
             {
                 q: "What time does the sunrise boat ride start?",
@@ -155,7 +155,7 @@ export const RIDE_PAGES: RidePage[] = [
         faqs: [
             {
                 q: "How much does a Ganga Aarti boat ride cost?",
-                a: "KashiGo's evening Aarti ride at Dashashwamedh is {price} for the whole private boat, not per person — a fixed price booked online, with life jackets and a local boatman.",
+                a: "KashiGo's evening Aarti ride at Dashashwamedh is {price} for the whole private boat, not per person — a fixed price booked online, with a local boatman.",
             },
             {
                 q: "What time should I be at the ghat?",
@@ -181,7 +181,7 @@ export const RIDE_PAGES: RidePage[] = [
         rideId: "p6",
         title: "Sunset Boat Ride Varanasi — Golden Hour on the Ganges",
         description:
-            "Book a private sunset boat ride on the Ganges in Varanasi. Golden hour past the old ghats and palaces, fixed price per boat, life jackets, trusted local boatman.",
+            "Book a private sunset boat ride on the Ganges in Varanasi. Golden hour past the old ghats and palaces, fixed price per boat, trusted local boatman.",
         h1: "Sunset Boat Ride in Varanasi",
         keywords: [
             "sunset boat ride varanasi",
@@ -220,7 +220,7 @@ export const RIDE_PAGES: RidePage[] = [
         faqs: [
             {
                 q: "How much is a sunset boat ride in Varanasi?",
-                a: "KashiGo's sunset ride is {price} for the whole private boat, not per person — a fixed price with life jackets and a local boatman.",
+                a: "KashiGo's sunset ride is {price} for the whole private boat, not per person — a fixed price with a local boatman.",
             },
             {
                 q: "What time is the sunset boat ride?",
@@ -294,7 +294,7 @@ export const RIDE_PAGES: RidePage[] = [
         rideId: "p3",
         title: "Varanasi Ghat Boat Tour — Daytime Ride Past the Major Ghats",
         description:
-            "A daytime private boat ride past Varanasi's major ghats with the stories behind each one. Our lowest-priced ride — fixed price per boat, life jackets, local boatman.",
+            "A daytime private boat ride past Varanasi's major ghats with the stories behind each one. Our lowest-priced ride — fixed price per boat, local boatman.",
         h1: "Day Ghat Boat Tour in Varanasi",
         keywords: [
             "varanasi ghat tour by boat",
@@ -398,7 +398,7 @@ export const RIDE_PAGES: RidePage[] = [
         rideId: "custom",
         title: "Private Boat Hire in Varanasi — Your Route, Your Time",
         description:
-            "Hire a private boat in Varanasi for your own route and time — any start ghat, any destination. Fixed online price, life jackets, local boatman. Ideal for photographers and groups.",
+            "Hire a private boat in Varanasi for your own route and time — any start ghat, any destination. Fixed online price, local boatman. Ideal for photographers and groups.",
         h1: "Private Boat Hire in Varanasi",
         keywords: [
             "private boat varanasi",

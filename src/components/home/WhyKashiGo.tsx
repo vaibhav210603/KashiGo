@@ -15,13 +15,13 @@ export default function WhyKashiGo() {
     const ghat = [
         `First quote to foreigners: ${currency === "inr" ? "₹3,000–5,000" : `$${Math.round(3000 / INR_PER_USD)}–${Math.round(5000 / INR_PER_USD)}`}`,
         "Price \"changes\" halfway down the river",
-        "Life jackets are rare",
+        "You're handed to whichever boatman a tout picks",
         "Middlemen take a 30–50% cut",
     ];
     const us = [
         `Evening Aarti boat: ${money(BOAT_PRICES_INR.p5, currency)} — fixed, shown up front`,
         "Price agreed before you step in",
-        "Life jackets on board",
+        "A vetted local boatman, chosen for you",
         "Booked directly with a local",
     ];
     return (

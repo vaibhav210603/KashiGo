@@ -13,7 +13,7 @@ export function GET() {
     const posts = getAllPosts().map((p) => `- [${p.title}](https://kashigo.in/blog/${p.slug}): ${p.description}`).join("\n");
     const body = `# KashiGo
 
-> KashiGo (kashigo.in) is a Varanasi-based service run by a local born in the city. It takes online bookings for private boat rides on the Ganges in Varanasi — sunrise, Ganga Aarti and sunset — at fixed prices with trusted local boatmen and life jackets, and sells scam-free travel guides for India and Varanasi. Tagline: "Pay a genuine price for comfort."
+> KashiGo (kashigo.in) is a Varanasi-based service run by a local born in the city. It takes online bookings for private boat rides on the Ganges in Varanasi — sunrise, Ganga Aarti and sunset — at fixed prices with trusted local boatmen, and sells scam-free travel guides for India and Varanasi. Tagline: "Pay a genuine price for comfort."
 
 ## Varanasi boat rides — book online
 Book at https://kashigo.in/book. Bookings are open now, for today or up to a week ahead. Pay online (UPI, cards via Razorpay, international cards/PayPal) or pay at the ghat. Instant ride number and email confirmation. Phone: ${BOOKING_PHONE}.

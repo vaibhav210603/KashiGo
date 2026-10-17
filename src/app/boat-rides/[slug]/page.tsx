@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, BadgeIndianRupee, Clock, LifeBuoy, MapPin, Phone, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeIndianRupee, Clock, MapPin, Phone, Plus, Sailboat, Sparkles } from "lucide-react";
 import PageHero, { Crumbs } from "@/components/layout/PageHero";
 import { FIRE_BTN, GHOST_BTN_DARK, H2_LIGHT, LINK_LIGHT, PAPER_CARD, splitTitle } from "@/components/ui/styles";
 import { JsonLd } from "@/components/JsonLd";
@@ -144,7 +144,7 @@ export default async function RidePageView({ params }: PageProps) {
             <div><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><BadgeIndianRupee size={13} className="text-marigold" />Price</dt><dd className="mt-1.5 font-display text-3xl text-marigold">{inr(ride.price)}</dd><dd className="text-xs text-white/50">per boat, not per person</dd></div>
             <div><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><Clock size={13} className="text-marigold" />Starts</dt><dd className="mt-1.5 font-display text-xl">{ride.time}</dd><dd className="text-xs text-white/50">{page.duration}</dd></div>
             <div className="col-span-2 sm:col-span-1 min-w-0"><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><MapPin size={13} className="text-marigold" />From</dt><dd className="mt-1.5 font-display text-lg leading-snug [overflow-wrap:anywhere]">{page.startPoint}</dd></div>
-            <div className="col-span-2 sm:col-span-1 min-w-0"><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><LifeBuoy size={13} className="text-ganga" />Included</dt><dd className="mt-1.5 font-display text-lg leading-snug">Life jackets, local boatman</dd></div>
+            <div className="col-span-2 sm:col-span-1 min-w-0"><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><Sailboat size={13} className="text-ganga" />Included</dt><dd className="mt-1.5 font-display text-lg leading-snug">Private boat, local boatman</dd></div>
           </dl>
         </section>
 
