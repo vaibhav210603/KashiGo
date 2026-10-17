@@ -8,6 +8,7 @@ import { Check, Minus, Plus, Phone, Headphones, Wallet, Smartphone, Globe, Tag }
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, BOOKING_WINDOW_DAYS } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
+import { money, useCurrency } from "@/lib/currency";
 
 type RideChoice = BoatRideId | "custom" | "";
 type PayMode = "cod" | "online_domestic" | "online_international";
@@ -63,7 +64,15 @@ export default function BookingFlow() {
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
-    const [pay, setPay] = useState<PayMode>("online_international");
+    const [pay, setPay] = useState<PayMode>("online_domestic"); // matches the server-rendered ₹; switches with the currency
+    const [currency] = useCurrency();
+    // Picking $ or ₹ in the header also picks the matching way to pay (still changeable below).
+    const [payCurrency, setPayCurrency] = useState(currency);
+    if (currency !== payCurrency) {
+        setPayCurrency(currency);
+        if (currency === "usd" && pay === "online_domestic") setPay("online_international");
+        if (currency === "inr" && pay === "online_international") setPay("online_domestic");
+    }
     const [busy, setBusy] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
     const [notice, setNotice] = useState("");
@@ -73,14 +82,11 @@ export default function BookingFlow() {
     const [done, setDone] = useState<{ rideId: string; paid: boolean } | null>(null);
     const topRef = useRef<HTMLDivElement>(null);
 
-    // Arrive with a ride already chosen from the homepage (/book?ride=p5); Indian visitors default to UPI.
+    // Arrive with a ride already chosen from the homepage (/book?ride=p5). The way to pay follows the
+    // visitor's currency (₹ → UPI, $ → PayPal), which defaults by timezone — see useCurrency.
     useEffect(() => {
         const q = new URLSearchParams(window.location.search).get("ride");
         if (q === "custom" || RIDES_BY_POPULARITY.some((r) => r.id === q)) setRide(q as RideChoice);
-        try {
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            if (tz === "Asia/Calcutta" || tz === "Asia/Kolkata") setPay("online_domestic");
-        } catch { }
     }, []);
 
     const clock = useSyncExternalStore(subscribeClock, readClock, serverClock);
@@ -109,7 +115,7 @@ export default function BookingFlow() {
         if (!product) { setCodeMsg("Choose a ride first."); return; }
         try {
             const data = await fetch("/api/coupon", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product, code: c }) }).then((r) => r.json());
-            if (data.valid && typeof data.inr === "number") { setApplied({ product, inr: data.inr }); setCodeMsg(`Code applied — you pay ${inr(data.inr)}`); return; }
+            if (data.valid && typeof data.inr === "number") { setApplied({ product, inr: data.inr }); setCodeMsg(`Code applied — you pay ${money(data.inr, currency)}`); return; }
             if (data.message) { setApplied(null); setCodeMsg(data.message); return; }
         } catch { }
         setApplied(null); setCodeMsg("That code isn't valid.");
@@ -241,7 +247,7 @@ export default function BookingFlow() {
                         ["When", `${dateLabel?.top}, ${dateLabel?.bottom} · ${ride === "custom" ? customTime : selected?.time}`],
                         ["From", ghat],
                         ["Guests", String(guests)],
-                        ["Total", `${inr(price)} · ${done.paid ? "paid" : "pay at the ghat"}`],
+                        ["Total", `${money(price, currency)}${currency === "usd" ? ` (${inr(price)})` : ""} · ${done.paid ? "paid" : "pay at the ghat"}`],
                     ].map(([k, v]) => (
                         <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-slate-500">{k}</dt><dd className="font-semibold text-slate-900 text-right">{v}</dd></div>
                     ))}
@@ -275,7 +281,7 @@ export default function BookingFlow() {
                                     {on && <span className="absolute top-2 right-2 w-7 h-7 rounded-full bg-orange-500 text-white inline-flex items-center justify-center"><Check size={16} /></span>}
                                     <div className="absolute bottom-0 inset-x-0 p-3 text-white">
                                         <p className="font-semibold leading-tight">{r.short}</p>
-                                        <p className="text-xs text-white/85">{r.time} · <b>{inr(r.price)}</b></p>
+                                        <p className="text-xs text-white/85">{r.time} · <b>{money(r.price, currency)}</b></p>
                                     </div>
                                 </div>
                             </button>
@@ -347,7 +353,7 @@ export default function BookingFlow() {
                 <div className="grid gap-2">
                     {([
                         ["online_domestic", Smartphone, "UPI / Indian card", "Pay now in ₹ · Razorpay"],
-                        ["online_international", Globe, "International card / PayPal", "Pay now · secure PayPal checkout"],
+                        ["online_international", Globe, "International card / PayPal", "Pay now in $ · secure PayPal checkout"],
                         ["cod", Wallet, "Pay at the ghat", "Cash or UPI to your boatman"],
                     ] as const).map(([mode, Icon, title, sub]) => (
                         <button key={mode} type="button" onClick={() => setPay(mode)} aria-pressed={pay === mode}
@@ -411,9 +417,15 @@ export default function BookingFlow() {
                     <div className="flex-1 min-w-0">
                         <p className="text-xs text-slate-500 truncate">{rideLabel ? `${rideLabel} · ${dateLabel?.top}` : "Choose a ride"}</p>
                         <p className="font-heading font-bold text-xl text-slate-900">
-                            {coupon && <s className="mr-2 text-sm font-medium text-slate-400">{inr(listPrice)}</s>}
-                            {price ? inr(price) : "—"}
+                            {coupon && <s className="mr-2 text-sm font-medium text-slate-400">{money(listPrice, currency)}</s>}
+                            {price ? money(price, currency) : "—"}
                         </p>
+                        {/* The payment method decides the currency actually charged — say so when it differs from the display. */}
+                        {price > 0 && (pay === "online_international" ? currency === "inr" : currency === "usd") && (
+                            <p className="text-[11px] text-slate-500 truncate">
+                                {pay === "online_international" ? `Charged ${money(price, "usd")} via PayPal` : pay === "cod" ? `Pay ${inr(price)} at the ghat` : `Charged ${inr(price)} via Razorpay`}
+                            </p>
+                        )}
                     </div>
                     <button onClick={confirm} disabled={busy}
                         className="h-12 px-6 sm:px-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg shadow-orange-500/30 disabled:opacity-60">

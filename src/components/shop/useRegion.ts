@@ -1,15 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCurrency } from "@/lib/currency";
 
-// Visitors in India see INR (Razorpay/UPI); everyone else sees USD (PayPal).
+// Visitors in India default to INR (Razorpay/UPI); everyone else to USD (PayPal).
+// Shared with the header's currency switcher, so a choice made anywhere applies everywhere.
 export function useRegion() {
-    const [region, setRegion] = useState<"inr" | "usd">("usd");
-    useEffect(() => {
-        try {
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            if (tz === "Asia/Calcutta" || tz === "Asia/Kolkata") setRegion("inr");
-        } catch { }
-    }, []);
-    return [region, setRegion] as const;
+    return useCurrency();
 }

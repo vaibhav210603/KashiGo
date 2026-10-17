@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import { inr } from "@/lib/boatRides";
@@ -37,31 +37,46 @@ export default function FAQSection() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="py-12 md:py-16 scroll-mt-16">
-      <div className="max-w-3xl mx-auto px-4">
-        <h2 className="font-heading font-bold text-3xl sm:text-4xl text-slate-900">Questions travellers ask</h2>
-        <div className="mt-6 divide-y divide-slate-200 rounded-3xl border border-slate-200/70 bg-white overflow-hidden">
-          {faqs.map((faq, i) => (
-            <div key={faq.q}>
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left min-h-14"
-                aria-expanded={open === i}
-              >
-                <span className="font-semibold text-slate-900 leading-snug">{faq.q}</span>
-                <ChevronDown size={20} className={`shrink-0 text-orange-500 transition-transform ${open === i ? "rotate-180" : ""}`} />
-              </button>
-              {/* Always in the HTML (just hidden) so search engines and AI crawlers can read every answer */}
-              <div hidden={open !== i} className="px-5 pb-5 -mt-1 text-slate-600 leading-relaxed">
-                {faq.a}
-              </div>
-            </div>
-          ))}
+    <section id="faq" className="relative bg-parchment py-20 md:py-28 scroll-mt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="lg:sticky lg:top-32 self-start">
+          <p className="ornament text-[11px] font-semibold uppercase tracking-[0.28em] text-fire">FAQ</p>
+          <h2 className="mt-4 font-display font-light text-5xl sm:text-6xl leading-[0.95] tracking-[-0.03em] text-night">
+            Questions travellers <em className="text-fire-deep pr-1">ask.</em>
+          </h2>
+          <p className="mt-6 text-night/60 max-w-sm">
+            Still unsure? Call <a href="tel:+918175966910" className="font-semibold text-night underline decoration-marigold decoration-2 underline-offset-4 hover:text-fire">+91 81759 66910</a> or{" "}
+            <Link href="/book" className="font-semibold text-night underline decoration-marigold decoration-2 underline-offset-4 hover:text-fire">book your ride</Link>.
+          </p>
         </div>
-        <p className="mt-5 text-slate-600">
-          Still unsure? Call <a href="tel:+918175966910" className="font-semibold text-teal-700">+91 81759 66910</a> or{" "}
-          <Link href="/book" className="font-semibold text-orange-600">book your ride</Link>.
-        </p>
+        <div className="border-t border-night/15">
+          {faqs.map((faq, i) => {
+            const isOpen = open === i;
+            return (
+              <div key={faq.q} className="border-b border-night/15">
+                <button
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className="group w-full flex items-start justify-between gap-6 py-6 text-left"
+                  aria-expanded={isOpen}
+                >
+                  <span className="flex gap-5">
+                    <span className={`font-display italic text-lg pt-0.5 transition-colors ${isOpen ? "text-fire" : "text-night/30"}`}>0{i + 1}</span>
+                    <span className={`font-display text-xl sm:text-2xl leading-snug transition-colors ${isOpen ? "text-night" : "text-night/80 group-hover:text-night"}`}>{faq.q}</span>
+                  </span>
+                  <span className={`relative mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all duration-500 ${isOpen ? "rotate-45 border-transparent bg-night text-marigold" : "border-night/20 text-night group-hover:border-night"}`}>
+                    <Plus size={18} />
+                  </span>
+                </button>
+                {/* Always in the HTML (just collapsed) so search engines and AI crawlers can read every answer */}
+                <div className="accordion" data-open={isOpen} aria-hidden={!isOpen}>
+                  <div>
+                    <p className="pb-7 pl-11 pr-14 text-night/65 leading-relaxed">{faq.a}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

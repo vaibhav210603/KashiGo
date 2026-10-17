@@ -3,6 +3,7 @@ import { JsonLd } from "@/components/JsonLd";
 import Hero from "@/components/home/Hero";
 import RideRail from "@/components/home/RideRail";
 import WhyKashiGo from "@/components/home/WhyKashiGo";
+import GhatMarquee from "@/components/home/GhatMarquee";
 import HowItWorks from "@/components/home/HowItWorks";
 import ShopShelf from "@/components/home/ShopShelf";
 import CheatSheetSignup from "@/components/home/CheatSheetSignup";
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col bg-night">
       <JsonLd data={{
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
@@ -144,6 +145,7 @@ export default function Home() {
       {/* Order = what most visitors came for, then highest value: book a boat → trust → guides */}
       <Hero />
       <RideRail />
+      <GhatMarquee />
       <WhyKashiGo />
       <HowItWorks />
       <ShopShelf />

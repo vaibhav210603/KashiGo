@@ -11,3 +11,6 @@ export const BOAT_PRICES_INR = {
     p6: 1660,  // Sunset Ride
     custom: 3650,
 } as const;
+
+// Fixed conversion used for USD (PayPal) charges and USD price display, so what's shown is what's billed.
+export const INR_PER_USD = 83;

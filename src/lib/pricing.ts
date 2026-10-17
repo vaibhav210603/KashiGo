@@ -1,6 +1,6 @@
 // Server-side price catalog. Payment routes must NEVER trust a client-sent amount —
 // all prices are resolved here from the product id.
-import { BOAT_PRICES_INR } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, INR_PER_USD } from "@/lib/boatPrices";
 
 export type ProductId =
     | "guide"
@@ -73,7 +73,7 @@ const GUIDE_COUPONS: Record<string, number> = {
 const BOAT_COUPON_CODE = "KASHIGO21";
 const BOAT_COUPON_PRICE_INR = 10;
 
-const INR_TO_USD_RATE = 83;
+const INR_TO_USD_RATE = INR_PER_USD;
 
 function isBoatProduct(product: string): boolean {
     return product === "custom-boat" || /^p[1-6]$/.test(product);
