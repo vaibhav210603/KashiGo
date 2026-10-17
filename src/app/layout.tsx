@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Dancing_Script, Playfair_Display, Outfit } from "next/font/google";
+import { Geist, Geist_Mono, Dancing_Script, Playfair_Display, Outfit, Fraunces, Tiro_Devanagari_Hindi } from "next/font/google";
 import Header from "@/components/layout/Header";
 import PromoStrip from "@/components/layout/PromoStrip";
 import Footer from "@/components/layout/Footer";
@@ -7,6 +7,7 @@ import MobileActionBar from "@/components/layout/MobileActionBar";
 import "./globals.css";
 import Script from "next/script";
 import AnalyticsEvents from "@/components/analytics/AnalyticsEvents";
+import SmoothScroll from "@/components/motion/SmoothScroll";
 
 
 const geistSans = Geist({
@@ -35,6 +36,20 @@ const outfit = Outfit({
   variable: "--font-heading",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+});
+
+// Editorial display serif for big headlines; Devanagari for the काशी ornaments.
+const fraunces = Fraunces({
+  variable: "--font-display",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["SOFT", "opsz"],
+});
+
+const deva = Tiro_Devanagari_Hindi({
+  variable: "--font-deva",
+  subsets: ["devanagari"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -143,7 +158,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} ${playfair.variable} ${outfit.variable} antialiased min-h-screen flex flex-col bg-white text-slate-900`}
+        className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} ${playfair.variable} ${outfit.variable} ${fraunces.variable} ${deva.variable} antialiased min-h-screen flex flex-col bg-white text-slate-900`}
       >
         <PromoStrip />
         <Header />
@@ -154,6 +169,7 @@ export default function RootLayout({
         <Footer />
         <MobileActionBar />
         <AnalyticsEvents />
+        <SmoothScroll />
       </body>
     </html>
   );
