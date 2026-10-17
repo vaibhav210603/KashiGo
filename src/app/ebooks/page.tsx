@@ -35,7 +35,7 @@ const faqs = [
 
 export default function EbooksPage() {
   return (
-    <main className="min-h-screen bg-white flex flex-col font-sans overflow-hidden">
+    <main className="min-h-screen bg-parchment flex flex-col font-sans overflow-hidden">
       <JsonLd data={productListSchema(["india-scam-proof", "kashi-unveiled", "complete-bundle"], "https://kashigo.in/ebooks")} />
       <JsonLd data={{
         "@context": "https://schema.org",
@@ -60,6 +60,7 @@ export default function EbooksPage() {
         }}
         video={{ src: "/ebook_video_optimized.mp4", poster: "/og-guide.jpg", heading: "A look inside" }}
         faqs={faqs}
+        deva="पुस्तक"
         otherPage={{ href: "/audiobooks", label: "Prefer to listen? See the audiobooks" }}
       />
     </main>

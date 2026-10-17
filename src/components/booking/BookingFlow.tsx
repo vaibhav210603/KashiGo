@@ -8,6 +8,7 @@ import { Check, Minus, Plus, Phone, Headphones, Wallet, Smartphone, Globe, Tag }
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, BOOKING_WINDOW_DAYS } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
+import { FIRE_BTN } from "@/components/ui/styles";
 
 type RideChoice = BoatRideId | "custom" | "";
 type PayMode = "cod" | "online_domestic" | "online_international";
@@ -36,21 +37,21 @@ const slotFor = (time: string) => {
 
 function Section({ id, n, title, error, children }: { id: string; n: number; title: string; error?: string; children: React.ReactNode }) {
     return (
-        <section id={id} className="scroll-mt-24 rounded-3xl bg-white border border-slate-200/70 p-4 sm:p-6">
-            <h2 className="flex items-center gap-3 font-heading font-semibold text-lg text-slate-900">
-                <span className="w-7 h-7 shrink-0 rounded-full bg-orange-100 text-orange-600 text-sm font-bold inline-flex items-center justify-center">{n}</span>
+        <section id={id} className="scroll-mt-28 rounded-[1.75rem] border border-night/10 bg-[#fffaf0] p-4 sm:p-7 shadow-[0_20px_50px_-35px_rgba(60,30,0,0.45)]">
+            <h2 className="flex items-baseline gap-3 font-display text-2xl tracking-tight text-night">
+                <span className="font-display italic text-lg text-fire">0{n}</span>
                 {title}
             </h2>
-            <div className="mt-4">{children}</div>
-            {error && <p className="mt-3 text-sm font-medium text-rose-600">{error}</p>}
+            <div className="mt-5">{children}</div>
+            {error && <p className="mt-3 text-sm font-medium text-ember">{error}</p>}
         </section>
     );
 }
 
 const chip = (on: boolean) =>
-    `shrink-0 min-h-11 px-4 rounded-full border text-sm font-semibold transition-colors ${on ? "bg-orange-500 border-orange-500 text-white" : "bg-white border-slate-200 text-slate-700 hover:border-orange-300"}`;
+    `shrink-0 min-h-11 px-4 rounded-full border text-sm font-semibold transition-colors ${on ? "bg-night border-night text-marigold" : "bg-white/60 border-night/15 text-night/75 hover:border-night/40"}`;
 
-const input = "w-full h-12 rounded-2xl border border-slate-200 bg-white px-4 text-[16px] text-slate-900 placeholder:text-slate-400 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100";
+const input = "w-full h-12 rounded-2xl border border-night/15 bg-white/70 px-4 text-[16px] text-night placeholder:text-night/35 outline-none transition focus:border-fire focus:bg-white focus:ring-4 focus:ring-marigold/20";
 
 export default function BookingFlow() {
     const [ride, setRide] = useState<RideChoice>("");
@@ -227,15 +228,16 @@ export default function BookingFlow() {
 
     if (done) {
         return (
-            <div ref={topRef} className="rounded-3xl bg-white border border-slate-200/70 p-6 sm:p-10 text-center">
-                <div className="w-20 h-20 mx-auto rounded-full bg-teal-100 text-teal-600 flex items-center justify-center"><Check size={40} /></div>
-                <h2 className="mt-5 font-heading font-bold text-3xl text-slate-900">You&apos;re booked!</h2>
-                <p className="mt-2 text-slate-600">{email ? `Confirmation sent to ${email}.` : "Keep your ride number handy."}</p>
-                <div className="mt-6 mx-auto max-w-sm rounded-2xl border-2 border-dashed border-orange-300 bg-orange-50 p-5">
-                    <p className="text-sm text-slate-500">Your ride number</p>
-                    <p className="font-mono font-bold text-2xl text-orange-600">{done.rideId}</p>
+            <div ref={topRef} className="grain relative overflow-hidden rounded-[2rem] bg-night p-6 sm:p-10 text-center text-white shadow-[0_40px_90px_-30px_rgba(7,11,24,0.7)]">
+                <div aria-hidden className="flicker absolute -right-16 -top-20 h-60 w-60 rounded-full bg-fire/35 blur-[80px]" />
+                <div className="relative w-20 h-20 mx-auto rounded-full bg-ganga/15 text-ganga ring-1 ring-ganga/40 flex items-center justify-center"><Check size={40} /></div>
+                <h2 className="relative mt-5 font-display font-light text-4xl sm:text-5xl tracking-tight">You&apos;re <em className="text-fire pr-1">booked!</em></h2>
+                <p className="relative mt-2 text-white/60">{email ? `Confirmation sent to ${email}.` : "Keep your ride number handy."}</p>
+                <div className="relative mt-6 mx-auto max-w-sm rounded-2xl border border-dashed border-marigold/50 bg-white/5 p-5">
+                    <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/45">Your ride number</p>
+                    <p className="mt-1 font-mono font-bold text-2xl text-marigold">{done.rideId}</p>
                 </div>
-                <dl className="mt-6 mx-auto max-w-sm text-left text-[15px] divide-y divide-slate-100">
+                <dl className="relative mt-6 mx-auto max-w-sm text-left text-[15px] divide-y divide-white/10">
                     {[
                         ["Ride", rideLabel],
                         ["When", `${dateLabel?.top}, ${dateLabel?.bottom} · ${ride === "custom" ? customTime : selected?.time}`],
@@ -243,15 +245,15 @@ export default function BookingFlow() {
                         ["Guests", String(guests)],
                         ["Total", `${inr(price)} · ${done.paid ? "paid" : "pay at the ghat"}`],
                     ].map(([k, v]) => (
-                        <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-slate-500">{k}</dt><dd className="font-semibold text-slate-900 text-right">{v}</dd></div>
+                        <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-white/50">{k}</dt><dd className="font-semibold text-white text-right">{v}</dd></div>
                     ))}
                 </dl>
-                <a href="tel:+918175966910" className="mt-6 inline-flex items-center gap-2 h-12 px-6 rounded-full border border-slate-200 font-semibold text-slate-800">
-                    <Phone size={18} className="text-teal-600" /> Questions? +91 81759 66910
+                <a href="tel:+918175966910" className="relative mt-6 inline-flex items-center gap-2 h-12 px-6 rounded-full border border-white/20 font-semibold text-white transition-colors hover:border-marigold">
+                    <Phone size={18} className="text-marigold" /> Questions? +91 81759 66910
                 </a>
-                <Link href="/audiobooks#walk-the-ghats" className="mt-8 block rounded-2xl bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-100 p-4 text-left">
-                    <p className="flex items-center gap-2 font-semibold text-slate-900"><Headphones size={18} className="text-pink-500" /> Before or after your ride</p>
-                    <p className="text-sm text-slate-600">Walk the Ghats — a local&apos;s 90-minute audio tour from Assi to Manikarnika. →</p>
+                <Link href="/audiobooks#walk-the-ghats" className="relative mt-8 block rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition-colors hover:border-marigold/50">
+                    <p className="flex items-center gap-2 font-semibold text-white"><Headphones size={18} className="text-marigold" /> Before or after your ride</p>
+                    <p className="text-sm text-white/60">Walk the Ghats — a local&apos;s 90-minute audio tour from Assi to Manikarnika. →</p>
                 </Link>
             </div>
         );
@@ -267,15 +269,15 @@ export default function BookingFlow() {
                         return (
                             <button key={r.id} type="button" onClick={() => { setRide(r.id); setErrors((e) => ({ ...e, ride: undefined })); }}
                                 aria-pressed={on}
-                                className={`relative text-left rounded-2xl overflow-hidden border-2 transition-all ${on ? "border-orange-500 ring-4 ring-orange-100" : "border-transparent"}`}>
+                                className={`group relative text-left rounded-2xl overflow-hidden ring-2 transition-all duration-500 ${on ? "ring-fire shadow-[0_16px_40px_-16px_rgba(255,122,26,0.8)]" : "ring-transparent hover:-translate-y-0.5"}`}>
                                 <div className="relative aspect-[4/3]">
-                                    <Image src={r.image} alt="" fill className="object-cover" sizes="(max-width:640px) 45vw, 300px" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                                    {r.badge && <span className="absolute top-2 left-2 rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-bold text-orange-600">{r.badge}</span>}
-                                    {on && <span className="absolute top-2 right-2 w-7 h-7 rounded-full bg-orange-500 text-white inline-flex items-center justify-center"><Check size={16} /></span>}
+                                    <Image src={r.image} alt="" fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width:640px) 45vw, 300px" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-night via-night/30 to-transparent" />
+                                    {r.badge && <span className="absolute top-2 left-2 rounded-full bg-marigold px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-night">{r.badge}</span>}
+                                    {on && <span className="absolute top-2 right-2 w-7 h-7 rounded-full bg-gradient-to-br from-marigold to-ember text-night inline-flex items-center justify-center"><Check size={16} strokeWidth={3} /></span>}
                                     <div className="absolute bottom-0 inset-x-0 p-3 text-white">
-                                        <p className="font-semibold leading-tight">{r.short}</p>
-                                        <p className="text-xs text-white/85">{r.time} · <b>{inr(r.price)}</b></p>
+                                        <p className="font-display text-lg leading-tight">{r.short}</p>
+                                        <p className="text-xs text-white/75">{r.time} · <b className="text-marigold">{inr(r.price)}</b></p>
                                     </div>
                                 </div>
                             </button>
@@ -284,8 +286,8 @@ export default function BookingFlow() {
                 </div>
 
                 {ride === "custom" && (
-                    <div className="mt-4 grid gap-3 rounded-2xl bg-amber-50 p-4">
-                        <label className="text-sm font-semibold text-slate-700">Start time
+                    <div className="mt-4 grid gap-3 rounded-2xl bg-parchment-2/60 p-4">
+                        <label className="text-sm font-semibold text-night/75">Start time
                             <input type="time" value={customTime} onChange={(e) => { setCustomTime(e.target.value); setErrors((x) => ({ ...x, customTime: undefined })); }} className={`${input} mt-1`} />
                         </label>
                         <div className="flex gap-2">
@@ -293,7 +295,7 @@ export default function BookingFlow() {
                             <button type="button" className={chip(tripType === "single")} onClick={() => setTripType("single")}>One way</button>
                         </div>
                         {tripType === "single" && (
-                            <label className="text-sm font-semibold text-slate-700">Drop me at
+                            <label className="text-sm font-semibold text-night/75">Drop me at
                                 <select value={dest} onChange={(e) => { setDest(e.target.value); setErrors((x) => ({ ...x, customDest: undefined })); }} className={`${input} mt-1`}>
                                     <option value="">Choose a ghat</option>
                                     {GHATS.map((g) => <option key={g}>{g}</option>)}
@@ -308,9 +310,9 @@ export default function BookingFlow() {
                 <div className="rail -mx-4 sm:-mx-6 px-4 sm:px-6">
                     {dates.map((d) => (
                         <button key={d.iso} type="button" onClick={() => { setDate(d.iso); setErrors((e) => ({ ...e, date: undefined })); }} aria-pressed={selectedDate === d.iso}
-                            className={`w-[4.6rem] py-2.5 rounded-2xl border text-center transition-colors ${selectedDate === d.iso ? "bg-orange-500 border-orange-500 text-white" : "bg-white border-slate-200 text-slate-700"}`}>
-                            <span className="block text-xs font-semibold">{d.top}</span>
-                            <span className="block font-heading font-bold">{d.bottom}</span>
+                            className={`w-[4.6rem] py-2.5 rounded-2xl border text-center transition-colors ${selectedDate === d.iso ? "bg-night border-night text-white" : "bg-white/60 border-night/15 text-night/75 hover:border-night/40"}`}>
+                            <span className={`block text-xs font-semibold ${selectedDate === d.iso ? "text-marigold" : ""}`}>{d.top}</span>
+                            <span className="block font-display text-lg leading-tight">{d.bottom}</span>
                         </button>
                     ))}
                 </div>
@@ -323,7 +325,7 @@ export default function BookingFlow() {
                             onClick={() => { setGhat(g); setErrors((e) => ({ ...e, ghat: undefined })); }}>{g.replace(" Ghat", "")}</button>
                     ))}
                 </div>
-                <p className="mt-2 text-xs text-slate-500">Not sure? Dashashwamedh is closest to the evening Aarti.</p>
+                <p className="mt-3 text-xs text-night/50">Not sure? Dashashwamedh is closest to the evening Aarti.</p>
             </Section>
 
             <Section id="s-details" n={4} title="Your details" error={errors.name || errors.phone}>
@@ -331,15 +333,15 @@ export default function BookingFlow() {
                     <input value={name} onChange={(e) => { setName(e.target.value); setErrors((x) => ({ ...x, name: undefined })); }} placeholder="Lead passenger name" autoComplete="name" className={input} />
                     <input value={phone} onChange={(e) => { setPhone(e.target.value); setErrors((x) => ({ ...x, phone: undefined })); }} placeholder="Phone number" type="tel" inputMode="tel" autoComplete="tel" className={input} />
                     <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email (for your confirmation)" type="email" autoComplete="email" className={input} />
-                    <div className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 h-14">
-                        <span className="font-medium text-slate-700">Guests</span>
+                    <div className="flex items-center justify-between rounded-2xl border border-night/15 bg-white/40 px-4 h-14">
+                        <span className="font-medium text-night/75">Guests</span>
                         <div className="flex items-center gap-3">
-                            <button type="button" aria-label="Fewer guests" onClick={() => setGuests((g) => Math.max(1, g - 1))} className="w-10 h-10 rounded-full bg-slate-100 inline-flex items-center justify-center"><Minus size={18} /></button>
-                            <span className="w-6 text-center font-bold text-lg">{guests}</span>
-                            <button type="button" aria-label="More guests" onClick={() => setGuests((g) => Math.min(20, g + 1))} className="w-10 h-10 rounded-full bg-slate-100 inline-flex items-center justify-center"><Plus size={18} /></button>
+                            <button type="button" aria-label="Fewer guests" onClick={() => setGuests((g) => Math.max(1, g - 1))} className="w-10 h-10 rounded-full border border-night/15 text-night inline-flex items-center justify-center transition-colors hover:bg-night hover:text-marigold"><Minus size={18} /></button>
+                            <span className="w-6 text-center font-display text-xl text-night">{guests}</span>
+                            <button type="button" aria-label="More guests" onClick={() => setGuests((g) => Math.min(20, g + 1))} className="w-10 h-10 rounded-full border border-night/15 text-night inline-flex items-center justify-center transition-colors hover:bg-night hover:text-marigold"><Plus size={18} /></button>
                         </div>
                     </div>
-                    <p className="text-xs text-slate-500">The price is for the whole private boat — not per person.</p>
+                    <p className="text-xs text-night/50">The price is for the whole private boat — not per person.</p>
                 </div>
             </Section>
 
@@ -351,24 +353,24 @@ export default function BookingFlow() {
                         ["cod", Wallet, "Pay at the ghat", "Cash or UPI to your boatman"],
                     ] as const).map(([mode, Icon, title, sub]) => (
                         <button key={mode} type="button" onClick={() => setPay(mode)} aria-pressed={pay === mode}
-                            className={`flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-colors ${pay === mode ? "border-orange-500 bg-orange-50" : "border-slate-200 bg-white"}`}>
-                            <Icon size={22} className={pay === mode ? "text-orange-500" : "text-slate-400"} />
-                            <span className="flex-1"><span className="block font-semibold text-slate-900">{title}</span><span className="block text-sm text-slate-500">{sub}</span></span>
-                            <span className={`w-5 h-5 rounded-full border-2 ${pay === mode ? "border-orange-500 bg-orange-500 shadow-[inset_0_0_0_3px_white]" : "border-slate-300"}`} />
+                            className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${pay === mode ? "border-night bg-night text-white" : "border-night/15 bg-white/50 hover:border-night/40"}`}>
+                            <Icon size={22} className={pay === mode ? "text-marigold" : "text-night/35"} />
+                            <span className="flex-1"><span className={`block font-semibold ${pay === mode ? "text-white" : "text-night"}`}>{title}</span><span className={`block text-sm ${pay === mode ? "text-white/55" : "text-night/50"}`}>{sub}</span></span>
+                            <span className={`w-5 h-5 rounded-full border-2 ${pay === mode ? "border-marigold bg-marigold shadow-[inset_0_0_0_3px_#070b18]" : "border-night/25"}`} />
                         </button>
                     ))}
                 </div>
 
                 {pay !== "cod" && (
                     <div className="mt-4">
-                        <label htmlFor="booking-code" className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Tag size={16} className="text-orange-500" /> Discount code</label>
+                        <label htmlFor="booking-code" className="flex items-center gap-2 text-sm font-semibold text-night/75"><Tag size={16} className="text-fire" /> Discount code</label>
                         <div className="mt-2 flex gap-2">
                             <input id="booking-code" value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setApplied(null); setCodeMsg(""); }}
                                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCode(); } }}
                                 placeholder="Have a code?" autoComplete="off" className={`${input} uppercase`} />
-                            <button type="button" onClick={applyCode} className="h-12 px-5 rounded-2xl border border-slate-300 bg-white font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap">Apply</button>
+                            <button type="button" onClick={applyCode} className="h-12 px-5 rounded-2xl border border-night/20 bg-transparent font-semibold text-night transition-colors hover:bg-night hover:text-marigold whitespace-nowrap">Apply</button>
                         </div>
-                        {codeMsg && (codePrice !== null || !applied) && <p className={`mt-2 text-sm font-medium ${codePrice !== null ? "text-teal-700" : "text-rose-600"}`}>{codeMsg}</p>}
+                        {codeMsg && (codePrice !== null || !applied) && <p className={`mt-2 text-sm font-medium ${codePrice !== null ? "text-[#1d7f76]" : "text-ember"}`}>{codeMsg}</p>}
                     </div>
                 )}
 
@@ -397,26 +399,26 @@ export default function BookingFlow() {
                                 />
                             </PayPalScriptProvider>
                         ) : (
-                            <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">Fill in the steps above and the PayPal button appears here.</p>
+                            <p className="rounded-2xl border border-dashed border-night/20 p-4 text-sm text-night/60">Fill in the steps above and the PayPal button appears here.</p>
                         )}
                     </div>
                 )}
             </Section>
 
-            {notice && <p role="alert" className="rounded-2xl bg-rose-50 border border-rose-100 p-4 text-sm font-medium text-rose-700">{notice}</p>}
+            {notice && <p role="alert" className="rounded-2xl border border-ember/30 bg-ember/10 p-4 text-sm font-medium text-[#b3311a]">{notice}</p>}
 
             {/* Sticky summary + one action, always in thumb reach */}
-            <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+            <div className="fixed bottom-0 inset-x-0 z-40 bg-night/90 backdrop-blur-xl border-t border-white/10 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
                 <div className="max-w-3xl mx-auto flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs text-slate-500 truncate">{rideLabel ? `${rideLabel} · ${dateLabel?.top}` : "Choose a ride"}</p>
-                        <p className="font-heading font-bold text-xl text-slate-900">
-                            {coupon && <s className="mr-2 text-sm font-medium text-slate-400">{inr(listPrice)}</s>}
+                        <p className="text-xs text-white/50 truncate">{rideLabel ? `${rideLabel} · ${dateLabel?.top}` : "Choose a ride"}</p>
+                        <p className="font-display text-2xl text-white">
+                            {coupon && <s className="mr-2 text-sm font-medium text-white/40">{inr(listPrice)}</s>}
                             {price ? inr(price) : "—"}
                         </p>
                     </div>
                     <button onClick={confirm} disabled={busy}
-                        className="h-12 px-6 sm:px-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg shadow-orange-500/30 disabled:opacity-60">
+                        className={`${FIRE_BTN} h-12 px-6 sm:px-10`}>
                         {busy ? "Processing…" : pay === "cod" ? "Confirm booking" : pay === "online_international" ? "Pay with PayPal" : "Pay & book"}
                     </button>
                 </div>
