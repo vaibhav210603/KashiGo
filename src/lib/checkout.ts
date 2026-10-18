@@ -1,5 +1,5 @@
 // Server-only. Everything that happens between "Pay" and "confirmed" for coupons and KashiGo coins:
-//  1. prepareCheckout() prices the order (coupon checked against the logged-in phone, coins applied),
+//  1. prepareCheckout() prices the order (coupon checked against the logged-in customer, coins applied),
 //  2. commit(ref) ties the coupon use and the held coins to the payment-provider order just created,
 //  3. finalize(ref) once the payment is verified — or abandon(ref) / releaseStaleHolds() if it never happens.
 // Refs look like "razorpay:order_…", "paypal:…" or "credits:…" (paid entirely in coins).
@@ -15,7 +15,7 @@ export type Provider = "razorpay" | "paypal" | "credits";
 export type Prepared =
     | {
         ok: true;
-        phone: string | null;
+        email: string | null;
         product: string;
         rule: CouponRule | null;
         listInr: number;   // price after the coupon, before coins
@@ -30,26 +30,26 @@ export type Prepared =
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const db = () => supabaseAdmin();
 
-export async function getBalance(phone: string): Promise<number> {
+export async function getBalance(email: string): Promise<number> {
     if (!hasServiceRole()) return 0;
-    const { data } = await db().from("profiles").select("credits_inr").eq("phone", phone).maybeSingle();
+    const { data } = await db().from("profiles").select("credits_inr").eq("email", email).maybeSingle();
     return Number(data?.credits_inr ?? 0);
 }
 
 export async function prepareCheckout(req: Request, opts: { product: string; coupon?: string | null; useCredits?: boolean; provider: Provider }): Promise<Prepared> {
     const session = await getSession(req);
-    const phone = session?.phone ?? null;
+    const email = session?.email ?? null;
     const wantsCoins = opts.useCredits || opts.provider === "credits";
-    if (wantsCoins && !phone) return { ok: false, message: "Log in with your phone number to use your KashiGo coins.", status: 401 };
+    if (wantsCoins && !email) return { ok: false, message: "Log in to use your KashiGo coins.", status: 401 };
 
-    const q = await quote(opts.product, opts.coupon, phone);
+    const q = await quote(opts.product, opts.coupon, email);
     if (!q.ok) return { ok: false, message: q.message, status: q.message.startsWith("Log in") ? 401 : 409 };
     const { inr, usd } = q.price;
 
     let credits = 0;
-    if (wantsCoins && phone) {
-        await releaseStaleHolds(phone);
-        const balance = await getBalance(phone);
+    if (wantsCoins && email) {
+        await releaseStaleHolds(email);
+        const balance = await getBalance(email);
         if (opts.provider === "credits") {
             if (balance < inr) return { ok: false, message: "You don't have enough KashiGo coins for this.", status: 409 };
             credits = inr;
@@ -62,7 +62,7 @@ export async function prepareCheckout(req: Request, opts: { product: string; cou
 
     return {
         ok: true,
-        phone,
+        email,
         product: opts.product,
         rule: q.rule,
         listInr: inr,
@@ -72,14 +72,14 @@ export async function prepareCheckout(req: Request, opts: { product: string; cou
         payUsd: round2(Math.max(0.01, usd - credits / INR_PER_USD)),
         commit: async (ref) => {
             if (!hasServiceRole()) return credits > 0 ? "Coins aren't available right now." : null;
-            if (q.rule && phone) {
-                const { data, error } = await db().rpc("coupon_reserve", { p_code: q.rule.code, p_phone: phone, p_ref: ref });
+            if (q.rule && email) {
+                const { data, error } = await db().rpc("coupon_reserve", { p_code: q.rule.code, p_email: email, p_ref: ref });
                 // Missing function = migration not run yet: legacy codes still work, just without usage limits.
                 if (error && !["PGRST202", "42883"].includes(String(error.code))) return "This code can't be used right now — please try again.";
                 if (!error && data !== "ok") return couponMessage(String(data));
             }
-            if (credits > 0 && phone) {
-                const { data, error } = await db().rpc("credit_hold", { p_phone: phone, p_amount: credits, p_ref: ref, p_product: opts.product });
+            if (credits > 0 && email) {
+                const { data, error } = await db().rpc("credit_hold", { p_email: email, p_amount: credits, p_ref: ref, p_product: opts.product });
                 if (error || data !== true) {
                     await db().rpc("coupon_release", { p_ref: ref });
                     return "Your coin balance changed — please try again.";
@@ -91,17 +91,17 @@ export async function prepareCheckout(req: Request, opts: { product: string; cou
 }
 
 // Coupon and coins attached to a checkout, as recorded when it was created.
-export async function refInfo(ref: string): Promise<{ coupon: string | null; creditsInr: number; phone: string | null; product: string | null }> {
-    if (!hasServiceRole() || !ref) return { coupon: null, creditsInr: 0, phone: null, product: null };
+export async function refInfo(ref: string): Promise<{ coupon: string | null; creditsInr: number; email: string | null; product: string | null }> {
+    if (!hasServiceRole() || !ref) return { coupon: null, creditsInr: 0, email: null, product: null };
     const [use, hold] = await Promise.all([
-        db().from("coupon_uses").select("code, phone").eq("order_ref", ref).maybeSingle(),
-        db().from("credit_holds").select("amount_inr, phone, product, status").eq("ref", ref).maybeSingle(),
+        db().from("coupon_uses").select("code, email").eq("order_ref", ref).maybeSingle(),
+        db().from("credit_holds").select("amount_inr, email, product, status").eq("ref", ref).maybeSingle(),
     ]);
     const h = hold.data && hold.data.status !== "released" ? hold.data : null;
     return {
         coupon: use.data?.code ?? null,
         creditsInr: Number(h?.amount_inr ?? 0),
-        phone: h?.phone ?? use.data?.phone ?? null,
+        email: h?.email ?? use.data?.email ?? null,
         product: h?.product ?? null,
     };
 }
@@ -120,19 +120,20 @@ export async function abandon(ref: string) {
 
 // Coins held for a provider checkout that was never paid come back after 20 minutes.
 // A checkout the provider says WAS paid stays held — the owner can see it in /admin.
-export async function releaseStaleHolds(phone: string) {
+export async function releaseStaleHolds(email: string) {
     if (!hasServiceRole()) return;
     const cutoff = new Date(Date.now() - 20 * 60 * 1000).toISOString();
-    const { data } = await db().from("credit_holds").select("ref").eq("phone", phone).eq("status", "held").lt("created_at", cutoff).limit(20);
+    const { data } = await db().from("credit_holds").select("ref").eq("email", email).eq("status", "held").lt("created_at", cutoff).limit(20);
     for (const { ref } of data ?? []) {
         if (String(ref).startsWith("credits:")) continue; // paid in coins in the same request as the order
         if (!(await orderPaid(ref))) await abandon(ref);
     }
 }
 
-export async function saveProfile(phone: string | null, name?: string, email?: string) {
-    if (!phone || !hasServiceRole()) return;
-    const { error } = await db().rpc("ensure_profile", { p_phone: phone, p_name: name || null, p_email: email || null });
+// Records the customer (keyed by email) with whatever name / phone they gave, so refunds can find them.
+export async function saveProfile(email: string | null, name?: string, phone?: string) {
+    if (!email || !hasServiceRole()) return;
+    const { error } = await db().rpc("ensure_profile", { p_email: email, p_name: name || null, p_phone: phone || null });
     if (error) console.error("Profile save failed:", error);
 }
 

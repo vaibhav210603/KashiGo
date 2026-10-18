@@ -7,7 +7,7 @@ import { INR_PER_USD } from "@/lib/boatPrices";
 import { getRule } from "@/lib/coupons";
 import { getSession } from "@/lib/auth";
 import { finalize, prepareCheckout, refInfo, saveProfile } from "@/lib/checkout";
-import { normalizePhone } from "@/lib/phone";
+import { normalizeEmail } from "@/lib/email";
 import { hasServiceRole, supabaseAdmin } from "@/lib/supabaseAdmin";
 import { orderMailParts, shopRow, type OrderRecord } from "@/lib/orderMail";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
         }
 
         const session = await getSession(req);
-        const customerPhone = session?.phone ?? normalizePhone(body.phone);
+        const customerEmail = session?.email ?? normalizeEmail(email);
 
         let ok = false;
         let reference = "";
@@ -99,8 +99,8 @@ export async function POST(req: Request) {
         }
 
         await finalize(ref);
-        await saveProfile(customerPhone, name, email);
-        const rec = await shopRecord({ ref, product, provider, customerPhone, name, email, phone: body.phone, coupon: body.coupon });
+        await saveProfile(customerEmail, name, body.phone);
+        const rec = await shopRecord({ ref, product, provider, customerEmail, name, email, phone: body.phone, coupon: body.coupon });
         await recordShopOrder(rec);
         await notifyShopSale(rec);
 
@@ -140,13 +140,13 @@ export async function POST(req: Request) {
 }
 
 // The purchase as data: saved to shop_orders and attached to the owner email (lib/orderMail.ts).
-async function shopRecord(o: { ref: string; product: string; provider: string; customerPhone: string | null; name?: string; email?: string; phone?: string; coupon?: string }): Promise<OrderRecord> {
+async function shopRecord(o: { ref: string; product: string; provider: string; customerEmail: string | null; name?: string; email?: string; phone?: string; coupon?: string }): Promise<OrderRecord> {
     const held = await refInfo(o.ref);
     const coupon = held.coupon ?? (o.provider === "credits" ? String(o.coupon || "").toUpperCase() || null : null);
     const price = priceOf(o.product, await getRule(coupon))!;
     return {
         v: 1, kind: "shop", key: o.ref, created_at: new Date().toISOString(), product: o.product,
-        name: String(o.name || "").slice(0, 80), customer_phone: o.customerPhone, phone: String(o.phone || "").slice(0, 20),
+        name: String(o.name || "").slice(0, 80), customer_email: o.customerEmail, phone: String(o.phone || "").slice(0, 20),
         email: String(o.email || "").slice(0, 120), payment_mode: o.provider, payment_status: "paid", payment_ref: o.ref,
         amount: Math.max(0, price.inr - held.creditsInr),
         amount_usd: o.provider === "paypal" ? Math.max(0.01, Number((price.usd - held.creditsInr / INR_PER_USD).toFixed(2))) : null,
@@ -176,7 +176,7 @@ async function notifyShopSale(rec: OrderRecord) {
             to,
             subject: `New sale · ${meta?.name ?? rec.product} · ₹${rec.amount}${rec.credits_used ? ` + ${rec.credits_used} coins` : ""}`,
             text: [
-                `Product: ${meta?.name ?? rec.product}`, `Buyer: ${rec.name} <${rec.email}>`, `Phone: ${rec.customer_phone || rec.phone || "—"}`,
+                `Product: ${meta?.name ?? rec.product}`, `Buyer: ${rec.name} <${rec.email}>`, `Phone: ${rec.phone || "—"}`,
                 `Paid: ₹${rec.amount}${rec.amount_usd ? ` ($${rec.amount_usd})` : ""} via ${rec.payment_mode}`, `Coins used: ${rec.credits_used}`,
                 `Code: ${rec.coupon || "—"}`, `Order ref: ${rec.key}`,
             ].join("\n"),

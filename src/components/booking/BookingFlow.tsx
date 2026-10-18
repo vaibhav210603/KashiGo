@@ -9,15 +9,15 @@ import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, BOOKING_WINDOW_DAYS } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
 import { money, useCurrency } from "@/lib/currency";
-import { formatPhone } from "@/lib/phone";
+import { normalizeEmail } from "@/lib/email";
 import { apiPost, authHeaders, useAuth } from "@/components/auth/useAuth";
 import { useAccount } from "@/components/auth/useAccount";
-import PhoneLogin from "@/components/auth/PhoneLogin";
+import EmailLogin from "@/components/auth/EmailLogin";
 import { FIRE_BTN } from "@/components/ui/styles";
 
 type RideChoice = BoatRideId | "custom" | "";
 type PayMode = "cod" | "online_domestic" | "online_international";
-type Field = "ride" | "customTime" | "customDest" | "date" | "ghat" | "name" | "phone";
+type Field = "ride" | "customTime" | "customDest" | "date" | "ghat" | "name" | "phone" | "email";
 
 // India time, re-read every 30s so "today" and same-day cut-offs stay right while the page is open.
 // Empty on the server, so prerendered HTML never bakes in a stale date.
@@ -90,11 +90,12 @@ export default function BookingFlow() {
     const { account, refresh: refreshAccount } = useAccount();
     const [showLogin, setShowLogin] = useState(false);
     const [useCoins, setUseCoins] = useState(true);
-    // Logged in with an empty phone field: fill in the verified number for the boatman.
+    // Logged in: fill in their email (and name, from Google) if those fields are still empty.
     const [filledFor, setFilledFor] = useState<string | null>(null);
-    if (auth.phone && auth.phone !== filledFor) {
-        setFilledFor(auth.phone);
-        if (!phone.trim()) setPhone(formatPhone(auth.phone));
+    if (auth.email && auth.email !== filledFor) {
+        setFilledFor(auth.email);
+        if (!email.trim()) setEmail(auth.email);
+        if (!name.trim() && auth.name) setName(auth.name);
     }
     const topRef = useRef<HTMLDivElement>(null);
 
@@ -138,7 +139,7 @@ export default function BookingFlow() {
         if (!c) return;
         if (!product) { setCodeMsg("Choose a ride first."); return; }
         try {
-            if (!auth.loggedIn) { setShowLogin(true); setCodeMsg("Log in with your phone number to use a code."); return; }
+            if (!auth.loggedIn) { setShowLogin(true); setCodeMsg("Log in to use a code."); return; }
             const { data } = await apiPost("/api/coupon", { product, code: c });
             if (data.needsLogin) { setShowLogin(true); setCodeMsg(data.message); return; }
             if (data.valid && typeof data.inr === "number") { setApplied({ product, inr: data.inr }); setCodeMsg(`Code applied — you pay ${money(data.inr, currency)}`); return; }
@@ -158,6 +159,7 @@ export default function BookingFlow() {
         if (!ghat) e.ghat = "Choose the ghat you'll start from.";
         if (!name.trim()) e.name = "Add the lead passenger's name.";
         if (phone.replace(/\D/g, "").length < 8) e.phone = "Add a phone number so your boatman can reach you.";
+        if (!normalizeEmail(email)) e.email = "Add your email — your confirmation (and any KashiGo coins) go there.";
         return e;
     };
     const isValid = Object.keys(validate()).length === 0;
@@ -167,7 +169,7 @@ export default function BookingFlow() {
         setErrors(e);
         const first = (Object.keys(e) as Field[])[0];
         if (first) {
-            const target = first === "customTime" || first === "customDest" ? "ride" : first === "phone" ? "name" : first;
+            const target = first === "customTime" || first === "customDest" ? "ride" : first === "phone" || first === "email" ? "name" : first;
             document.getElementById(`s-${target === "name" ? "details" : target}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
             return false;
         }
@@ -361,11 +363,11 @@ export default function BookingFlow() {
                 <p className="mt-3 text-xs text-night/50">Not sure? Dashashwamedh is closest to the evening Aarti.</p>
             </Section>
 
-            <Section id="s-details" n={4} title="Your details" error={errors.name || errors.phone}>
+            <Section id="s-details" n={4} title="Your details" error={errors.name || errors.phone || errors.email}>
                 <div className="grid gap-3">
                     <input value={name} onChange={(e) => { setName(e.target.value); setErrors((x) => ({ ...x, name: undefined })); }} placeholder="Lead passenger name" autoComplete="name" className={input} />
                     <input value={phone} onChange={(e) => { setPhone(e.target.value); setErrors((x) => ({ ...x, phone: undefined })); }} placeholder="Phone number" type="tel" inputMode="tel" autoComplete="tel" className={input} />
-                    <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email (for your confirmation)" type="email" autoComplete="email" className={input} />
+                    <input value={email} onChange={(e) => { setEmail(e.target.value); setErrors((x) => ({ ...x, email: undefined })); }} placeholder="Email (confirmation & KashiGo coins)" type="email" autoComplete="email" className={input} />
                     <div className="flex items-center justify-between rounded-2xl border border-night/15 bg-white/40 px-4 h-14">
                         <span className="font-medium text-night/75">Guests</span>
                         <div className="flex items-center gap-3">
@@ -413,7 +415,7 @@ export default function BookingFlow() {
                         {auth.loggedIn ? (
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between gap-3 text-sm">
-                                    <span className="text-night/60">Logged in as <b className="text-night">{formatPhone(auth.phone)}</b></span>
+                                    <span className="min-w-0 truncate text-night/60">Logged in as <b className="text-night">{auth.email}</b></span>
                                     <button type="button" onClick={() => { auth.signOut(); setApplied(null); setCodeMsg(""); }} className="inline-flex items-center gap-1 text-night/50 hover:text-night"><LogOut size={14} /> Log out</button>
                                 </div>
                                 {balance > 0 ? (
@@ -431,11 +433,11 @@ export default function BookingFlow() {
                                 {coversAll && <p className="text-sm font-medium text-[#1d7f76]">Your coins cover this ride — no payment needed.</p>}
                             </div>
                         ) : showLogin ? (
-                            <PhoneLogin defaultCode={currency === "inr" ? "+91" : "+1"} subtitle="Unlocks discount codes and your KashiGo coins." onDone={() => { setShowLogin(false); setCodeMsg(""); }} />
+                            <EmailLogin defaultEmail={email} title="Log in to use a code or coins" subtitle="Google or a one-time email code — no password." onDone={() => { setShowLogin(false); setCodeMsg(""); }} />
                         ) : (
                             <button type="button" onClick={() => setShowLogin(true)} className="flex w-full items-center gap-3 text-left">
                                 <Coins size={20} className="text-fire shrink-0" />
-                                <span className="flex-1 text-sm"><span className="block font-semibold text-night">Have a code or KashiGo coins?</span><span className="block text-night/50">Log in with your phone number — takes 20 seconds.</span></span>
+                                <span className="flex-1 text-sm"><span className="block font-semibold text-night">Have a code or KashiGo coins?</span><span className="block text-night/50">Log in with Google or your email — takes 20 seconds.</span></span>
                                 <span className="text-sm font-semibold text-fire">Log in</span>
                             </button>
                         )}

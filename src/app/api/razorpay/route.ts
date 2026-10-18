@@ -21,7 +21,7 @@ export async function POST(req: Request) {
             currency: "INR",
             receipt: `kashigo_${Date.now()}`,
             // Stamped server-side so payment checks can confirm what this order was for.
-            notes: { product: String(product), coupon: prep.rule?.code ?? "", credits: String(prep.creditsInr), phone: prep.phone ?? "" },
+            notes: { product: String(product), coupon: prep.rule?.code ?? "", credits: String(prep.creditsInr), email: prep.email ?? "" },
         });
 
         const problem = await prep.commit(`razorpay:${order.id}`);

@@ -1,5 +1,5 @@
 // Server-only. Coupons live in the `coupons` table and are managed from /admin, so a new code works
-// the moment it's created. Using a code requires a phone login, which is what per-customer limits count.
+// the moment it's created. Using a code requires logging in; per-customer limits count per email.
 import { LEGACY_RULES, priceOf, ruleApplies, type CouponRule, type Price } from "@/lib/pricing";
 import { hasServiceRole, supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -32,31 +32,31 @@ const STATUS_MESSAGES: Record<string, string> = {
     not_started: "This code isn't live yet.",
     expired: "This code has expired.",
     used_up: "This code has already been used.",
-    phone_limit: "You've already used this code.",
+    customer_limit: "You've already used this code.",
 };
 export const couponMessage = (status: string) => STATUS_MESSAGES[status] ?? "That code can't be used right now.";
 
 export type Quote = { ok: true; price: Price; base: Price; rule: CouponRule | null } | { ok: false; message: string };
 
-// What this phone would pay for the product with this code, after checking the code can be used by them.
-export async function quote(product: string, code: string | null | undefined, phone: string | null): Promise<Quote> {
+// What this customer would pay for the product with this code, after checking the code can be used by them.
+export async function quote(product: string, code: string | null | undefined, email: string | null): Promise<Quote> {
     const base = priceOf(product);
     if (!base) return { ok: false, message: "Unknown product." };
     if (!normalize(code)) return { ok: true, price: base, base, rule: null };
-    if (!phone) return { ok: false, message: "Log in with your phone number to use a code." };
+    if (!email) return { ok: false, message: "Log in to use a code." };
 
     const rule = await getRule(code);
     if (!rule || !ruleApplies(rule, product)) return { ok: false, message: "That code doesn't apply to this." };
-    const status = await couponStatus(rule.code, phone);
+    const status = await couponStatus(rule.code, email);
     if (status !== "ok") return { ok: false, message: couponMessage(status) };
     const price = priceOf(product, rule)!;
     if (price.inr >= base.inr) return { ok: false, message: "That code doesn't change the price of this." };
     return { ok: true, price, base, rule };
 }
 
-export async function couponStatus(code: string, phone: string): Promise<string> {
+export async function couponStatus(code: string, email: string): Promise<string> {
     if (!hasServiceRole() || tableReady === false) return "ok"; // legacy mode: no usage tracking available
-    const { data, error } = await supabaseAdmin().rpc("coupon_status", { p_code: code, p_phone: phone });
+    const { data, error } = await supabaseAdmin().rpc("coupon_status", { p_code: code, p_email: email });
     if (error) {
         if (isMissing(error)) { tableReady = false; return "ok"; }
         console.error("Coupon status failed:", error);

@@ -1,6 +1,6 @@
 "use client";
 
-// Browser Supabase client — used ONLY for phone OTP login. All data goes through our API routes,
+// Browser Supabase client — used ONLY for login (email code / magic link, Google). All data goes through our API routes,
 // which check the access token this client keeps (in localStorage) and use the server's service key.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 

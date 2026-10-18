@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Coins, Database, KeyRound, Loader2, LogOut, Mail, Plus, RefreshCw, Search, Tag, Ticket, Trash2, Undo2, X } from "lucide-react";
-import PhoneLogin from "@/components/auth/PhoneLogin";
+import EmailLogin from "@/components/auth/EmailLogin";
 import { apiGet, apiPost, authHeaders, getAdminToken, setAdminToken, useAuth } from "@/components/auth/useAuth";
-import { formatPhone, normalizePhone } from "@/lib/phone";
+import { formatPhone } from "@/lib/phone";
+import { normalizeEmail } from "@/lib/email";
 import { productName } from "@/lib/productNames";
 
 type Tab = "orders" | "coupons" | "coins";
@@ -14,7 +15,7 @@ const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString("en-IN
 export default function AdminClient() {
     const auth = useAuth();
     const [tab, setTab] = useState<Tab>("orders");
-    // Admin check covers both ways in: phone OTP (needs Supabase) or the ADMIN_PASSWORD login (doesn't).
+    // Admin check covers both ways in: email / Google login (needs Supabase) or the ADMIN_PASSWORD login (doesn't).
     const [status, setStatus] = useState<{ admin: boolean; passwordLogin: boolean } | null>(null);
     const [viaPassword, setViaPassword] = useState(false);
     const check = useCallback(async () => {
@@ -23,7 +24,7 @@ export default function AdminClient() {
         setViaPassword(Boolean(r.data.admin) && Boolean(getAdminToken()));
     }, []);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- re-check when the OTP login changes
-    useEffect(() => { if (auth.ready) check(); }, [auth.ready, auth.phone, check]);
+    useEffect(() => { if (auth.ready) check(); }, [auth.ready, auth.email, check]);
 
     const logout = () => { setAdminToken(null); if (auth.loggedIn) auth.signOut(); setViaPassword(false); check(); };
     const isAdmin = status?.admin;
@@ -38,7 +39,7 @@ export default function AdminClient() {
                     </div>
                     {(isAdmin || auth.loggedIn) && (
                         <button onClick={logout} className="h-10 px-4 inline-flex items-center gap-2 rounded-full border border-white/20 text-sm text-white/80 hover:bg-white hover:text-night">
-                            <LogOut size={15} /> {viaPassword ? "Admin (password)" : formatPhone(auth.phone)}
+                            <LogOut size={15} /> {viaPassword ? "Admin (password)" : auth.email}
                         </button>
                     )}
                 </div>
@@ -47,10 +48,10 @@ export default function AdminClient() {
                     <p className="mt-10 flex items-center gap-2 text-white/60"><Loader2 className="animate-spin" size={18} /> Checking access…</p>
                 ) : !isAdmin ? (
                     <div className="mt-10 grid gap-4 max-w-lg">
-                        {auth.loggedIn && <p className="rounded-2xl border border-ember/40 bg-ember/10 p-5 text-white/85">{formatPhone(auth.phone)} isn&apos;t an admin. Add it to <code className="text-marigold">ADMIN_PHONES</code> in the server environment.</p>}
+                        {auth.loggedIn && <p className="rounded-2xl border border-ember/40 bg-ember/10 p-5 text-white/85">{auth.email} isn&apos;t an admin. Add it to <code className="text-marigold">ADMIN_EMAILS</code> in the server environment.</p>}
                         {!auth.loggedIn && (
                             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                                <PhoneLogin tone="dark" title="Admin login" subtitle="Use a phone number listed in ADMIN_PHONES." />
+                                <EmailLogin tone="dark" title="Admin login" subtitle="Use an email listed in ADMIN_EMAILS." />
                             </div>
                         )}
                         {status.passwordLogin && <PasswordLogin onDone={check} />}
@@ -76,7 +77,7 @@ export default function AdminClient() {
     );
 }
 
-// Works even when Supabase (and so phone OTP) is unavailable.
+// Works even when Supabase (and so email / Google login) is unavailable.
 function PasswordLogin({ onDone }: { onDone: () => void }) {
     const [open, setOpen] = useState(false);
     const [pw, setPw] = useState("");
@@ -112,8 +113,8 @@ type BoatOrder = Record<string, any>; // eslint-disable-line @typescript-eslint/
 type Src = { email: boolean; db: boolean };
 type Sources = { email: { ok: boolean; count: number; error: string | null }; db: { ok: boolean; error: string | null }; synced: number; syncError: string | null };
 type OrdersResponse = { boats: BoatOrder[]; shop: ShopOrder[]; errors: string[]; sources: Sources | null };
-type ShopOrder = { _src?: Src; order_ref: string; product: string; customer_phone: string | null; name: string | null; email: string | null; provider: string; amount_inr: number; amount_usd: number | null; credits_used: number; coupon: string | null; refunded_inr: number; created_at: string };
-type RefundTarget = { kind: "boat" | "shop"; key: string; label: string; paid: number; refunded: number; phone: string | null; fallbackPhone: string | null };
+type ShopOrder = { _src?: Src; order_ref: string; product: string; customer_email: string | null; name: string | null; phone: string | null; provider: string; amount_inr: number; amount_usd: number | null; credits_used: number; coupon: string | null; refunded_inr: number; created_at: string };
+type RefundTarget = { kind: "boat" | "shop"; key: string; label: string; paid: number; refunded: number; email: string | null; fallbackEmail: string | null };
 
 function Orders() {
     const [q, setQ] = useState("");
@@ -136,7 +137,7 @@ function Orders() {
             <div className="flex flex-wrap items-center gap-3">
                 <form onSubmit={(e) => { e.preventDefault(); load(q); }} className="relative flex-1 min-w-[16rem]">
                     <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
-                    <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search ride ID, name, phone, product…" className="h-11 w-full rounded-full border border-white/15 bg-white/5 pl-10 pr-4 outline-none focus:border-marigold" />
+                    <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search ride ID, name, email, phone, product…" className="h-11 w-full rounded-full border border-white/15 bg-white/5 pl-10 pr-4 outline-none focus:border-marigold" />
                 </form>
                 <div className="inline-flex rounded-full border border-white/15 p-1 text-sm">
                     <button onClick={() => setView("boats")} className={`h-9 px-4 rounded-full ${view === "boats" ? "bg-white text-night" : "text-white/70"}`}>Boat rides {data ? `(${data.boats.length})` : ""}</button>
@@ -159,17 +160,17 @@ function Orders() {
                     <tbody>
                         {view === "boats" && data?.boats.map((o) => {
                             const paid = Math.round(Number(o.amount) || 0) + (Number(o.credits_used) || 0);
-                            const phone = o.customer_phone || null;
+                            const email = o.customer_email || null;
                             return (
                                 <tr key={o.ride_id + (o.id ?? "")} className="border-t border-white/10 align-top">
                                     <Td><b>{o.ride_id}</b> <SrcBadges s={o._src} /><span className="block text-white/55">{productName(o.package_id)} · {o.ghat}</span></Td>
                                     <Td>{o.ride_date || ""}<span className="block text-white/55">{o.time_of_day}</span></Td>
-                                    <Td>{o.passenger_name}<span className="block text-white/55">{formatPhone(phone) || o.passenger_phone}{o.passengers_count ? ` · ${o.passengers_count} guests` : ""}</span></Td>
+                                    <Td>{o.passenger_name}<span className="block text-white/55">{email || o.passenger_email || "no email"} · {formatPhone(o.passenger_phone) || o.passenger_phone}{o.passengers_count ? ` · ${o.passengers_count} guests` : ""}</span></Td>
                                     <Td><Status s={o.payment_status} /><span className="block text-white/55">{o.payment_mode}{o.coupon ? ` · ${o.coupon}` : ""}</span>{o.check_notes && <span className="block text-xs text-ember">{o.check_notes}</span>}</Td>
                                     <Td className="text-right">{rupees(paid)}{o.credits_used ? <span className="block text-xs text-white/50">{o.credits_used} in coins</span> : null}</Td>
                                     <Td className="text-right">{o.refunded_inr ? rupees(o.refunded_inr) : "—"}</Td>
                                     <Td className="text-right">
-                                        <button disabled={paid - (o.refunded_inr || 0) <= 0 || !o._src?.db} title={o._src?.db ? undefined : "Refunds need the database — this order is only in email so far."} onClick={() => setRefund({ kind: "boat", key: o.ride_id, label: `${o.ride_id} · ${o.passenger_name}`, paid, refunded: o.refunded_inr || 0, phone, fallbackPhone: normalizePhone(o.passenger_phone) })}
+                                        <button disabled={paid - (o.refunded_inr || 0) <= 0 || !o._src?.db} title={o._src?.db ? undefined : "Refunds need the database — this order is only in email so far."} onClick={() => setRefund({ kind: "boat", key: o.ride_id, label: `${o.ride_id} · ${o.passenger_name}`, paid, refunded: o.refunded_inr || 0, email, fallbackEmail: normalizeEmail(o.passenger_email) })}
                                             className="h-9 px-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 hover:bg-marigold hover:text-night hover:border-marigold disabled:opacity-30 disabled:pointer-events-none"><Undo2 size={14} /> Refund</button>
                                     </Td>
                                 </tr>
@@ -181,12 +182,12 @@ function Orders() {
                                 <tr key={o.order_ref} className="border-t border-white/10 align-top">
                                     <Td><b>{productName(o.product)}</b> <SrcBadges s={o._src} /><span className="block text-white/55 break-all">{o.order_ref}</span></Td>
                                     <Td>{when(o.created_at)}</Td>
-                                    <Td>{o.name || "—"}<span className="block text-white/55">{formatPhone(o.customer_phone)} {o.email}</span></Td>
+                                    <Td>{o.name || "—"}<span className="block text-white/55">{o.customer_email || "no email"}{o.phone ? ` · ${o.phone}` : ""}</span></Td>
                                     <Td>{o.provider}{o.coupon ? <span className="block text-white/55">{o.coupon}</span> : null}</Td>
                                     <Td className="text-right">{rupees(paid)}{o.amount_usd ? <span className="block text-xs text-white/50">${Number(o.amount_usd).toFixed(2)} via PayPal</span> : null}</Td>
                                     <Td className="text-right">{o.refunded_inr ? rupees(o.refunded_inr) : "—"}</Td>
                                     <Td className="text-right">
-                                        <button disabled={paid - (o.refunded_inr || 0) <= 0 || !o._src?.db} title={o._src?.db ? undefined : "Refunds need the database — this order is only in email so far."} onClick={() => setRefund({ kind: "shop", key: o.order_ref, label: `${productName(o.product)} · ${o.name || o.email || ""}`, paid, refunded: o.refunded_inr, phone: o.customer_phone, fallbackPhone: null })}
+                                        <button disabled={paid - (o.refunded_inr || 0) <= 0 || !o._src?.db} title={o._src?.db ? undefined : "Refunds need the database — this order is only in email so far."} onClick={() => setRefund({ kind: "shop", key: o.order_ref, label: `${productName(o.product)} · ${o.name || o.customer_email || ""}`, paid, refunded: o.refunded_inr, email: o.customer_email, fallbackEmail: null })}
                                             className="h-9 px-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 hover:bg-marigold hover:text-night hover:border-marigold disabled:opacity-30 disabled:pointer-events-none"><Undo2 size={14} /> Refund</button>
                                     </Td>
                                 </tr>
@@ -205,14 +206,14 @@ function RefundDialog({ target, onClose, onDone }: { target: RefundTarget; onClo
     const left = target.paid - target.refunded;
     const [amount, setAmount] = useState(String(left));
     const [note, setNote] = useState("");
-    const [phone, setPhone] = useState(target.fallbackPhone ?? "");
+    const [email, setEmail] = useState(target.fallbackEmail ?? "");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [result, setResult] = useState<number | null>(null);
 
     const submit = async () => {
         setError(""); setBusy(true);
-        const r = await apiPost("/api/admin/refund", { kind: target.kind, key: target.key, amount: Number(amount), note, phone: target.phone ? undefined : phone });
+        const r = await apiPost("/api/admin/refund", { kind: target.kind, key: target.key, amount: Number(amount), note, email: target.email ? undefined : email });
         setBusy(false);
         if (!r.ok) { setError(r.data.error || "Refund failed."); return; }
         setResult(r.data.balance);
@@ -235,11 +236,11 @@ function RefundDialog({ target, onClose, onDone }: { target: RefundTarget; onClo
                     </div>
                 ) : (
                     <div className="mt-6 space-y-3">
-                        <p className="text-sm text-white/60">Paid {rupees(target.paid)}{target.refunded ? `, already refunded ${rupees(target.refunded)}` : ""}. Up to <b className="text-white">{left.toLocaleString("en-IN")}</b> coins can go back to {target.phone ? <b className="text-white">{formatPhone(target.phone)}</b> : "the customer"}.</p>
-                        {!target.phone && (
+                        <p className="text-sm text-white/60">Paid {rupees(target.paid)}{target.refunded ? `, already refunded ${rupees(target.refunded)}` : ""}. Up to <b className="text-white">{left.toLocaleString("en-IN")}</b> coins can go back to {target.email ? <b className="text-white">{target.email}</b> : "the customer"}.</p>
+                        {!target.email && (
                             <label className="block text-sm">
-                                <span className="text-white/60">This order was saved before phones were recorded — refund to:</span>
-                                <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" className="mt-1 h-12 w-full rounded-2xl border border-white/15 bg-white/5 px-4 outline-none focus:border-marigold" />
+                                <span className="text-white/60">This order has no customer email on file — refund to:</span>
+                                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="guest@example.com" className="mt-1 h-12 w-full rounded-2xl border border-white/15 bg-white/5 px-4 outline-none focus:border-marigold" />
                             </label>
                         )}
                         <label className="block text-sm">
@@ -251,7 +252,7 @@ function RefundDialog({ target, onClose, onDone }: { target: RefundTarget; onClo
                             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Ride cancelled — high river" className="mt-1 h-12 w-full rounded-2xl border border-white/15 bg-white/5 px-4 outline-none focus:border-marigold" />
                         </label>
                         {error && <p className="text-sm text-ember">{error}</p>}
-                        <button onClick={submit} disabled={busy || !(Number(amount) > 0) || Number(amount) > left || (!target.phone && !normalizePhone(phone))}
+                        <button onClick={submit} disabled={busy || !(Number(amount) > 0) || Number(amount) > left || (!target.email && !normalizeEmail(email))}
                             className="h-12 w-full rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night font-semibold disabled:opacity-40">
                             {busy ? "Refunding…" : `Refund ${Number(amount || 0).toLocaleString("en-IN")} coins`}
                         </button>
@@ -264,7 +265,7 @@ function RefundDialog({ target, onClose, onDone }: { target: RefundTarget; onClo
 
 /* ───────────────────────── Coupons ───────────────────────── */
 
-type Coupon = { code: string; kind: "percent" | "amount_off" | "fixed_price"; value: number; applies_to: string[]; max_uses: number | null; per_phone_limit: number | null; active: boolean; starts_at: string | null; expires_at: string | null; note: string | null; uses: number; created_at: string };
+type Coupon = { code: string; kind: "percent" | "amount_off" | "fixed_price"; value: number; applies_to: string[]; max_uses: number | null; per_customer_limit: number | null; active: boolean; starts_at: string | null; expires_at: string | null; note: string | null; uses: number; created_at: string };
 const SCOPES = [["all", "Everything"], ["boat", "Boat rides"], ["shop", "Ebooks & audio"], ["guide", "Varanasi guide"], ["india-tour", "India guide"]] as const;
 const describe = (c: Pick<Coupon, "kind" | "value">) => (c.kind === "percent" ? `${c.value}% off` : c.kind === "amount_off" ? `₹${c.value} off` : `Pay ₹${c.value}`);
 
@@ -296,7 +297,7 @@ function Coupons() {
     return (
         <div>
             <div className="flex items-center justify-between gap-4">
-                <p className="text-white/60 text-sm">New codes work at checkout the moment you save them. Customers log in with their phone to use one.</p>
+                <p className="text-white/60 text-sm">New codes work at checkout the moment you save them. Customers log in (Google or email code) to use one.</p>
                 <button onClick={() => setCreating(true)} className="h-11 px-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night font-semibold"><Plus size={16} /> New coupon</button>
             </div>
             {error && <p className="mt-3 text-sm text-ember">{error}</p>}
@@ -313,7 +314,7 @@ function Coupons() {
                             </div>
                             <div className="flex-1 text-sm text-white/60">
                                 <span className="text-white">{c.uses}</span>{c.max_uses ? ` / ${c.max_uses}` : ""} used
-                                {c.per_phone_limit ? ` · ${c.per_phone_limit} per customer` : " · no per-customer limit"}
+                                {c.per_customer_limit ? ` · ${c.per_customer_limit} per customer` : " · no per-customer limit"}
                                 {c.expires_at ? ` · ${expired ? "expired" : "ends"} ${when(c.expires_at)}` : ""}
                                 {c.note ? <span className="block text-white/45">{c.note}</span> : null}
                             </div>
@@ -335,7 +336,7 @@ function Coupons() {
 }
 
 function NewCoupon({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-    const [f, setF] = useState({ code: "", kind: "percent", value: "10", applies_to: ["all"] as string[], max_uses: "", per_phone_limit: "1", expires_at: "", note: "" });
+    const [f, setF] = useState({ code: "", kind: "percent", value: "10", applies_to: ["all"] as string[], max_uses: "", per_customer_limit: "1", expires_at: "", note: "" });
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const set = (k: keyof typeof f, v: string | string[]) => setF((x) => ({ ...x, [k]: v }));
@@ -346,7 +347,7 @@ function NewCoupon({ onClose, onCreated }: { onClose: () => void; onCreated: () 
         setError(""); setBusy(true);
         const r = await apiPost("/api/admin/coupons", {
             ...f, value: Number(f.value), applies_to: f.applies_to.length ? f.applies_to : ["all"],
-            max_uses: f.max_uses || null, per_phone_limit: f.per_phone_limit || null,
+            max_uses: f.max_uses || null, per_customer_limit: f.per_customer_limit || null,
             expires_at: f.expires_at ? new Date(`${f.expires_at}T23:59:59+05:30`).toISOString() : null,
         });
         setBusy(false);
@@ -369,7 +370,7 @@ function NewCoupon({ onClose, onCreated }: { onClose: () => void; onCreated: () 
                 <label className="text-sm"><span className="text-white/60">{f.kind === "percent" ? "Percent" : "Rupees"}</span><input value={f.value} onChange={(e) => set("value", e.target.value.replace(/[^\d.]/g, ""))} inputMode="decimal" className={`${field} mt-1`} /></label>
                 <label className="text-sm"><span className="text-white/60">Ends (optional)</span><input type="date" value={f.expires_at} onChange={(e) => set("expires_at", e.target.value)} className={`${field} mt-1 [color-scheme:dark]`} /></label>
                 <label className="text-sm"><span className="text-white/60">Total uses (blank = unlimited)</span><input value={f.max_uses} onChange={(e) => set("max_uses", e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={`${field} mt-1`} /></label>
-                <label className="text-sm"><span className="text-white/60">Uses per customer (blank = unlimited)</span><input value={f.per_phone_limit} onChange={(e) => set("per_phone_limit", e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={`${field} mt-1`} /></label>
+                <label className="text-sm"><span className="text-white/60">Uses per customer (blank = unlimited)</span><input value={f.per_customer_limit} onChange={(e) => set("per_customer_limit", e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={`${field} mt-1`} /></label>
                 <label className="text-sm sm:col-span-2"><span className="text-white/60">Note (just for you)</span><input value={f.note} onChange={(e) => set("note", e.target.value)} placeholder="Instagram giveaway, Oct 2026" className={`${field} mt-1`} /></label>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -389,22 +390,22 @@ function NewCoupon({ onClose, onCreated }: { onClose: () => void; onCreated: () 
 /* ───────────────────────── Coins lookup / adjust ───────────────────────── */
 
 function CoinsTool() {
-    const [phone, setPhone] = useState("");
-    const [res, setRes] = useState<{ phone: string; profile: { name: string | null; credits_inr: number; user_id: string | null } | null; ledger: { delta_inr: number; balance_after: number; kind: string; ref: string | null; note: string | null; created_by: string | null; created_at: string }[] } | null>(null);
+    const [email, setEmail] = useState("");
+    const [res, setRes] = useState<{ email: string; profile: { name: string | null; credits_inr: number; user_id: string | null } | null; ledger: { delta_inr: number; balance_after: number; kind: string; ref: string | null; note: string | null; created_by: string | null; created_at: string }[] } | null>(null);
     const [amount, setAmount] = useState("");
     const [note, setNote] = useState("");
     const [error, setError] = useState("");
-    const normal = useMemo(() => normalizePhone(phone), [phone]);
+    const normal = useMemo(() => normalizeEmail(email), [email]);
 
     const lookup = async () => {
         setError("");
-        const r = await apiGet(`/api/admin/credits?phone=${encodeURIComponent(phone)}`);
+        const r = await apiGet(`/api/admin/credits?email=${encodeURIComponent(email)}`);
         if (!r.ok) { setError(r.data.error || "Lookup failed."); setRes(null); return; }
         setRes(r.data);
     };
     const adjust = async () => {
         setError("");
-        const r = await apiPost("/api/admin/credits", { phone, amount: Number(amount), note });
+        const r = await apiPost("/api/admin/credits", { email, amount: Number(amount), note });
         if (!r.ok) { setError(r.data.error || "Couldn't change the balance."); return; }
         setAmount(""); setNote("");
         lookup();
@@ -413,13 +414,13 @@ function CoinsTool() {
     return (
         <div className="max-w-2xl">
             <form onSubmit={(e) => { e.preventDefault(); lookup(); }} className="flex gap-2">
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Customer phone, e.g. +44 7700 900123" className="h-12 flex-1 rounded-full border border-white/15 bg-white/5 px-5 outline-none focus:border-marigold" />
+                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Customer email, e.g. guest@example.com" className="h-12 flex-1 rounded-full border border-white/15 bg-white/5 px-5 outline-none focus:border-marigold" />
                 <button disabled={!normal} className="h-12 px-6 rounded-full bg-white text-night font-semibold disabled:opacity-40">Look up</button>
             </form>
             {error && <p className="mt-3 text-sm text-ember">{error}</p>}
             {res && (
                 <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-                    <p className="text-white/60">{formatPhone(res.phone)}{res.profile?.name ? ` · ${res.profile.name}` : ""}{res.profile?.user_id ? " · has logged in" : " · hasn't logged in yet"}</p>
+                    <p className="text-white/60">{res.email}{res.profile?.name ? ` · ${res.profile.name}` : ""}{res.profile?.user_id ? " · has logged in" : " · hasn't logged in yet"}</p>
                     <p className="mt-1 font-display text-5xl text-fire">{(res.profile?.credits_inr ?? 0).toLocaleString("en-IN")} <span className="text-xl text-white/60">coins</span></p>
                     <div className="mt-5 grid gap-2 sm:grid-cols-[8rem_1fr_auto]">
                         <input value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d-]/g, ""))} placeholder="+500 / -200" inputMode="numeric" className="h-11 rounded-xl border border-white/15 bg-white/5 px-3 outline-none focus:border-marigold" />
@@ -429,7 +430,7 @@ function CoinsTool() {
                     <div className="mt-6 divide-y divide-white/10 text-sm">
                         {res.ledger.map((l, i) => (
                             <div key={i} className="flex justify-between gap-4 py-2.5">
-                                <span><b className="capitalize">{l.kind}</b> <span className="text-white/50">· {when(l.created_at)}{l.note ? ` · ${l.note}` : ""}{l.ref ? ` · ${l.ref}` : ""}{l.created_by ? ` · by ${formatPhone(l.created_by)}` : ""}</span></span>
+                                <span><b className="capitalize">{l.kind}</b> <span className="text-white/50">· {when(l.created_at)}{l.note ? ` · ${l.note}` : ""}{l.ref ? ` · ${l.ref}` : ""}{l.created_by ? ` · by ${l.created_by}` : ""}</span></span>
                                 <span className={l.delta_inr > 0 ? "text-ganga" : "text-ember"}>{l.delta_inr > 0 ? "+" : ""}{l.delta_inr} → {l.balance_after}</span>
                             </div>
                         ))}

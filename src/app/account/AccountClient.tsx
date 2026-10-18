@@ -2,12 +2,10 @@
 
 import Link from "next/link";
 import { ArrowRight, Coins, LogOut, ShieldCheck } from "lucide-react";
-import PhoneLogin from "@/components/auth/PhoneLogin";
+import EmailLogin from "@/components/auth/EmailLogin";
 import { useAuth } from "@/components/auth/useAuth";
 import { useAccount } from "@/components/auth/useAccount";
-import { formatPhone } from "@/lib/phone";
 import { productName } from "@/lib/productNames";
-import { useCurrency } from "@/lib/currency";
 
 const KIND_LABEL: Record<string, string> = { refund: "Refund", spend: "Spent", release: "Returned (checkout not completed)", adjust: "Adjustment" };
 const date = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "");
@@ -15,7 +13,6 @@ const date = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDa
 export default function AccountClient() {
     const auth = useAuth();
     const { account } = useAccount();
-    const [currency] = useCurrency();
 
     return (
         <div className="bg-parchment min-h-screen">
@@ -27,17 +24,17 @@ export default function AccountClient() {
                         <div className="mt-6 h-40" />
                     ) : !auth.loggedIn ? (
                         <>
-                            <h1 className="mt-4 font-display font-light text-5xl sm:text-6xl leading-[0.95] tracking-[-0.03em]">Log in with <em className="text-fire">your phone.</em></h1>
+                            <h1 className="mt-4 font-display font-light text-5xl sm:text-6xl leading-[0.95] tracking-[-0.03em]">Your <em className="text-fire">KashiGo.</em></h1>
                             <p className="mt-4 max-w-lg text-white/65">See your KashiGo coins, your rides and your guides. Refunds come back here as coins you can spend on anything.</p>
                             <div className="mt-8 max-w-lg rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-                                <PhoneLogin tone="dark" defaultCode={currency === "inr" ? "+91" : "+1"} />
+                                <EmailLogin tone="dark" title="Log in" subtitle="Continue with Google, or get a one-time code by email. No password." />
                             </div>
                         </>
                     ) : (
                         <>
                             <div className="mt-4 flex flex-wrap items-end justify-between gap-6">
                                 <div>
-                                    <p className="text-white/60">{account?.name ? `Namaste, ${account.name.split(" ")[0]}` : "Namaste"} · {formatPhone(auth.phone)}</p>
+                                    <p className="text-white/60">{account?.name || auth.name ? `Namaste, ${(account?.name || auth.name || "").split(" ")[0]}` : "Namaste"} · {auth.email}</p>
                                     <h1 className="mt-2 flex items-baseline gap-3 font-display font-light text-6xl sm:text-7xl tracking-[-0.03em]">
                                         <Coins className="self-center text-marigold" size={44} />
                                         <span className="text-fire">{(account?.credits ?? 0).toLocaleString("en-IN")}</span>

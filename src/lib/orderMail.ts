@@ -13,8 +13,8 @@ export type OrderRecord = {
     created_at: string;       // ISO
     product: string;          // p1–p6, custom-boat, or a shop product id
     name: string;
-    customer_phone: string | null; // E.164 — whose KashiGo coins a refund goes to
-    phone: string;            // as typed by the customer
+    customer_email: string | null; // lower-case — whose KashiGo coins a refund goes to
+    phone: string;            // as typed by the customer, for the boatman
     email: string;
     payment_mode: string;     // cod | online_domestic | online_international | credits | razorpay | paypal
     payment_status: string;   // paid | pending | unverified
@@ -111,7 +111,7 @@ export function boatRow(r: OrderRecord) {
         ride_id: r.key, ride_date: r.ride_date ?? null, time_of_day: r.time_of_day ?? "", ghat: r.ghat ?? "",
         package_id: r.product === "custom-boat" ? "" : r.product, boat_type: "Private",
         passenger_name: r.name, passenger_phone: r.phone, passenger_email: r.email, passengers_count: r.guests ?? 1,
-        customer_phone: r.customer_phone, amount: r.amount, credits_used: r.credits_used, coupon: r.coupon,
+        customer_email: r.customer_email ?? null, amount: r.amount, credits_used: r.credits_used, coupon: r.coupon,
         payment_mode: r.payment_mode, payment_status: r.payment_status, razorpay_payment_id: r.payment_ref || null,
         custom_details: r.custom ?? null, check_notes: r.notes || null, created_at: r.created_at,
     };
@@ -119,7 +119,7 @@ export function boatRow(r: OrderRecord) {
 
 export function shopRow(r: OrderRecord) {
     return {
-        order_ref: r.key, product: r.product, customer_phone: r.customer_phone, name: r.name || null, email: r.email || null,
+        order_ref: r.key, product: r.product, customer_email: r.customer_email ?? null, name: r.name || null, phone: r.phone || null,
         provider: r.payment_mode, amount_inr: r.amount, amount_usd: r.amount_usd ?? null, credits_used: r.credits_used,
         coupon: r.coupon, created_at: r.created_at,
     };
@@ -147,7 +147,7 @@ export async function syncOrdersToDb(records: OrderRecord[]): Promise<{ added: n
                 };
                 const full = {
                     ...core, ride_date: row.ride_date, custom_details: row.custom_details, coupon: row.coupon,
-                    customer_phone: row.customer_phone, credits_used: row.credits_used,
+                    customer_email: row.customer_email, credits_used: row.credits_used,
                     check_notes: [row.check_notes, "Restored from the order email."].filter(Boolean).join(" | "),
                 };
                 let { error: insErr } = await db.from("orders").insert(full);

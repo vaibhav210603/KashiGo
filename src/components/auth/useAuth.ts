@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 
-// The phone-OTP session, shared by every component. `undefined` until the stored session has been read.
+// The login session (email code or Google), shared by every component. `undefined` until the stored session has been read.
 let session: Session | null | undefined;
 const listeners = new Set<() => void>();
 let started = false;
@@ -22,8 +22,9 @@ const subscribe = (fn: () => void) => { start(); listeners.add(fn); return () =>
 
 export function useAuth() {
     const s = useSyncExternalStore(subscribe, () => session, () => undefined);
-    const phone = s?.user?.phone ? `+${s.user.phone.replace(/^\+/, "")}` : null;
-    return { ready: s !== undefined, loggedIn: !!s, phone, signOut: () => supabaseBrowser()?.auth.signOut() };
+    const email = s?.user?.email ? s.user.email.toLowerCase() : null;
+    const name = (s?.user?.user_metadata?.full_name || s?.user?.user_metadata?.name || null) as string | null;
+    return { ready: s !== undefined, loggedIn: !!s, email, name, signOut: () => supabaseBrowser()?.auth.signOut() };
 }
 
 // Headers for our API routes: JSON plus the current access token when logged in.

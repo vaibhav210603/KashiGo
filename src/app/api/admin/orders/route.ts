@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 type Src = { email: boolean; db: boolean };
 
-// All boat bookings and shop purchases, newest first. ?q= searches ride id, name, phone, product.
+// All boat bookings and shop purchases, newest first. ?q= searches ride id, name, email, phone, product.
 // Primary source: the order emails in the owner's mailbox (works with the database paused).
 // Secondary: Supabase. Orders found only in email are copied into Supabase while we're here.
 export async function GET(req: Request) {
@@ -21,16 +21,16 @@ export async function GET(req: Request) {
             ? fetchOrdersFromMail().then((records) => ({ records, error: null as string | null })).catch((e: Error) => ({ records: [] as OrderRecord[], error: e.message }))
             : Promise.resolve({ records: [] as OrderRecord[], error: "No mailbox configured — set IMAP_* (or SMTP_*) env vars." }),
         hasServiceRole()
-            ? latest("orders", (b) => (q ? b.or(`ride_id.ilike.*${q}*,passenger_name.ilike.*${q}*,passenger_phone.ilike.*${q}*,customer_phone.ilike.*${q}*`) : b)).catch((e: Error) => ({ data: null, error: e }))
+            ? latest("orders", (b) => (q ? b.or(`ride_id.ilike.*${q}*,passenger_name.ilike.*${q}*,passenger_phone.ilike.*${q}*,passenger_email.ilike.*${q}*,customer_email.ilike.*${q}*`) : b)).catch((e: Error) => ({ data: null, error: e }))
             : Promise.resolve({ data: null, error: { message: "SUPABASE_SERVICE_ROLE_KEY isn't set." } }),
         hasServiceRole()
-            ? latest("shop_orders", (b) => (q ? b.or(`order_ref.ilike.*${q}*,name.ilike.*${q}*,email.ilike.*${q}*,customer_phone.ilike.*${q}*,product.ilike.*${q}*`) : b)).catch((e: Error) => ({ data: null, error: e }))
+            ? latest("shop_orders", (b) => (q ? b.or(`order_ref.ilike.*${q}*,name.ilike.*${q}*,phone.ilike.*${q}*,customer_email.ilike.*${q}*,product.ilike.*${q}*`) : b)).catch((e: Error) => ({ data: null, error: e }))
             : Promise.resolve({ data: null, error: { message: "SUPABASE_SERVICE_ROLE_KEY isn't set." } }),
     ]);
     const dbOk = !boats.error;
 
     const needle = q.toLowerCase();
-    const matches = (r: OrderRecord) => !needle || [r.key, r.name, r.phone, r.customer_phone, r.email, r.product].some((v) => String(v ?? "").toLowerCase().includes(needle));
+    const matches = (r: OrderRecord) => !needle || [r.key, r.name, r.phone, r.customer_email, r.email, r.product].some((v) => String(v ?? "").toLowerCase().includes(needle));
     const emailed = mail.records.filter(matches);
 
     // Copy email-only orders into the database (the database is the secondary copy).

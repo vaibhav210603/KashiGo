@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { apiGet, useAuth } from "@/components/auth/useAuth";
 
 export type Account = {
-    phone: string;
-    name: string;
     email: string;
+    name: string;
+    phone: string;
     credits: number;
     admin: boolean;
     ledger: { delta_inr: number; balance_after: number; kind: string; ref: string | null; note: string | null; created_at: string }[];
@@ -16,14 +16,14 @@ export type Account = {
 
 // The logged-in customer's profile from /api/account (null while logged out).
 export function useAccount() {
-    const { loggedIn, phone } = useAuth();
+    const { loggedIn, email } = useAuth();
     const [account, setAccount] = useState<Account | null>(null);
     const refresh = useCallback(async () => {
         if (!loggedIn) { setAccount(null); return; }
         const r = await apiGet<Account>("/api/account");
         setAccount(r.ok ? r.data : null);
     }, [loggedIn]);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on login / phone change
-    useEffect(() => { refresh(); }, [refresh, phone]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch on login / account change
+    useEffect(() => { refresh(); }, [refresh, email]);
     return { account: loggedIn ? account : null, refresh };
 }

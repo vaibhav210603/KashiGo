@@ -9,7 +9,7 @@ import { INR_PER_USD } from "@/lib/boatPrices";
 import { getRule } from "@/lib/coupons";
 import { getSession } from "@/lib/auth";
 import { finalize, prepareCheckout, refInfo, saveProfile } from "@/lib/checkout";
-import { normalizePhone } from "@/lib/phone";
+import { normalizeEmail } from "@/lib/email";
 import { orderMailParts, type OrderRecord } from "@/lib/orderMail";
 import { BOAT_RIDES, CUSTOM_RIDE, GHATS, bookingTimeProblem, rideStartMinutes, toMinutes, inr } from "@/lib/boatRides";
 import { rateLimited } from "@/lib/rateLimit";
@@ -78,7 +78,8 @@ function parseBooking(data: any): { booking: Booking; problems: string[] } {
     const guests = Math.trunc(Number(p.passengersCount));
     if (!name) problems.push("Missing passenger name.");
     if (phone.replace(/\D/g, "").length < 8) problems.push("Missing or invalid phone number.");
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) problems.push("Invalid email address.");
+    if (!email) problems.push("Add an email address — your confirmation (and any KashiGo coins) go there.");
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) problems.push("Invalid email address.");
     if (!(guests >= 1 && guests <= 20)) problems.push("Guests must be between 1 and 20.");
 
     const paymentMode: PayMode = PAY_MODES.includes(data?.paymentMode) ? data.paymentMode : "cod";
@@ -160,10 +161,10 @@ async function verifyPayment(b: Booking): Promise<Verified> {
 // One email to the owner for every booking, with everything needed to run the ride.
 // The order as data, attached to the owner email so the admin panel can read orders from the mailbox
 // even when the database is unavailable (see lib/orderMail.ts).
-function orderRecord(b: Booking, rideId: string, v: Verified, notes: string[], customerPhone: string | null): OrderRecord {
+function orderRecord(b: Booking, rideId: string, v: Verified, notes: string[], customerEmail: string | null): OrderRecord {
     return {
         v: 1, kind: "boat", key: rideId, created_at: new Date().toISOString(), product: b.product,
-        name: b.name, customer_phone: customerPhone, phone: b.phone, email: b.email,
+        name: b.name, customer_email: customerEmail, phone: b.phone, email: b.email,
         payment_mode: b.paymentMode, payment_status: v.status, payment_ref: b.paymentRef, amount: v.amount,
         credits_used: v.credits, coupon: b.coupon || null, notes: notes.join(" | "),
         ghat: b.ghat, ride_date: b.rideDate, time_of_day: b.timeOfDay, guests: b.guests, custom: b.custom,
@@ -197,7 +198,7 @@ async function notifyOwner(subject: string, b: Booking, rideId: string, v: Verif
     }
 }
 
-async function saveOrder(b: Booking, rideId: string, v: Verified, notes: string[], customerPhone: string | null) {
+async function saveOrder(b: Booking, rideId: string, v: Verified, notes: string[], customerEmail: string | null) {
     const base = {
         ride_id: rideId,
         ghat: b.ghat,
@@ -215,7 +216,7 @@ async function saveOrder(b: Booking, rideId: string, v: Verified, notes: string[
     };
     const full = {
         ...base, ride_date: b.rideDate, custom_details: b.custom, coupon: b.coupon || null, check_notes: notes.join(" | ") || null,
-        customer_phone: customerPhone, credits_used: v.credits,
+        customer_email: customerEmail, credits_used: v.credits,
     };
     let { error } = await supabase.from("orders").insert([full]);
     // Columns from supabase/orders_booking_fields.sql / accounts_credits_admin.sql not added yet: save what the table has,
@@ -246,9 +247,9 @@ export async function POST(req: Request) {
     }
 
     const rideId = `KASHI-${crypto.randomInt(0, 1_000_000).toString().padStart(6, "0")}`;
-    // The profile is keyed by the logged-in phone when there is one, else the passenger phone typed in.
+    // The profile is keyed by the logged-in email when there is one, else the email typed in.
     const session = await getSession(req);
-    const customerPhone = session?.phone ?? normalizePhone(b.phone);
+    const customerEmail = session?.email ?? normalizeEmail(b.email);
 
     let verified: Verified;
     if (b.paymentMode === "credits") {
@@ -264,11 +265,11 @@ export async function POST(req: Request) {
         verified = await verifyPayment(b);
     }
     if (verified.status === "paid" && verified.ref) await finalize(verified.ref);
-    await saveProfile(customerPhone, b.name, b.email);
+    await saveProfile(customerEmail, b.name, b.phone);
     const notes = [...problems, ...(verified.note ? [verified.note] : [])];
 
     try {
-        const dbError = await saveOrder(b, rideId, verified, notes, customerPhone);
+        const dbError = await saveOrder(b, rideId, verified, notes, customerEmail);
         if (dbError?.code === "23505") {
             // This payment is already attached to a booking (double submit or a reused payment).
             await notifyOwner(`⚠️ Payment ${b.paymentRef} submitted again — check bookings`, b, rideId, verified, ["This payment reference is already on another booking. No new booking was saved."]);
@@ -280,7 +281,7 @@ export async function POST(req: Request) {
         }
 
         const tag = notes.length ? "⚠️ " : "";
-        await notifyOwner(`${tag}New booking ${rideId} · ${b.rideDate} · ${b.timeOfDay} · ${b.rideName}`, b, rideId, verified, notes, orderRecord(b, rideId, verified, notes, customerPhone));
+        await notifyOwner(`${tag}New booking ${rideId} · ${b.rideDate} · ${b.timeOfDay} · ${b.rideName}`, b, rideId, verified, notes, orderRecord(b, rideId, verified, notes, customerEmail));
 
         if (b.email) {
             try {
@@ -303,7 +304,7 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error("Booking Error:", error);
         const errNotes = [...notes, error?.message || "Unknown error"];
-        await notifyOwner(`⚠️ Booking ${rideId} hit an error — follow up`, b, rideId, verified, errNotes, orderRecord(b, rideId, verified, errNotes, customerPhone));
+        await notifyOwner(`⚠️ Booking ${rideId} hit an error — follow up`, b, rideId, verified, errNotes, orderRecord(b, rideId, verified, errNotes, customerEmail));
         // Still confirm to the customer: if they paid, the owner has everything needed to honour it.
         return NextResponse.json({ success: true, rideId, message: "Ride booked!" });
     }

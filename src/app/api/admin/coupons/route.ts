@@ -28,7 +28,7 @@ function clean(body: any, creating: boolean): { row?: Record<string, unknown>; e
         if (!scopes.length || !scopes.every((s: string) => SCOPES.test(s))) return { error: "Unknown 'applies to' value." };
         row.applies_to = scopes;
     }
-    for (const k of ["max_uses", "per_phone_limit"]) {
+    for (const k of ["max_uses", "per_customer_limit"]) {
         if (body[k] !== undefined) {
             const n = body[k] === null || body[k] === "" ? null : Math.trunc(Number(body[k]));
             if (n !== null && !(n > 0)) return { error: "Limits must be blank (unlimited) or a number above 0." };
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { row, error } = clean(body, true);
     if (error) return NextResponse.json({ error }, { status: 400 });
-    const { data, error: dbError } = await supabaseAdmin().from("coupons").insert({ ...row, active: row!.active ?? true, created_by: admin.phone }).select().single();
+    const { data, error: dbError } = await supabaseAdmin().from("coupons").insert({ ...row, active: row!.active ?? true, created_by: admin.email }).select().single();
     if (dbError) return NextResponse.json({ error: dbError.code === "23505" ? "A coupon with that code already exists." : dbError.message }, { status: 400 });
     return NextResponse.json({ coupon: data });
 }

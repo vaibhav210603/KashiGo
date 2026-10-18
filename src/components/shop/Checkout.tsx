@@ -8,10 +8,9 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import type { ShopProduct } from "@/lib/products";
 import { track } from "@/lib/analytics";
 import { INR_PER_USD } from "@/lib/boatPrices";
-import { formatPhone, normalizePhone } from "@/lib/phone";
 import { apiPost, useAuth } from "@/components/auth/useAuth";
 import { useAccount } from "@/components/auth/useAccount";
-import PhoneLogin from "@/components/auth/PhoneLogin";
+import EmailLogin from "@/components/auth/EmailLogin";
 
 type Dl = { label: string; url: string };
 
@@ -25,15 +24,16 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
     const [error, setError] = useState("");
     const [downloads, setDownloads] = useState<Dl[] | null>(null);
     const [received, setReceived] = useState(false);
-    const [phone, setPhone] = useState("");
     const [showLogin, setShowLogin] = useState(false);
     const [useCoins, setUseCoins] = useState(true);
     const auth = useAuth();
     const { account } = useAccount();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    // Every buyer's mobile number is saved with the order — refunds come back to it as KashiGo coins.
-    const buyerPhone = auth.phone ?? normalizePhone(phone);
-    const ready = emailOk && !!buyerPhone;
+    // The buyer's email is saved with the order (logged-in email if there is one) — refunds come back to it as KashiGo coins.
+    const ready = emailOk;
+    // Logged in: use their account email unless they've typed one.
+    const [filled, setFilled] = useState(false);
+    if (auth.email && !filled) { setFilled(true); if (!email) setEmail(auth.email); }
     const coupon = rate > 0 ? code : undefined;
 
     const codeInr = Math.round(product.inr * (1 - rate));
@@ -49,7 +49,7 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
     const applyCode = async () => {
         const c = code.trim().toUpperCase();
         try {
-            if (!auth.loggedIn) { setShowLogin(true); setRate(0); setCodeMsg("Log in with your phone number to use a code."); return; }
+            if (!auth.loggedIn) { setShowLogin(true); setRate(0); setCodeMsg("Log in to use a code."); return; }
             const { data } = await apiPost("/api/coupon", { product: product.id, code: c });
             if (data.valid) { setRate(data.rate); setCodeMsg(`${Math.round(data.rate * 100)}% off applied`); return; }
             if (data.message) { setRate(0); setCodeMsg(data.message); return; }
@@ -58,7 +58,7 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
     };
 
     const deliver = async (payload: Record<string, string>) => {
-        const { data } = await apiPost("/api/shop/deliver", { product: product.id, email, name, phone: buyerPhone, coupon, ...payload });
+        const { data } = await apiPost("/api/shop/deliver", { product: product.id, email, name, coupon, ...payload });
         if (payload.provider === "credits" && !data.success && data.message) { setError(data.message); return; }
         // Paid but files couldn't be released automatically: the owner has been alerted and sends them by email.
         if (!data.success) { setReceived(true); return; }
@@ -82,7 +82,7 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
             const rzp = new (window as any).Razorpay({
                 key: o.keyId, amount: o.amount, currency: o.currency, order_id: o.orderId,
                 name: "KashiGo", description: product.name, image: "/icon.png",
-                prefill: { email, name, contact: buyerPhone || "" }, theme: { color: "#f97316" },
+                prefill: { email, name }, theme: { color: "#f97316" },
                 handler: async (r: any) => {
                     try { await deliver({ provider: "razorpay", razorpay_order_id: r.razorpay_order_id, razorpay_payment_id: r.razorpay_payment_id, razorpay_signature: r.razorpay_signature }); }
                     catch { setReceived(true); }
@@ -144,13 +144,11 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
                         <div className="space-y-2">
                             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="First name" className="w-full border border-slate-200 rounded-2xl px-4 h-12 text-[16px] outline-none focus:border-orange-400 bg-white text-slate-900 placeholder:text-slate-400" />
                             <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email (we send your download here)" className="w-full border border-slate-200 rounded-2xl px-4 h-12 text-[16px] outline-none focus:border-orange-400 bg-white text-slate-900 placeholder:text-slate-400" />
-                            {auth.loggedIn ? (
-                                <p className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 h-12 text-sm text-slate-600">
-                                    <span>Mobile <b className="text-slate-900">{formatPhone(auth.phone)}</b></span>
-                                    <button type="button" onClick={() => { auth.signOut(); setRate(0); setCodeMsg(""); }} className="text-slate-500 underline">Log out</button>
+                            {auth.loggedIn && (
+                                <p className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 h-12 text-sm text-slate-600">
+                                    <span className="min-w-0 truncate">Logged in as <b className="text-slate-900">{auth.email}</b></span>
+                                    <button type="button" onClick={() => { auth.signOut(); setRate(0); setCodeMsg(""); }} className="shrink-0 text-slate-500 underline">Log out</button>
                                 </p>
-                            ) : (
-                                <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" inputMode="tel" autoComplete="tel" placeholder="Mobile number, with country code (+44…)" className="w-full border border-slate-200 rounded-2xl px-4 h-12 text-[16px] outline-none focus:border-orange-400 bg-white text-slate-900 placeholder:text-slate-400" />
                             )}
                         </div>
                         {auth.loggedIn ? (
@@ -162,10 +160,10 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
                                 </label>
                             )
                         ) : showLogin ? (
-                            <div className="rounded-2xl border border-slate-200 p-4"><PhoneLogin defaultCode={region === "inr" ? "+91" : "+1"} subtitle="Unlocks discount codes and your KashiGo coins." onDone={() => { setShowLogin(false); setCodeMsg(""); }} /></div>
+                            <div className="rounded-2xl border border-slate-200 p-4"><EmailLogin defaultEmail={email} title="Log in to use a code or coins" subtitle="Google or a one-time email code — no password." onDone={() => { setShowLogin(false); setCodeMsg(""); }} /></div>
                         ) : (
                             <button type="button" onClick={() => setShowLogin(true)} className="flex w-full items-center gap-2 text-left text-sm text-slate-600">
-                                <Coins size={16} className="text-amber-500" /> Have a code or KashiGo coins? <span className="font-semibold text-orange-600">Log in with your phone</span>
+                                <Coins size={16} className="text-amber-500" /> Have a code or KashiGo coins? <span className="font-semibold text-orange-600">Log in</span>
                             </button>
                         )}
                         <div className="flex gap-2">
@@ -176,7 +174,7 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
                             <button onClick={applyCode} className="px-5 h-12 rounded-2xl bg-slate-100 font-semibold text-sm">Apply</button>
                         </div>
                         {codeMsg && <p className={`text-xs ${rate > 0 ? "text-green-600" : "text-red-500"}`}>{codeMsg}</p>}
-                        {!ready && <p className="text-xs text-slate-500">{!emailOk ? "Enter your email to continue." : "Enter your mobile number (with country code) to continue."}</p>}
+                        {!ready && <p className="text-xs text-slate-500">Enter your email to continue.</p>}
                         <div className={ready ? "" : "opacity-40 pointer-events-none"}>
                             {coversAll ? (
                                 <button onClick={payWithCoins} disabled={busy} className="w-full bg-orange-500 hover:bg-orange-600 text-white h-14 rounded-full font-bold shadow-lg shadow-orange-500/30 disabled:opacity-60">
