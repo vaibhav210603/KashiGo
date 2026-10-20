@@ -3,7 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { AlertTriangle, Backpack, BadgeIndianRupee, CalendarDays, Clock, Globe, LifeBuoy, MapPin, Phone, ShieldCheck, Sunrise, Users } from "lucide-react";
-import { quoteTotal, type Quote } from "@/lib/quotes";
+import { CHILD_FREE_UNDER, CHILD_JACKET_INR, quoteTotal, travellersOf, type Quote } from "@/lib/quotes";
 import { getQuote } from "@/lib/quoteStore";
 import { paidQuoteOrder } from "@/lib/quotePayments";
 import QuotePay from "./QuotePay";
@@ -75,6 +75,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
     const journeyDate = fmt(q.ride.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     const CARRY = carryList(q);
     const CAREFUL = carefulList(q);
+    const people = travellersOf(q);
 
     return (
         <div data-quote-doc className="bg-night min-h-screen print:bg-white">
@@ -152,15 +153,16 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                                     <p className="text-sm text-night/65 mt-0.5">{q.ride.route}. Can&apos;t find us? Call +91 81759 66910 and we&apos;ll guide you to the boat.</p>
                                 </div>
                             </div>
-                            {q.passengers && q.passengers.length > 0 && (
+                            {people.length > 0 && (
                                 <div className="mt-4 rounded-2xl bg-white/70 ring-1 ring-sandstone/40 p-5">
-                                    <p className="flex items-center gap-2 font-heading font-bold"><Users className="text-fire" size={20} /> Passengers ({q.passengers.length})</p>
+                                    <p className="flex items-center gap-2 font-heading font-bold"><Users className="text-fire" size={20} /> Passengers ({people.length})</p>
                                     <ol className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-2">
-                                        {q.passengers.map((p, i) => (
+                                        {people.map((p, i) => (
                                             <li key={i} className="flex items-center gap-3">
                                                 <span className="h-7 w-7 rounded-full bg-marigold/20 text-fire grid place-items-center text-xs font-bold shrink-0">{i + 1}</span>
-                                                <span className={i === 0 ? "font-heading font-bold" : "text-night/80"}>{p}</span>
+                                                <span className={i === 0 ? "font-heading font-bold" : "text-night/80"}>{p.name}</span>
                                                 {i === 0 && <span className="rounded-full bg-fire/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-fire">Lead</span>}
+                                                {p.child && <span className="rounded-full bg-ganga/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-ganga">Under {CHILD_FREE_UNDER}</span>}
                                             </li>
                                         ))}
                                     </ol>
@@ -213,8 +215,14 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                                         ))}
                                         <tr className="border-t border-sandstone/30 text-sm text-night/60">
                                             <td />
-                                            <td className="px-2 py-3">Taxes, boatman &amp; life jackets</td>
+                                            <td className="px-2 py-3">Taxes, boatman &amp; adult life jackets</td>
                                             <td className="px-5 sm:px-6 py-3 text-right">Included</td>
+                                        </tr>
+                                        <tr className="border-t border-sandstone/30 text-sm bg-ganga/5">
+                                            <td />
+                                            <td className="px-2 py-3 text-night/75" colSpan={2}>
+                                                <b className="text-night">Children under {CHILD_FREE_UNDER} ride free</b> — you only pay {inr(CHILD_JACKET_INR)} for their life jacket. Every adult fare already includes the life jacket.
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>

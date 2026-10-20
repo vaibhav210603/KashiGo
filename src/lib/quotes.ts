@@ -13,7 +13,7 @@ export type Quote = {
     issued: string;      // ISO date
     validUntil: string;  // shown to the customer
     customer: { name: string; phone?: string; email?: string }; // the lead passenger — the name on top of the quotation
-    passengers?: string[];   // everyone travelling, lead passenger first
+    passengers?: (string | QuoteTraveller)[]; // everyone travelling, lead passenger first (plain names on older quotes)
     ride: {
         packageId: string;   // p1–p6 or "custom"
         title: string;
@@ -33,6 +33,12 @@ export type Quote = {
     lines: QuoteLine[];
     builder?: QuoteBuilder; // lets the customer shape the quote on the page before paying
 };
+
+// A passenger on an admin-made quote. Children under 6 ride free and pay only for their life jacket.
+export type QuoteTraveller = { name: string; child?: boolean };
+export const CHILD_FREE_UNDER = 6;
+export const CHILD_JACKET_INR = 150;
+export const travellersOf = (q: Pick<Quote, "passengers">): QuoteTraveller[] => (q.passengers ?? []).map((p) => (typeof p === "string" ? { name: p } : p));
 
 export type QuoteAddOn = { id: string; label: string; detail: string; amountInr: number; max: number };
 
@@ -244,6 +250,28 @@ export function defaultLines(p: QuotePackage, ghat: string, priceInr: number, gu
     const lines: QuoteLine[] = [{ label: p.title, detail: `${ghat} · ${withReturn ? "one way" : "private ride"} · private boat with boatman${people}`, amountInr: priceInr }];
     if (withReturn) lines.push({ label: `Return journey to ${ghat}`, detail: "50% of the journey fare", amountInr: returnFareInr(priceInr) });
     return lines;
+}
+
+// The admin generator's bill. "boat": one price for the boat; "passenger": a price per adult (life jacket included).
+// Either way each child under 6 rides free and pays CHILD_JACKET_INR for a life jacket.
+export function passengerLines(opts: {
+    pkg: QuotePackage; ghat: string; mode: "boat" | "passenger"; boatPriceInr: number; withReturn: boolean;
+    people: { name: string; child: boolean; priceInr: number }[];
+}): QuoteLine[] {
+    const { pkg, ghat, mode, boatPriceInr, withReturn, people } = opts;
+    const kids = people.filter((p) => p.child);
+    const kidNote = kids.length ? ` (${kids.length} under ${CHILD_FREE_UNDER})` : "";
+    const jacket = (p: { name: string }, i: number) => ({ label: `${p.name || `Child ${i + 1}`} — child under ${CHILD_FREE_UNDER}`, detail: `Rides free · life jacket only`, amountInr: CHILD_JACKET_INR });
+    if (mode === "boat") {
+        const lines = defaultLines(pkg, ghat, boatPriceInr, 0, withReturn);
+        lines[0] = { ...lines[0], detail: `${lines[0].detail} · ${people.length} passenger${people.length === 1 ? "" : "s"}${kidNote}` };
+        return [...lines, ...kids.map(jacket)];
+    }
+    const adults = people.filter((p) => !p.child);
+    const adultSum = adults.reduce((s, p) => s + p.priceInr, 0);
+    const lines: QuoteLine[] = adults.map((p, i) => ({ label: p.name || `Passenger ${i + 1}`, detail: `Adult · ${pkg.title} · life jacket included`, amountInr: p.priceInr }));
+    if (withReturn && adultSum > 0) lines.push({ label: `Return journey to ${ghat}`, detail: "50% of the adult fares", amountInr: returnFareInr(adultSum) });
+    return [...lines, ...kids.map(jacket)];
 }
 
 export const defaultRoute = (ghat: string) => `${ghat} → along the ghats → back to ${ghat}`;

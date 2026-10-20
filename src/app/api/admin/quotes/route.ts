@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/adminApi";
 import { istNow, toMinutes } from "@/lib/boatRides";
-import { quotePackage, quoteTotal, slotFor, type Quote } from "@/lib/quotes";
+import { quotePackage, quoteTotal, slotFor, type Quote, type QuoteTraveller } from "@/lib/quotes";
 import { deleteQuote, listQuotes, quoteIdTaken, saveQuote } from "@/lib/quoteStore";
 import { isQuotePaid } from "@/lib/quotePayments";
 
@@ -13,10 +13,12 @@ function clean(b: any): { quote?: Omit<Quote, "id">; error?: string } {
     const pkg = quotePackage(String(b?.packageId ?? ""));
     if (!pkg) return { error: "Pick a package." };
     // Lead passenger first; blank names further down are kept as "Guest N" so the head count stays right.
-    const named = (Array.isArray(b.passengers) ? b.passengers : [b.name]).slice(0, 20).map((p: unknown) => text(p, 80));
-    const name = named[0] || text(b.name, 80);
+    // Each passenger is a name or { name, child }; children under 6 are flagged so the quote shows it. The lead is never a child.
+    const raw: { name: string; child: boolean }[] = (Array.isArray(b.passengers) ? b.passengers : [b.name]).slice(0, 20)
+        .map((p: unknown) => (typeof p === "object" && p ? { name: text((p as { name?: unknown }).name, 80), child: Boolean((p as { child?: unknown }).child) } : { name: text(p, 80), child: false }));
+    const name = raw[0]?.name || text(b.name, 80);
     if (name.length < 2) return { error: "Enter the lead passenger's name." };
-    const passengers = [name, ...named.slice(1).map((p: string, i: number) => p || `Guest ${i + 2}`)];
+    const passengers: QuoteTraveller[] = [{ name }, ...raw.slice(1).map((p, i) => (p.child ? { name: p.name || `Child ${i + 2}`, child: true } : { name: p.name || `Guest ${i + 2}` }))];
     const date = String(b.date ?? "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date))) return { error: "Pick the ride date." };
     const startTime = text(b.startTime, 12);

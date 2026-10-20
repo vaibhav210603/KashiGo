@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Copy, Download, ExternalLink, Loader2, MessageCircle, Plus, RefreshCw, RotateCcw, Trash2, X } from "lucide-react";
 import { apiGet, apiPost, authHeaders } from "@/components/auth/useAuth";
 import { GHATS, addDaysIso, istNow, toMinutes } from "@/lib/boatRides";
-import { QUOTE_PACKAGES, defaultItinerary, defaultLines, defaultRoute, defaultValidUntil, quotePackage, shiftTime, type Quote } from "@/lib/quotes";
+import { CHILD_JACKET_INR, QUOTE_PACKAGES, defaultItinerary, defaultRoute, defaultValidUntil, passengerLines, quotePackage, shiftTime, type Quote } from "@/lib/quotes";
 
 const rupees = (n: number) => `${n < 0 ? "− " : ""}₹${Math.abs(Math.round(n)).toLocaleString("en-IN")}`;
 const pretty = (t: string) => shiftTime(t, 0); // "18:30" → "6:30 PM"
@@ -15,6 +15,7 @@ const pdfUrl = (id: string) => `/quote/${id}?pdf=1&download=1`;
 const field = "h-11 w-full rounded-xl border border-white/15 bg-white/5 px-3 outline-none focus:border-marigold";
 
 type Row = { quote: Quote; createdAt: string; createdBy: string | null; paidAt: string | null; total: number; paid: boolean };
+type Person = { name: string; child: boolean; price: string };
 type Extra = { label: string; amount: string; discount: boolean };
 
 export default function Quotes() {
@@ -124,9 +125,14 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
     });
     const [extras, setExtras] = useState<Extra[]>([]);
     // Everyone travelling; the first is the lead passenger, whose name heads the quotation.
-    const [passengers, setPassengers] = useState<string[]>(["", ""]);
-    const setCount = (n: number) => setPassengers((ps) => Array.from({ length: Math.max(1, Math.min(20, n)) }, (_, i) => ps[i] ?? ""));
-    const lead = passengers[0].trim();
+    // Each has an optional price (used when charging per passenger); children under 6 ride free and pay only the life jacket.
+    const [passengers, setPassengers] = useState<Person[]>([{ name: "", child: false, price: "" }, { name: "", child: false, price: "" }]);
+    const [mode, setMode] = useState<"boat" | "passenger">("boat");
+    const setCount = (n: number) => setPassengers((ps) => Array.from({ length: Math.max(1, Math.min(20, n)) }, (_, i) => ps[i] ?? { name: "", child: false, price: ps.findLast((p) => !p.child)?.price ?? "" }));
+    const setPerson = (i: number, patch: Partial<Person>) => setPassengers((ps) => ps.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+    const setAllAdults = (price: string) => setPassengers((ps) => ps.map((x) => (x.child ? x : { ...x, price })));
+    const lead = passengers[0].name.trim();
+    const kids = passengers.filter((p) => p.child).length;
     // Wording that's filled in automatically until the admin edits it; null = automatic.
     const [own, setOwn] = useState<{ title: string | null; route: string | null; validUntil: string | null; intro: string | null; itinerary: { time: string; what: string }[] | null }>({ title: null, route: null, validUntil: null, intro: null, itinerary: null });
     const [note, setNote] = useState("");
@@ -147,9 +153,9 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
     const price = Math.round(Number(f.price) || 0);
     const guests = passengers.length;
     const lines = useMemo(() => [
-        ...defaultLines(pkg, f.ghat, price, guests, f.withReturn),
+        ...passengerLines({ pkg, ghat: f.ghat, mode, boatPriceInr: price, withReturn: f.withReturn, people: passengers.map((p) => ({ name: p.name.trim(), child: p.child, priceInr: Math.round(Number(p.price) || 0) })) }),
         ...extras.filter((e) => e.label.trim() && Number(e.amount)).map((e) => ({ label: e.label.trim(), detail: "", amountInr: (e.discount ? -1 : 1) * Math.round(Math.abs(Number(e.amount))) })),
-    ], [pkg, f.ghat, price, guests, f.withReturn, extras]);
+    ], [pkg, f.ghat, price, mode, passengers, f.withReturn, extras]);
     const total = lines.reduce((s, l) => s + l.amountInr, 0);
     const auto = {
         title: pkg.title,
@@ -165,7 +171,7 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
     const submit = async () => {
         setError(""); setBusy(true);
         const r = await apiPost("/api/admin/quotes", {
-            name: lead, passengers: passengers.map((p) => p.trim()), phone: f.phone, email: f.email, packageId: f.packageId, date: f.date, startTime, reportTime, ghat: f.ghat, guests,
+            name: lead, passengers: passengers.map((p) => ({ name: p.name.trim(), child: p.child })), phone: f.phone, email: f.email, packageId: f.packageId, date: f.date, startTime, reportTime, ghat: f.ghat, guests,
             title: val("title"), route: val("route"), validUntil: val("validUntil"), intro: val("intro"), itinerary, lines, note,
         });
         setBusy(false);
@@ -173,7 +179,8 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
         onCreated(r.data.quote);
     };
 
-    const ready = lead.length >= 2 && f.date && f.start && f.report && f.ghat && total >= 1;
+    const missingPrice = mode === "passenger" && passengers.some((p) => !p.child && !(Number(p.price) > 0));
+    const ready = lead.length >= 2 && !missingPrice && f.date && f.start && f.report && f.ghat && total >= 1;
 
     return (
         <div className="mt-6 rounded-3xl border border-marigold/30 bg-white/[0.04] p-5 sm:p-6">
@@ -187,16 +194,41 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
                         <span className="w-10 text-center text-lg font-semibold tabular-nums">{passengers.length}</span>
                         <button type="button" onClick={() => setCount(passengers.length + 1)} disabled={passengers.length >= 20} aria-label="One passenger more" className="h-11 w-11 text-xl text-white/75 hover:text-white disabled:opacity-30">+</button>
                     </div>
-                </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    {passengers.map((p, i) => (
-                        <label key={i} className="text-sm">
-                            <span className={i === 0 ? "text-marigold font-semibold" : "text-white/60"}>{i === 0 ? "Lead passenger * — name on top of the quotation" : `Passenger ${i + 1}`}</span>
-                            <input value={p} onChange={(e) => setPassengers((ps) => ps.map((x, j) => (j === i ? e.target.value : x)))} placeholder={i === 0 ? "KrishnaKant Joshi" : "Full name"}
-                                className={`${field} mt-1 ${i === 0 ? "border-marigold/50" : ""}`} />
+                    <span className="text-sm text-white/60 sm:ml-4">Charge</span>
+                    <div className="inline-flex rounded-full border border-white/15 p-1">
+                        {([["boat", "For the whole boat"], ["passenger", "Per passenger"]] as const).map(([m, label]) => (
+                            <button key={m} type="button" onClick={() => setMode(m)} className={`h-9 px-4 rounded-full text-sm font-medium ${mode === m ? "bg-white text-night" : "text-white/70 hover:text-white"}`}>{label}</button>
+                        ))}
+                    </div>
+                    {mode === "passenger" && (
+                        <label className="inline-flex items-center gap-2 text-sm text-white/60">Every adult ₹
+                            <input inputMode="numeric" placeholder="e.g. 600" onChange={(e) => setAllAdults(e.target.value.replace(/\D/g, ""))} className="h-9 w-24 rounded-xl border border-white/15 bg-white/5 px-3 outline-none focus:border-marigold text-white" />
                         </label>
+                    )}
+                </div>
+                <div className="mt-4 grid gap-3">
+                    {passengers.map((p, i) => (
+                        <div key={i} className={`grid gap-2 items-end ${mode === "passenger" ? "grid-cols-[1fr_auto_8rem]" : "grid-cols-[1fr_auto]"}`}>
+                            <label className="text-sm">
+                                <span className={i === 0 ? "text-marigold font-semibold" : "text-white/60"}>{i === 0 ? "Lead passenger * — name on top of the quotation" : `Passenger ${i + 1}`}</span>
+                                <input value={p.name} onChange={(e) => setPerson(i, { name: e.target.value })} placeholder={i === 0 ? "KrishnaKant Joshi" : "Full name"}
+                                    className={`${field} mt-1 ${i === 0 ? "border-marigold/50" : ""}`} />
+                            </label>
+                            {i === 0 ? <span className="h-11 w-[7.5rem]" /> : (
+                                <button type="button" onClick={() => setPerson(i, { child: !p.child })} aria-pressed={p.child}
+                                    className={`h-11 w-[7.5rem] rounded-xl border text-sm ${p.child ? "border-ganga bg-ganga/20 text-white" : "border-white/15 text-white/60 hover:text-white"}`}>
+                                    {p.child ? "✓ Under 6" : "Child under 6?"}
+                                </button>
+                            )}
+                            {mode === "passenger" && (p.child
+                                ? <p className="h-11 flex flex-col justify-center text-xs leading-tight text-ganga">Free ride<br />+ ₹{CHILD_JACKET_INR} jacket</p>
+                                : <label className="text-sm"><span className="text-white/60">Price ₹</span>
+                                    <input value={p.price} onChange={(e) => setPerson(i, { price: e.target.value.replace(/\D/g, "") })} inputMode="numeric" placeholder="₹" className={`${field} mt-1 ${!(Number(p.price) > 0) ? "border-ember/50" : ""}`} />
+                                </label>)}
+                        </div>
                     ))}
                 </div>
+                <p className="mt-3 text-xs text-white/50">Children under 6 ride free — only the ₹{CHILD_JACKET_INR} life jacket is charged. Adult prices already include the life jacket.{kids ? ` ${kids} child${kids === 1 ? "" : "ren"} on this quote.` : ""}</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <label className="text-sm"><span className="text-white/60">Lead passenger&apos;s WhatsApp / phone</span><input value={f.phone} onChange={(e) => set("phone", e.target.value)} inputMode="tel" placeholder="98765 43210" className={`${field} mt-1`} /></label>
                     <label className="text-sm"><span className="text-white/60">Email (gets the payment confirmation)</span><input value={f.email} onChange={(e) => set("email", e.target.value)} inputMode="email" placeholder="optional" className={`${field} mt-1`} /></label>
@@ -228,13 +260,14 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
             </Step>
 
             <Step n="3" title="Price">
-                <div className="grid gap-4 sm:grid-cols-[14rem_1fr] items-end">
-                    <label className="text-sm"><span className="text-white/60">Ride price (₹)</span><input value={f.price} onChange={(e) => set("price", e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={`${field} mt-1 text-lg font-semibold`} /></label>
+                <div className={`grid gap-4 items-end ${mode === "boat" ? "sm:grid-cols-[14rem_1fr]" : ""}`}>
+                    {mode === "boat" && <label className="text-sm"><span className="text-white/60">Boat price (₹)</span><input value={f.price} onChange={(e) => set("price", e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={`${field} mt-1 text-lg font-semibold`} /></label>}
                     <label className="inline-flex items-center gap-3 text-sm cursor-pointer h-11">
                         <input type="checkbox" checked={f.withReturn} onChange={(e) => set("withReturn", e.target.checked)} className="h-5 w-5 accent-marigold" />
-                        Add the return journey (50%, total rounded up to ₹100)
+                        Add the return journey (50%{mode === "passenger" ? " of the adult fares" : ""}, total rounded up to ₹100)
                     </label>
                 </div>
+                {missingPrice && <p className="mt-2 text-sm text-ember">Enter a price for every adult passenger (step 1).</p>}
                 {extras.map((x, i) => (
                     <div key={i} className="mt-3 grid gap-2 grid-cols-[1fr_8rem_auto_auto] items-center">
                         <input value={x.label} onChange={(e) => setExtras((xs) => xs.map((y, j) => (j === i ? { ...y, label: e.target.value } : y)))} placeholder={x.discount ? "Discount — e.g. Returning guest" : "Extra — e.g. Flowers & diyas"} className={field} />
