@@ -46,3 +46,13 @@ export function money(inrAmount: number, currency: Currency): string {
 export function priced(inrAmount: number, usdAmount: number, currency: Currency): string {
     return currency === "inr" ? `₹${inrAmount.toLocaleString("en-IN")}` : `$${usdAmount.toFixed(2)}`;
 }
+
+// True once the visitor has picked a currency themselves (the first-visit prompt, or the header switch).
+export function hasChosenCurrency(): boolean {
+    try {
+        const saved = localStorage.getItem(KEY);
+        return saved === "inr" || saved === "usd";
+    } catch {
+        return true; // storage blocked: don't nag on every page
+    }
+}

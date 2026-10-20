@@ -4,6 +4,7 @@ import Header from "@/components/layout/Header";
 import PromoStrip from "@/components/layout/PromoStrip";
 import Footer from "@/components/layout/Footer";
 import MobileActionBar from "@/components/layout/MobileActionBar";
+import CurrencyPrompt from "@/components/layout/CurrencyPrompt";
 import "./globals.css";
 import Script from "next/script";
 import AnalyticsEvents from "@/components/analytics/AnalyticsEvents";
@@ -168,6 +169,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <MobileActionBar />
+        <CurrencyPrompt />
         <AnalyticsEvents />
         <SmoothScroll />
       </body>
