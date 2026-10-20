@@ -14,3 +14,9 @@ export const BOAT_PRICES_INR = {
 
 // Fixed conversion used for USD (PayPal) charges and USD price display, so what's shown is what's billed.
 export const INR_PER_USD = 83;
+
+// Every fixed package also pays for the boat's journey back to the start ghat: 50% of the ride price,
+// with the total rounded up to the next ₹100 (₹1,660 ride → ₹840 return → ₹2,500 total).
+// The custom ride is excluded: its round-trip / one-way choice already covers the way back.
+export const rideTotalInr = (ridePrice: number) => Math.ceil((ridePrice * 1.5) / 100) * 100;
+export const returnFareInr = (ridePrice: number) => rideTotalInr(ridePrice) - ridePrice;

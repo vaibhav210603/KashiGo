@@ -1,6 +1,6 @@
 // Server-side price catalog. Payment routes must NEVER trust a client-sent amount —
 // all prices are resolved here from the product id (and a coupon rule from lib/coupons).
-import { BOAT_PRICES_INR, INR_PER_USD } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, INR_PER_USD, rideTotalInr } from "@/lib/boatPrices";
 
 export type ProductId =
     | "guide"
@@ -19,12 +19,12 @@ const INR_PRICES: Record<ProductId, number> = {
     "complete-bundle": 1699,
     "india-tour": 2374,
     "custom-boat": BOAT_PRICES_INR.custom,
-    p1: BOAT_PRICES_INR.p1,
-    p2: BOAT_PRICES_INR.p2,
-    p3: BOAT_PRICES_INR.p3,
-    p4: BOAT_PRICES_INR.p4,
-    p5: BOAT_PRICES_INR.p5,
-    p6: BOAT_PRICES_INR.p6,
+    p1: rideTotalInr(BOAT_PRICES_INR.p1), // ride + return journey
+    p2: rideTotalInr(BOAT_PRICES_INR.p2), // ride + return journey
+    p3: rideTotalInr(BOAT_PRICES_INR.p3), // ride + return journey
+    p4: rideTotalInr(BOAT_PRICES_INR.p4), // ride + return journey
+    p5: rideTotalInr(BOAT_PRICES_INR.p5), // ride + return journey
+    p6: rideTotalInr(BOAT_PRICES_INR.p6), // ride + return journey
 };
 
 // Products sold with their own dollar price. Everything else (boat rides) converts at INR_PER_USD.

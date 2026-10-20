@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Check, Minus, Plus, Phone, Headphones, Wallet, Smartphone, Globe, Tag, Coins, LogOut } from "lucide-react";
-import { BOAT_PRICES_INR } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, returnFareInr, rideTotalInr } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, BOOKING_WINDOW_DAYS } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
 import { money, useCurrency } from "@/lib/currency";
@@ -113,7 +113,10 @@ export default function BookingFlow() {
     const selectedDate = date && date >= todayIso ? date : todayIso;
 
     const selected = RIDES_BY_POPULARITY.find((r) => r.id === ride);
-    const listPrice = ride === "custom" ? BOAT_PRICES_INR.custom : selected ? BOAT_PRICES_INR[selected.id] : 0;
+    const ridePrice = ride === "custom" ? BOAT_PRICES_INR.custom : selected ? BOAT_PRICES_INR[selected.id] : 0;
+    // Fixed packages add the boat's journey back (lib/boatPrices.ts); the server charges the same total.
+    const returnFare = selected ? returnFareInr(ridePrice) : 0;
+    const listPrice = selected ? rideTotalInr(ridePrice) : ridePrice;
     const product = ride === "custom" ? "custom-boat" : ride;
     // A code is priced for one ride and only applies to online payment.
     const codePrice = applied && applied.product === product ? applied.inr : null;
@@ -278,6 +281,7 @@ export default function BookingFlow() {
                         ["When", `${dateLabel?.top}, ${dateLabel?.bottom} · ${ride === "custom" ? customTime : selected?.time}`],
                         ["From", ghat],
                         ["Guests", String(guests)],
+                        ...(returnFare ? [["Boat ride", money(ridePrice, currency)], ["Return journey", money(returnFare, currency)]] : []),
                         ["Total", `${money(price, currency)}${currency === "usd" ? ` (${inr(price)})` : ""} · ${done.paid ? "paid" : "pay at the ghat"}`],
                     ].map(([k, v]) => (
                         <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-white/50">{k}</dt><dd className="font-semibold text-white text-right">{v}</dd></div>
@@ -486,6 +490,9 @@ export default function BookingFlow() {
                             {(coupon || coinsUsed > 0) && <s className="mr-2 text-sm font-medium text-white/40">{money(listPrice, currency)}</s>}
                             {price || coversAll ? money(price, currency) : "—"}
                         </p>
+                        {returnFare > 0 && (
+                            <p className="text-[11px] text-white/60 truncate">Ride {money(ridePrice, currency)} + return journey {money(returnFare, currency)}</p>
+                        )}
                         {/* The payment method decides the currency actually charged — say so when it differs from the display. */}
                         {price > 0 && payMode !== "credits" && (pay === "online_international" ? currency === "inr" : currency === "usd") && (
                             <p className="text-[11px] text-white/50 truncate">
