@@ -1,16 +1,13 @@
 // Server-only helpers shared by the /api/admin routes.
 import { NextResponse } from "next/server";
-import { getAdmin, type Session } from "@/lib/auth";
-import { verifyAdminToken } from "@/lib/adminToken";
+import type { Session } from "@/lib/auth";
+import { adminName, verifyAdminToken } from "@/lib/adminToken";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-// An admin is either an email in ADMIN_EMAILS logged in (email code or Google), or someone holding a password-login token
-// (X-Admin-Token) — the second works even when Supabase is down. Routes that need the database report it themselves.
+// An admin is whoever holds a token from the ID + password login (X-Admin-Token). Routes that need the database report it themselves.
 export async function requireAdmin(req: Request): Promise<Session | NextResponse> {
-    if (verifyAdminToken(req.headers.get("x-admin-token"))) return { email: "admin-password", userId: "" };
-    const admin = await getAdmin(req);
-    if (!admin) return NextResponse.json({ error: "Not authorised." }, { status: 403 });
-    return admin;
+    if (verifyAdminToken(req.headers.get("x-admin-token"))) return { email: adminName(), userId: "" };
+    return NextResponse.json({ error: "Not authorised." }, { status: 403 });
 }
 
 // Newest first when the table has created_at; otherwise as stored.

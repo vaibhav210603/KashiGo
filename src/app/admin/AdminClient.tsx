@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Coins, Database, FileText, KeyRound, Loader2, LogOut, Mail, Plus, RefreshCw, Search, Tag, Ticket, Trash2, Undo2, X } from "lucide-react";
-import EmailLogin from "@/components/auth/EmailLogin";
-import { apiGet, apiPost, authHeaders, getAdminToken, setAdminToken, useAuth } from "@/components/auth/useAuth";
+import { apiGet, apiPost, authHeaders, setAdminToken } from "@/components/auth/useAuth";
 import { formatPhone } from "@/lib/phone";
 import { normalizeEmail } from "@/lib/email";
 import { productName } from "@/lib/productNames";
@@ -14,20 +13,17 @@ const rupees = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "—");
 
 export default function AdminClient() {
-    const auth = useAuth();
     const [tab, setTab] = useState<Tab>("orders");
-    // Admin check covers both ways in: email / Google login (needs Supabase) or the ADMIN_PASSWORD login (doesn't).
+    // Login is ID + password only (ADMIN_USERNAME / ADMIN_PASSWORD on the server) — no Supabase.
     const [status, setStatus] = useState<{ admin: boolean; passwordLogin: boolean } | null>(null);
-    const [viaPassword, setViaPassword] = useState(false);
     const check = useCallback(async () => {
         const r = await apiGet("/api/admin/login");
         setStatus({ admin: Boolean(r.data.admin), passwordLogin: Boolean(r.data.passwordLogin) });
-        setViaPassword(Boolean(r.data.admin) && Boolean(getAdminToken()));
     }, []);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- re-check when the OTP login changes
-    useEffect(() => { if (auth.ready) check(); }, [auth.ready, auth.email, check]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial access check
+    useEffect(() => { check(); }, [check]);
 
-    const logout = () => { setAdminToken(null); if (auth.loggedIn) auth.signOut(); setViaPassword(false); check(); };
+    const logout = () => { setAdminToken(null); check(); };
     const isAdmin = status?.admin;
 
     return (
@@ -38,9 +34,9 @@ export default function AdminClient() {
                         <p className="ornament text-[11px] font-semibold uppercase tracking-[0.28em] text-marigold">KashiGo admin</p>
                         <h1 className="mt-3 font-display font-light text-5xl tracking-[-0.03em]">Control <em className="text-fire">room.</em></h1>
                     </div>
-                    {(isAdmin || auth.loggedIn) && (
+                    {isAdmin && (
                         <button onClick={logout} className="h-10 px-4 inline-flex items-center gap-2 rounded-full border border-white/20 text-sm text-white/80 hover:bg-white hover:text-night">
-                            <LogOut size={15} /> {viaPassword ? "Admin (password)" : auth.email}
+                            <LogOut size={15} /> Log out
                         </button>
                     )}
                 </div>
@@ -48,14 +44,10 @@ export default function AdminClient() {
                 {!status ? (
                     <p className="mt-10 flex items-center gap-2 text-white/60"><Loader2 className="animate-spin" size={18} /> Checking access…</p>
                 ) : !isAdmin ? (
-                    <div className="mt-10 grid gap-4 max-w-lg">
-                        {auth.loggedIn && <p className="rounded-2xl border border-ember/40 bg-ember/10 p-5 text-white/85">{auth.email} isn&apos;t an admin. Add it to <code className="text-marigold">ADMIN_EMAILS</code> in the server environment.</p>}
-                        {!auth.loggedIn && (
-                            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                                <EmailLogin tone="dark" title="Admin login" subtitle="Use an email listed in ADMIN_EMAILS." />
-                            </div>
-                        )}
-                        {status.passwordLogin && <PasswordLogin onDone={check} />}
+                    <div className="mt-10 max-w-md">
+                        {status.passwordLogin
+                            ? <AdminLogin onDone={check} />
+                            : <p className="rounded-2xl border border-ember/40 bg-ember/10 p-5 text-white/85">Admin login isn&apos;t set up. Add <code className="text-marigold">ADMIN_USERNAME</code> and <code className="text-marigold">ADMIN_PASSWORD</code> in Vercel → Settings → Environment Variables, then redeploy.</p>}
                     </div>
                 ) : (
                     <>
@@ -79,32 +71,32 @@ export default function AdminClient() {
     );
 }
 
-// Works even when Supabase (and so email / Google login) is unavailable.
-function PasswordLogin({ onDone }: { onDone: () => void }) {
-    const [open, setOpen] = useState(false);
+function AdminLogin({ onDone }: { onDone: () => void }) {
+    const [user, setUser] = useState("");
     const [pw, setPw] = useState("");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const submit = async () => {
         setBusy(true); setError("");
-        const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw }) });
+        const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: user, password: pw }) });
         const data = await res.json().catch(() => ({}));
         setBusy(false);
         if (!res.ok || !data.token) { setError(data.error || "Couldn't log in."); return; }
         setAdminToken(data.token); setPw("");
         onDone();
     };
-    if (!open) return <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 self-start text-sm text-white/60 hover:text-white"><KeyRound size={15} /> Use the admin password instead</button>;
+    const input = "mt-1 h-12 w-full rounded-2xl border border-white/15 bg-white/5 px-4 outline-none focus:border-marigold";
     return (
         <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <p className="flex items-center gap-2 font-semibold"><KeyRound size={16} className="text-marigold" /> Admin password</p>
-            <p className="text-sm text-white/55">Works even if Supabase is paused. Set as ADMIN_PASSWORD on the server.</p>
-            <div className="mt-4 flex gap-2">
-                <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" aria-label="Admin password"
-                    className="h-12 flex-1 min-w-0 rounded-2xl border border-white/15 bg-white/5 px-4 outline-none focus:border-marigold" />
-                <button disabled={busy || !pw} className="h-12 px-6 rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night font-semibold disabled:opacity-40">{busy ? "…" : "Log in"}</button>
-            </div>
-            {error && <p className="mt-2 text-sm text-ember">{error}</p>}
+            <p className="flex items-center gap-2 font-display text-2xl"><KeyRound size={20} className="text-marigold" /> Admin login</p>
+            <label className="mt-5 block text-sm"><span className="text-white/60">Admin ID</span>
+                <input value={user} onChange={(e) => setUser(e.target.value)} autoComplete="username" autoCapitalize="none" className={input} />
+            </label>
+            <label className="mt-4 block text-sm"><span className="text-white/60">Password</span>
+                <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" className={input} />
+            </label>
+            {error && <p className="mt-3 text-sm text-ember">{error}</p>}
+            <button disabled={busy || !user || !pw} className="mt-5 h-12 w-full rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night font-semibold disabled:opacity-40">{busy ? "Logging in…" : "Log in"}</button>
         </form>
     );
 }

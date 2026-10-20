@@ -1,5 +1,5 @@
-// Server-only. Admin login that doesn't depend on Supabase: ADMIN_PASSWORD (env) is exchanged for a signed,
-// expiring token, so /admin keeps working (orders from email) even when the database or Supabase Auth is down.
+// Server-only. The only way into /admin: ADMIN_USERNAME + ADMIN_PASSWORD (env, never in the repo — it's public) are
+// exchanged for a signed, expiring token. No Supabase involved, so /admin works even when Supabase is down.
 import crypto from "crypto";
 
 const TTL_MS = 12 * 60 * 60 * 1000;
@@ -11,14 +11,20 @@ function key(): Buffer | null {
 
 const sign = (payload: string, k: Buffer) => crypto.createHmac("sha256", k).update(payload).digest("base64url");
 
-export const passwordLoginEnabled = () => Boolean(process.env.ADMIN_PASSWORD);
+export const passwordLoginEnabled = () => Boolean(process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD);
+export const adminName = () => process.env.ADMIN_USERNAME || "admin";
 
-export function checkPassword(password: string): boolean {
-    const want = process.env.ADMIN_PASSWORD || "";
-    if (!want || !password) return false;
-    const a = crypto.createHash("sha256").update(password).digest();
-    const b = crypto.createHash("sha256").update(want).digest();
-    return crypto.timingSafeEqual(a, b);
+const same = (given: string, want: string) =>
+    crypto.timingSafeEqual(crypto.createHash("sha256").update(given).digest(), crypto.createHash("sha256").update(want).digest());
+
+export function checkLogin(username: string, password: string): boolean {
+    const wantUser = process.env.ADMIN_USERNAME || "";
+    const wantPass = process.env.ADMIN_PASSWORD || "";
+    if (!wantUser || !wantPass || !username || !password) return false;
+    // Both are always compared, so a wrong username takes as long as a wrong password.
+    const userOk = same(username.trim().toLowerCase(), wantUser.trim().toLowerCase());
+    const passOk = same(password, wantPass);
+    return userOk && passOk;
 }
 
 export function issueAdminToken(): string | null {
