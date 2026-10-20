@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { getQuote, quoteReceipt, quoteTotal, type Quote } from "@/lib/quotes";
+import { quoteReceipt, quoteTotal, type Quote } from "@/lib/quotes";
+import { getQuote, markQuotePaid } from "@/lib/quoteStore";
 import { isQuotePaid, razorpay as rz } from "@/lib/quotePayments";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
 import { rateLimited } from "@/lib/rateLimit";
@@ -22,7 +23,8 @@ async function notify(q: Quote, payment: any) {
                 `Quote: ${q.id}`,
                 `Customer: ${q.customer.name}`,
                 `Ride: ${q.ride.title}, ${q.ride.ghat}`,
-                `Date: ${longDate(q.ride.date)} — report ${q.ride.reportTime}, Aarti ${q.ride.aartiTime}`,
+                `Date: ${longDate(q.ride.date)} — report ${q.ride.reportTime}, ${q.ride.startLabel.toLowerCase()} ${q.ride.startTime}`,
+                `Customer contact on quote: ${q.customer.phone || "—"} / ${q.customer.email || "—"}`,
                 `Paid: ${inr(Number(payment.amount) / 100)} via ${payment.method}`,
                 `Payment ID: ${payment.id}`,
                 `Payer: ${payment.email || "—"} / ${payment.contact || "—"}`,
@@ -31,18 +33,19 @@ async function notify(q: Quote, payment: any) {
     } catch (e) {
         console.error("Quote owner mail failed:", e);
     }
-    if (!payment.email) return;
+    const to = payment.email || q.customer.email;
+    if (!to) return;
     try {
         await t.sendMail({
             from: `"KashiGo" <${owner}>`,
-            to: payment.email,
+            to,
             subject: `Confirmed: ${q.ride.title} on ${longDate(q.ride.date)}`,
             html: simpleEmail({
                 preheader: `Payment of ${total} received. Please reach ${q.ride.ghat} by ${q.ride.reportTime} sharp.`,
                 heading: `You're all set, ${q.customer.name.split(" ")[0]}!`,
                 paragraphs: [
                     `We've received your payment of <b>${total}</b> for the <b>${q.ride.title}</b> (quotation ${q.id}). Payment ID: ${payment.id}.`,
-                    `<b>${longDate(q.ride.date)}</b> — please reach <b>${q.ride.ghat}</b> by <b>${q.ride.reportTime} sharp</b>. The Aarti begins at ${q.ride.aartiTime}.`,
+                    `<b>${longDate(q.ride.date)}</b> — please reach <b>${q.ride.ghat}</b> by <b>${q.ride.reportTime} sharp</b>. ${q.ride.startLabel} at ${q.ride.startTime}.`,
                     `Your ride is fully paid. <b>Please do not pay any cash</b> to the boatman or anyone else at the ghat. Keep your life jacket on for the whole ride.`,
                     `Need us? Call or WhatsApp <a href="tel:+918175966910">+91 81759 66910</a>. Have a safe and beautiful journey — Har Har Mahadev.`,
                 ],
@@ -58,7 +61,7 @@ export async function POST(req: Request) {
     if (rateLimited(req, "quote", 20, 60 * 1000)) return NextResponse.json({ success: false, message: "Too many attempts — please wait a minute." }, { status: 429 });
     try {
         const body = await req.json();
-        const q = getQuote(String(body?.id ?? ""));
+        const q = await getQuote(String(body?.id ?? ""));
         if (!q) return NextResponse.json({ success: false, message: "Quotation not found." }, { status: 404 });
         const total = quoteTotal(q);
 
@@ -85,7 +88,7 @@ export async function POST(req: Request) {
             if (order?.notes?.quote !== q.id || Number(order?.amount) !== total * 100) {
                 return NextResponse.json({ success: false, message: "This payment doesn't match the quotation." }, { status: 400 });
             }
-            await notify(q, payment);
+            await Promise.all([notify(q, payment), markQuotePaid(q.id, paymentId)]);
             return NextResponse.json({ success: true, paymentId });
         }
 

@@ -3,9 +3,11 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { AlertTriangle, Backpack, BadgeIndianRupee, CalendarDays, Clock, Globe, LifeBuoy, MapPin, Phone, ShieldCheck, Sunrise } from "lucide-react";
-import { getQuote, quoteTotal } from "@/lib/quotes";
+import { quoteTotal, type Quote } from "@/lib/quotes";
+import { getQuote } from "@/lib/quoteStore";
 import { isQuotePaid } from "@/lib/quotePayments";
 import QuotePay from "./QuotePay";
+import PdfDownload from "./PdfDownload";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +16,7 @@ const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const fmt = (iso: string, opts: Intl.DateTimeFormatOptions) => new Date(`${iso}T00:00:00+05:30`).toLocaleDateString("en-IN", { ...opts, timeZone: "Asia/Kolkata" });
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-    const q = getQuote((await params).id);
+    const q = await getQuote((await params).id);
     return {
         title: q ? `Quotation ${q.id} · ${q.customer.name}` : "Quotation",
         description: q ? `${q.ride.title} at ${q.ride.ghat} — your KashiGo quotation and secure payment page.` : undefined,
@@ -22,32 +24,45 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
 }
 
-const CARRY = [
-    ["Photo ID", "Aadhaar, driving licence or passport."],
-    ["A light shawl or jacket", "Dawn on the river is cool and breezy in October."],
-    ["Small torch or phone light", "The ghat steps are still dark at 4:30 AM."],
-    ["Slip-on footwear with grip", "Steps are wet and you may remove shoes near the Aarti."],
-    ["Phone, charged + power bank", "For photos — and so we can reach you."],
-    ["Water bottle & small towel", "Plus tissues or wet wipes."],
-    ["Camera with a strap", "A wrist or neck strap so nothing slips into the Ganga."],
-    ["Personal medicines", "Including anything for motion sickness, if you need it."],
-];
+function carryList(q: Quote): string[][] {
+    const { slot } = q.ride;
+    return [
+        ["Photo ID", "Aadhaar, driving licence or passport."],
+        slot === "Afternoon"
+            ? ["Cap, sunglasses & sunscreen", "There's little shade on the river in the middle of the day."]
+            : ["A light shawl or jacket", `${slot === "Morning" ? "Dawn" : "Evening"} on the river can be cool and breezy.`],
+        slot === "Afternoon"
+            ? ["Comfortable walking shoes", "The ghat steps are steep and the old-city lanes are narrow."]
+            : ["Small torch or phone light", `The ghat steps are dark at ${q.ride.reportTime}.`],
+        ["Slip-on footwear with grip", "Steps can be wet and you may remove shoes near temples and the Aarti."],
+        ["Phone, charged + power bank", "For photos — and so we can reach you."],
+        ["Water bottle & small towel", "Plus tissues or wet wipes."],
+        ["Camera with a strap", "A wrist or neck strap so nothing slips into the Ganga."],
+        ["Personal medicines", "Including anything for motion sickness, if you need it."],
+    ];
+}
 
-const CAREFUL = [
-    { icon: LifeBuoy, title: "Wear your life jacket — always", body: "Put it on before the boat leaves and keep it fastened until you're back on the steps. Ask the boatman if you don't see one. Children must be in one at all times." },
-    { icon: AlertTriangle, title: "Stay seated on the boat", body: "Don't stand, lean over the side or sit on the edge for photos. Board and step off only when the boatman says the boat is steady." },
-    { icon: MapPin, title: "Mind the steps", body: "Ghat steps are steep, uneven and slippery at dawn. Use your torch, take it slow and hold the railing." },
-    { icon: ShieldCheck, title: "Say no to touts", body: "Ignore anyone offering a 'better boat', a 'free' tilak, flowers or blessings — they ask for money afterwards. Your boat is already arranged." },
-    { icon: Sunrise, title: "Respect the Aarti", body: "No flash photography at the priests, keep voices low, and dress modestly (shoulders and knees covered)." },
-    { icon: Clock, title: "Be on time", body: "The boat must be in position before the Aarti starts at 5:00 AM, so we can't wait for late arrivals. Weather or fog may delay the ride — the boatman's safety call is final." },
-];
+function carefulList(q: Quote) {
+    const aarti = /aarti/i.test(`${q.ride.title} ${q.ride.startLabel}`);
+    return [
+        { icon: LifeBuoy, title: "Wear your life jacket — always", body: "Put it on before the boat leaves and keep it fastened until you're back on the steps. Ask the boatman if you don't see one. Children must be in one at all times." },
+        { icon: AlertTriangle, title: "Stay seated on the boat", body: "Don't stand, lean over the side or sit on the edge for photos. Board and step off only when the boatman says the boat is steady." },
+        { icon: MapPin, title: "Mind the steps", body: `Ghat steps are steep, uneven and can be slippery${q.ride.slot === "Afternoon" ? "" : " in low light"}. Take it slow and hold the railing.` },
+        { icon: ShieldCheck, title: "Say no to touts", body: "Ignore anyone offering a 'better boat', a 'free' tilak, flowers or blessings — they ask for money afterwards. Your boat is already arranged." },
+        aarti
+            ? { icon: Sunrise, title: "Respect the Aarti", body: "No flash photography at the priests, keep voices low, and dress modestly (shoulders and knees covered)." }
+            : { icon: Sunrise, title: "Respect the ghats", body: "Don't photograph cremations at Manikarnika or Harishchandra, keep voices low near rituals, and dress modestly (shoulders and knees covered)." },
+        { icon: Clock, title: "Be on time", body: `Please reach ${q.ride.ghat} by ${q.ride.reportTime} — ${q.ride.startLabel.toLowerCase()} at ${q.ride.startTime}, so we can't wait for late arrivals. Weather or fog may delay the ride — the boatman's safety call is final.` },
+    ];
+}
 
 // The same layout is used for the printed copy; ?pdf=1 renders it on screen (site chrome hidden) for image exports.
 const PRINT_CSS = "body > *:not(main) { display: none !important; } main { padding: 0 !important; }";
 
-export default async function QuotePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ pdf?: string }> }) {
-    const q = getQuote((await params).id);
-    const pdfMode = (await searchParams).pdf === "1";
+export default async function QuotePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ pdf?: string; download?: string }> }) {
+    const q = await getQuote((await params).id);
+    const sp = await searchParams;
+    const pdfMode = sp.pdf === "1";
     if (!q) notFound();
 
     const total = quoteTotal(q);
@@ -56,14 +71,17 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
         QRCode.toString(`${SITE}/quote/${q.id}`, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#070b18", light: "#00000000" } }),
     ]);
     const journeyDate = fmt(q.ride.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    const CARRY = carryList(q);
+    const CAREFUL = carefulList(q);
 
     return (
-        <div className="bg-night min-h-screen print:bg-white">
+        <div data-quote-doc className="bg-night min-h-screen print:bg-white">
+            {pdfMode && <PdfDownload id={q.id} auto={sp.download === "1"} />}
             <style>{pdfMode ? PRINT_CSS : `@media print { ${PRINT_CSS} @page { margin: 12mm; } }`}</style>
 
             {/* Banner */}
             <section className="relative h-[440px] sm:h-[500px] overflow-hidden print:h-[230px] print:rounded-2xl">
-                <Image src="/m_aarti_bg.png" alt="Morning Ganga Aarti at Assi Ghat, Varanasi" fill priority sizes="100vw" className="object-cover object-center scale-105" />
+                <Image src={q.ride.image} alt={`${q.ride.title} at ${q.ride.ghat}, Varanasi`} fill priority sizes="100vw" className="object-cover object-center scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-b from-night/70 via-night/30 to-night" />
                 <div className="absolute inset-0 bg-gradient-to-r from-night/70 via-transparent to-transparent" />
                 <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-8 flex flex-col justify-end pb-24 sm:pb-28 print:pb-6">
@@ -114,8 +132,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
 
                     <div className="px-6 sm:px-10 py-8 sm:py-10 space-y-12">
                         <p className="text-lg leading-relaxed text-night/80 max-w-3xl">
-                            Namaste <b className="text-night">{q.customer.name}</b> ji, thank you for choosing KashiGo. Here is your quotation for a private
-                            sunrise boat to the Subah-e-Banaras Ganga Aarti — one of the most peaceful hours you will spend on the Ganga.
+                            Namaste <b className="text-night">{q.customer.name}</b> ji, thank you for choosing KashiGo. {q.intro}
                         </p>
 
                         {/* Journey */}
@@ -123,19 +140,19 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                             <SectionTitle kicker="01" title="Your journey" />
                             <div className="grid sm:grid-cols-3 gap-4">
                                 <Fact icon={CalendarDays} label="Date" value={journeyDate} />
-                                <Fact icon={Sunrise} label="Aarti begins" value={q.ride.aartiTime} />
+                                <Fact icon={Sunrise} label={q.ride.startLabel} value={q.ride.startTime} />
                                 <Fact icon={Clock} label="Please reach by" value={`${q.ride.reportTime} sharp`} highlight />
                             </div>
                             <div className="mt-4 rounded-2xl bg-white/70 ring-1 ring-sandstone/40 p-5 flex items-start gap-3">
                                 <MapPin className="text-fire shrink-0 mt-0.5" size={20} />
                                 <div>
-                                    <p className="font-heading font-bold">Meeting point: {q.ride.ghat}, Varanasi</p>
+                                    <p className="font-heading font-bold">Meeting point: {q.ride.ghat}, Varanasi{q.ride.guests ? ` · ${q.ride.guests} guest${q.ride.guests === 1 ? "" : "s"}` : ""}</p>
                                     <p className="text-sm text-night/65 mt-0.5">{q.ride.route}. Can&apos;t find us? Call +91 81759 66910 and we&apos;ll guide you to the boat.</p>
                                 </div>
                             </div>
                             <ol className="mt-6 relative border-l-2 border-dashed border-marigold/60 ml-3 space-y-5">
-                                {q.itinerary.map((s) => (
-                                    <li key={s.time} className="pl-6 relative">
+                                {q.itinerary.map((s, i) => (
+                                    <li key={i} className="pl-6 relative">
                                         <span className="absolute -left-[9px] top-1.5 h-4 w-4 rounded-full bg-marigold ring-4 ring-parchment" />
                                         <p className="font-heading font-bold text-fire text-sm">{s.time}</p>
                                         <p className="text-night/80">{s.what}</p>
@@ -143,6 +160,13 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                                 ))}
                             </ol>
                         </section>
+
+                        {q.note && (
+                            <section className="rounded-2xl bg-marigold/15 ring-1 ring-marigold/40 p-5 sm:p-6">
+                                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-fire">A note from us</p>
+                                <p className="mt-2 text-night/80 leading-relaxed whitespace-pre-line">{q.note}</p>
+                            </section>
+                        )}
 
                         {/* Quote */}
                         <section>
@@ -158,13 +182,13 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                                     </thead>
                                     <tbody>
                                         {q.lines.map((l, i) => (
-                                            <tr key={l.label} className="border-t border-sandstone/30">
+                                            <tr key={i} className="border-t border-sandstone/30">
                                                 <td className="px-5 sm:px-6 py-5 align-top font-heading font-bold text-night/40">{String(i + 1).padStart(2, "0")}</td>
                                                 <td className="px-2 py-5">
                                                     <p className="font-heading font-bold">{l.label}</p>
                                                     <p className="text-sm text-night/60">{l.detail}</p>
                                                 </td>
-                                                <td className="px-5 sm:px-6 py-5 text-right font-heading font-bold tabular-nums whitespace-nowrap">{inr(l.amountInr)}</td>
+                                                <td className={`px-5 sm:px-6 py-5 text-right font-heading font-bold tabular-nums whitespace-nowrap ${l.amountInr < 0 ? "text-emerald-700" : ""}`}>{l.amountInr < 0 ? `− ${inr(-l.amountInr)}` : inr(l.amountInr)}</td>
                                             </tr>
                                         ))}
                                         <tr className="border-t border-sandstone/30 text-sm text-night/60">
@@ -264,7 +288,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                             <p className="font-deva text-4xl sm:text-5xl text-fire">शुभ यात्रा</p>
                             <p className="mt-3 font-display italic text-2xl sm:text-3xl">Have a safe &amp; blessed journey, {q.customer.name.split(" ")[0]} ji.</p>
                             <p className="mt-4 text-night/65 max-w-xl mx-auto leading-relaxed">
-                                May the Ganga give you a calm river, a golden sunrise and a morning you&apos;ll remember for a long time.
+                                May the Ganga give you a calm river, {q.ride.slot === "Morning" ? "a golden sunrise and a morning" : q.ride.slot === "Evening" ? "a glowing evening and an hour" : "a bright day and an afternoon"} you&apos;ll remember for a long time.
                                 We&apos;ll be waiting for you at {q.ride.ghat}. Har Har Mahadev.
                             </p>
                             <p className="mt-6 font-cursive text-2xl text-night">— Team KashiGo</p>
