@@ -31,7 +31,77 @@ export type Quote = {
     note?: string;       // optional extra note shown to the customer
     itinerary: { time: string; what: string }[];
     lines: QuoteLine[];
+    builder?: QuoteBuilder; // lets the customer shape the quote on the page before paying
 };
+
+export type QuoteAddOn = { id: string; label: string; detail: string; amountInr: number; max: number };
+
+// Optional extras the customer picks on the quotation page. `lines` stay fixed; these are added on top, then tax.
+export type QuoteBuilder = {
+    returnTrip?: QuoteLine;      // a checkbox, unticked by default
+    perPassengerInr: number;     // for each passenger added beyond the lead passenger
+    maxPassengers: number;       // extra passengers allowed
+    addOns: QuoteAddOn[];
+    taxInr: number;              // flat, charged once
+};
+
+export type QuotePassenger = { name: string; age: string };
+export type QuoteSelection = { returnTrip: boolean; passengers: QuotePassenger[]; addOns: Record<string, number> };
+
+export const emptySelection = (): QuoteSelection => ({ returnTrip: false, passengers: [], addOns: {} });
+
+// Cleans whatever the browser sent down to what the quote allows. Used on both sides, so the page and the charge always agree.
+export function cleanSelection(q: Pick<Quote, "builder">, raw: unknown): QuoteSelection {
+    const b = q.builder;
+    const r = (raw ?? {}) as Partial<QuoteSelection>;
+    if (!b) return emptySelection();
+    const text = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, max);
+    const passengers = (Array.isArray(r.passengers) ? r.passengers : [])
+        .slice(0, b.maxPassengers)
+        .map((p) => ({ name: text(p?.name, 60), age: text(p?.age, 3).replace(/\D/g, "") }));
+    const addOns: Record<string, number> = {};
+    for (const a of b.addOns) {
+        const n = Math.trunc(Number(r.addOns?.[a.id] ?? 0));
+        if (n > 0) addOns[a.id] = Math.min(n, a.max);
+    }
+    return { returnTrip: Boolean(b.returnTrip && r.returnTrip), passengers, addOns };
+}
+
+// Every line on the bill for a selection, tax last.
+export function priceQuote(q: Pick<Quote, "lines" | "builder">, sel: QuoteSelection): { lines: QuoteLine[]; total: number } {
+    const b = q.builder;
+    const lines = [...q.lines];
+    if (b) {
+        if (sel.returnTrip && b.returnTrip) lines.push(b.returnTrip);
+        const named = sel.passengers.filter((p) => p.name);
+        if (named.length) {
+            lines.push({
+                label: `Additional passenger${named.length === 1 ? "" : "s"} × ${named.length}`,
+                detail: `${named.map((p) => (p.age ? `${p.name} (${p.age})` : p.name)).join(", ")} · ₹${b.perPassengerInr} each`,
+                amountInr: named.length * b.perPassengerInr,
+            });
+        }
+        for (const a of b.addOns) {
+            const n = sel.addOns[a.id] ?? 0;
+            if (n > 0) lines.push({ label: `${a.label} × ${n}`, detail: a.detail, amountInr: n * a.amountInr });
+        }
+        if (b.taxInr) lines.push({ label: "Taxes", detail: "Applicable taxes & charges", amountInr: b.taxInr });
+    }
+    return { lines, total: lines.reduce((s, l) => s + l.amountInr, 0) };
+}
+
+// One line for Razorpay notes and emails: what the customer chose.
+export function describeSelection(q: Pick<Quote, "builder">, sel: QuoteSelection): string {
+    const b = q.builder;
+    if (!b) return "";
+    const named = sel.passengers.filter((p) => p.name);
+    const parts = [
+        b.returnTrip ? `Return: ${sel.returnTrip ? "yes" : "no"}` : "",
+        named.length ? `Extra passengers: ${named.map((p) => (p.age ? `${p.name} (${p.age})` : p.name)).join(", ")}` : "Extra passengers: none",
+        ...b.addOns.filter((a) => sel.addOns[a.id]).map((a) => `${a.label} ×${sel.addOns[a.id]}`),
+    ];
+    return parts.filter(Boolean).join(" | ");
+}
 
 export const STATIC_QUOTES: Record<string, Quote> = {
     "KG-Q-261021-KJ": {
@@ -47,7 +117,7 @@ export const STATIC_QUOTES: Record<string, Quote> = {
             startLabel: "Aarti begins",
             startTime: "5:00 AM",
             reportTime: "4:30 AM",
-            route: "Assi Ghat → along the ghats → back to Assi Ghat",
+            route: "Assi Ghat → along the ghats",
             image: "/m_aarti_bg.png",
             slot: "Morning",
         },
@@ -57,12 +127,20 @@ export const STATIC_QUOTES: Record<string, Quote> = {
             { time: "4:45 AM", what: "Board the boat, life jackets on, settle in for the best view." },
             { time: "5:00 AM", what: "Subah-e-Banaras Ganga Aarti, watched from the river." },
             { time: "~6:00 AM", what: "Sunrise over the Ganga as we row along the ghats." },
-            { time: "After sunrise", what: "Return journey to Assi Ghat." },
+            { time: "After sunrise", what: "Ride ends — or row back to Assi Ghat if you add the return journey." },
         ],
         lines: [
-            { label: "Sunrise Aarti Boat Ride", detail: "Assi Ghat · one way · private boat with boatman", amountInr: 1660 },
-            { label: "Return journey to Assi Ghat", detail: "50% of the journey fare", amountInr: 830 },
+            { label: "Sunrise Aarti Boat Ride", detail: "Assi Ghat · one way · private boat with boatman · lead passenger included", amountInr: 1660 },
         ],
+        builder: {
+            returnTrip: { label: "Return journey to Assi Ghat", detail: "50% of the journey fare", amountInr: 830 },
+            perPassengerInr: 450,
+            maxPassengers: 15,
+            addOns: [
+                { id: "bird-feed", label: "Bird feeder pack", detail: "2 sachets of bird feed for the gulls", amountInr: 50, max: 10 },
+            ],
+            taxInr: 150,
+        },
     },
 };
 

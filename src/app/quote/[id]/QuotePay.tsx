@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { CheckCircle2, Loader2, Lock, Printer } from "lucide-react";
+import type { QuoteSelection } from "@/lib/quotes";
 
-type Props = { id: string; name: string; total: string; paid: boolean };
+type Props = { id: string; name: string; total: string; paid: boolean; selection?: QuoteSelection; blocked?: string };
 
 const loadRazorpay = () =>
     new Promise<void>((resolve, reject) => {
@@ -18,16 +19,17 @@ const loadRazorpay = () =>
 const post = (body: object) =>
     fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());
 
-export default function QuotePay({ id, name, total, paid: initiallyPaid }: Props) {
+export default function QuotePay({ id, name, total, paid: initiallyPaid, selection, blocked }: Props) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [paymentId, setPaymentId] = useState(initiallyPaid ? "received" : "");
 
     const pay = async () => {
+        if (blocked) return setError(blocked);
         setBusy(true);
         setError("");
         try {
-            const o = await post({ action: "order", id });
+            const o = await post({ action: "order", id, selection });
             if (!o.success) throw new Error(o.message);
             await loadRazorpay();
             const rzp = new (window as any).Razorpay({

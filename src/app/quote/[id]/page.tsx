@@ -5,9 +5,10 @@ import QRCode from "qrcode";
 import { AlertTriangle, Backpack, BadgeIndianRupee, CalendarDays, Clock, Globe, LifeBuoy, MapPin, Phone, ShieldCheck, Sunrise, Users } from "lucide-react";
 import { quoteTotal, type Quote } from "@/lib/quotes";
 import { getQuote } from "@/lib/quoteStore";
-import { isQuotePaid } from "@/lib/quotePayments";
+import { paidQuoteOrder } from "@/lib/quotePayments";
 import QuotePay from "./QuotePay";
 import PdfDownload from "./PdfDownload";
+import QuoteBuilder from "./QuoteBuilder";
 
 export const dynamic = "force-dynamic";
 
@@ -66,10 +67,11 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
     if (!q) notFound();
 
     const total = quoteTotal(q);
-    const [paid, qr] = await Promise.all([
-        isQuotePaid(q),
+    const [paidOrder, qr] = await Promise.all([
+        paidQuoteOrder(q),
         QRCode.toString(`${SITE}/quote/${q.id}`, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#070b18", light: "#00000000" } }),
     ]);
+    const paid = paidOrder !== null;
     const journeyDate = fmt(q.ride.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     const CARRY = carryList(q);
     const CAREFUL = carefulList(q);
@@ -185,6 +187,10 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                         {/* Quote */}
                         <section>
                             <SectionTitle kicker="02" title="Quotation" />
+                            {q.builder ? (
+                                <QuoteBuilder quote={{ id: q.id, lines: q.lines, builder: q.builder, customer: q.customer }} paid={paidOrder} readOnly={pdfMode} />
+                            ) : (
+                            <>
                             <div className="rounded-2xl overflow-hidden ring-1 ring-sandstone/50 bg-white">
                                 <table className="w-full text-left">
                                     <thead className="bg-night text-white/80 text-[11px] uppercase tracking-[0.2em]">
@@ -231,6 +237,14 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                                     </div>
                                 )}
                             </div>
+                            </>
+                            )}
+                            {q.builder && pdfMode && !paid && (
+                                <div className="mt-6 max-w-xl mx-auto rounded-2xl bg-white ring-2 ring-marigold/60 p-5 text-center">
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-night/50">Add passengers &amp; extras, then pay online</p>
+                                    <p className="mt-1.5 font-heading font-extrabold text-lg text-fire break-all">kashigo.in/quote/{q.id}</p>
+                                </div>
+                            )}
                         </section>
 
                         {/* No cash */}
@@ -290,7 +304,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                             <div className="text-center sm:text-left">
                                 <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-marigold">{paid ? "Scan to view your booking" : "Scan to pay securely"}</p>
                                 <p className="mt-2 font-display text-2xl sm:text-3xl break-all">kashigo.in/quote/{q.id}</p>
-                                <p className="mt-2 text-white/65 max-w-md">Opens this quotation on your phone — pay {inr(total)} by UPI, card or net banking through Razorpay. No cash, ever.</p>
+                                <p className="mt-2 text-white/65 max-w-md">Opens this quotation on your phone — {q.builder ? "add passengers and extras, then pay" : `pay ${inr(total)}`} by UPI, card or net banking through Razorpay. No cash, ever.</p>
                                 <a href={SITE} className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-5 py-2.5 text-sm font-semibold transition-colors">
                                     <Globe size={16} /> More at kashigo.in
                                 </a>
