@@ -12,7 +12,8 @@ export type Quote = {
     id: string;          // URL slug and quotation number
     issued: string;      // ISO date
     validUntil: string;  // shown to the customer
-    customer: { name: string; phone?: string; email?: string };
+    customer: { name: string; phone?: string; email?: string }; // the lead passenger — the name on top of the quotation
+    passengers?: string[];   // everyone travelling, lead passenger first
     ride: {
         packageId: string;   // p1–p6 or "custom"
         title: string;
@@ -161,7 +162,7 @@ export function defaultItinerary(p: QuotePackage, ghat: string, startTime: strin
 }
 
 export function defaultLines(p: QuotePackage, ghat: string, priceInr: number, guests: number, withReturn: boolean): QuoteLine[] {
-    const people = guests > 0 ? ` · ${guests} guest${guests === 1 ? "" : "s"}` : "";
+    const people = guests > 0 ? ` · ${guests} passenger${guests === 1 ? "" : "s"}` : "";
     const lines: QuoteLine[] = [{ label: p.title, detail: `${ghat} · ${withReturn ? "one way" : "private ride"} · private boat with boatman${people}`, amountInr: priceInr }];
     if (withReturn) lines.push({ label: `Return journey to ${ghat}`, detail: "50% of the journey fare", amountInr: returnFareInr(priceInr) });
     return lines;

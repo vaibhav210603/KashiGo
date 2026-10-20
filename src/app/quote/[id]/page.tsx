@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
-import { AlertTriangle, Backpack, BadgeIndianRupee, CalendarDays, Clock, Globe, LifeBuoy, MapPin, Phone, ShieldCheck, Sunrise } from "lucide-react";
+import { AlertTriangle, Backpack, BadgeIndianRupee, CalendarDays, Clock, Globe, LifeBuoy, MapPin, Phone, ShieldCheck, Sunrise, Users } from "lucide-react";
 import { quoteTotal, type Quote } from "@/lib/quotes";
 import { getQuote } from "@/lib/quoteStore";
 import { isQuotePaid } from "@/lib/quotePayments";
@@ -146,10 +146,24 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                             <div className="mt-4 rounded-2xl bg-white/70 ring-1 ring-sandstone/40 p-5 flex items-start gap-3">
                                 <MapPin className="text-fire shrink-0 mt-0.5" size={20} />
                                 <div>
-                                    <p className="font-heading font-bold">Meeting point: {q.ride.ghat}, Varanasi{q.ride.guests ? ` · ${q.ride.guests} guest${q.ride.guests === 1 ? "" : "s"}` : ""}</p>
+                                    <p className="font-heading font-bold">Meeting point: {q.ride.ghat}, Varanasi{q.ride.guests ? ` · ${q.ride.guests} passenger${q.ride.guests === 1 ? "" : "s"}` : ""}</p>
                                     <p className="text-sm text-night/65 mt-0.5">{q.ride.route}. Can&apos;t find us? Call +91 81759 66910 and we&apos;ll guide you to the boat.</p>
                                 </div>
                             </div>
+                            {q.passengers && q.passengers.length > 0 && (
+                                <div className="mt-4 rounded-2xl bg-white/70 ring-1 ring-sandstone/40 p-5">
+                                    <p className="flex items-center gap-2 font-heading font-bold"><Users className="text-fire" size={20} /> Passengers ({q.passengers.length})</p>
+                                    <ol className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-2">
+                                        {q.passengers.map((p, i) => (
+                                            <li key={i} className="flex items-center gap-3">
+                                                <span className="h-7 w-7 rounded-full bg-marigold/20 text-fire grid place-items-center text-xs font-bold shrink-0">{i + 1}</span>
+                                                <span className={i === 0 ? "font-heading font-bold" : "text-night/80"}>{p}</span>
+                                                {i === 0 && <span className="rounded-full bg-fire/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-fire">Lead</span>}
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </div>
+                            )}
                             <ol className="mt-6 relative border-l-2 border-dashed border-marigold/60 ml-3 space-y-5">
                                 {q.itinerary.map((s, i) => (
                                     <li key={i} className="pl-6 relative">

@@ -60,7 +60,7 @@ export default function Quotes() {
                     <div key={q.id} className="flex flex-wrap items-center gap-4 rounded-2xl border border-white/15 bg-white/[0.03] p-4">
                         <div className="min-w-[14rem] flex-1">
                             <p className="font-semibold">{q.customer.name} <span className="font-mono text-xs text-white/45 ml-1">{q.id}</span></p>
-                            <p className="text-sm text-white/60">{q.ride.title} · {q.ride.ghat} · {longDate(q.ride.date)}, {q.ride.startTime}</p>
+                            <p className="text-sm text-white/60">{q.ride.title} · {q.ride.ghat} · {longDate(q.ride.date)}, {q.ride.startTime}{q.ride.guests ? ` · ${q.ride.guests} passenger${q.ride.guests === 1 ? "" : "s"}` : ""}</p>
                         </div>
                         <p className="font-display text-2xl text-marigold tabular-nums">{rupees(total)}</p>
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${paid ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/70"}`}>{paid ? "Paid" : "Awaiting payment"}</span>
@@ -118,11 +118,15 @@ function Made({ q, onClose }: { q: Quote; onClose: () => void }) {
 function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q: Quote) => void }) {
     const first = QUOTE_PACKAGES[0];
     const [f, setF] = useState({
-        name: "", phone: "", email: "",
-        packageId: first.id, date: addDaysIso(istNow().iso, 1), start: to24(first.time), report: to24(shiftTime(first.time, -30)), ghat: first.ghat, guests: "2",
+        phone: "", email: "",
+        packageId: first.id, date: addDaysIso(istNow().iso, 1), start: to24(first.time), report: to24(shiftTime(first.time, -30)), ghat: first.ghat,
         price: String(first.priceInr), withReturn: true,
     });
     const [extras, setExtras] = useState<Extra[]>([]);
+    // Everyone travelling; the first is the lead passenger, whose name heads the quotation.
+    const [passengers, setPassengers] = useState<string[]>(["", ""]);
+    const setCount = (n: number) => setPassengers((ps) => Array.from({ length: Math.max(1, Math.min(20, n)) }, (_, i) => ps[i] ?? ""));
+    const lead = passengers[0].trim();
     // Wording that's filled in automatically until the admin edits it; null = automatic.
     const [own, setOwn] = useState<{ title: string | null; route: string | null; validUntil: string | null; intro: string | null; itinerary: { time: string; what: string }[] | null }>({ title: null, route: null, validUntil: null, intro: null, itinerary: null });
     const [note, setNote] = useState("");
@@ -141,7 +145,7 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
     const startTime = pretty(f.start);
     const reportTime = pretty(f.report);
     const price = Math.round(Number(f.price) || 0);
-    const guests = Math.floor(Number(f.guests) || 0);
+    const guests = passengers.length;
     const lines = useMemo(() => [
         ...defaultLines(pkg, f.ghat, price, guests, f.withReturn),
         ...extras.filter((e) => e.label.trim() && Number(e.amount)).map((e) => ({ label: e.label.trim(), detail: "", amountInr: (e.discount ? -1 : 1) * Math.round(Math.abs(Number(e.amount))) })),
@@ -161,7 +165,7 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
     const submit = async () => {
         setError(""); setBusy(true);
         const r = await apiPost("/api/admin/quotes", {
-            name: f.name, phone: f.phone, email: f.email, packageId: f.packageId, date: f.date, startTime, reportTime, ghat: f.ghat, guests,
+            name: lead, passengers: passengers.map((p) => p.trim()), phone: f.phone, email: f.email, packageId: f.packageId, date: f.date, startTime, reportTime, ghat: f.ghat, guests,
             title: val("title"), route: val("route"), validUntil: val("validUntil"), intro: val("intro"), itinerary, lines, note,
         });
         setBusy(false);
@@ -169,16 +173,32 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
         onCreated(r.data.quote);
     };
 
-    const ready = f.name.trim().length >= 2 && f.date && f.start && f.report && f.ghat && total >= 1;
+    const ready = lead.length >= 2 && f.date && f.start && f.report && f.ghat && total >= 1;
 
     return (
         <div className="mt-6 rounded-3xl border border-marigold/30 bg-white/[0.04] p-5 sm:p-6">
             <div className="flex items-center justify-between"><p className="font-display text-3xl">New quotation</p><button onClick={onClose} aria-label="Close" className="text-white/50 hover:text-white"><X /></button></div>
 
-            <Step n="1" title="Customer">
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <label className="text-sm"><span className="text-white/60">Name *</span><input value={f.name} onChange={(e) => set("name", e.target.value)} placeholder="KrishnaKant Joshi" className={`${field} mt-1`} /></label>
-                    <label className="text-sm"><span className="text-white/60">WhatsApp / phone</span><input value={f.phone} onChange={(e) => set("phone", e.target.value)} inputMode="tel" placeholder="98765 43210" className={`${field} mt-1`} /></label>
+            <Step n="1" title="Passengers">
+                <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-sm text-white/60">Number of passengers</span>
+                    <div className="inline-flex items-center rounded-full border border-white/15">
+                        <button type="button" onClick={() => setCount(passengers.length - 1)} disabled={passengers.length <= 1} aria-label="One passenger fewer" className="h-11 w-11 text-xl text-white/75 hover:text-white disabled:opacity-30">−</button>
+                        <span className="w-10 text-center text-lg font-semibold tabular-nums">{passengers.length}</span>
+                        <button type="button" onClick={() => setCount(passengers.length + 1)} disabled={passengers.length >= 20} aria-label="One passenger more" className="h-11 w-11 text-xl text-white/75 hover:text-white disabled:opacity-30">+</button>
+                    </div>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {passengers.map((p, i) => (
+                        <label key={i} className="text-sm">
+                            <span className={i === 0 ? "text-marigold font-semibold" : "text-white/60"}>{i === 0 ? "Lead passenger * — name on top of the quotation" : `Passenger ${i + 1}`}</span>
+                            <input value={p} onChange={(e) => setPassengers((ps) => ps.map((x, j) => (j === i ? e.target.value : x)))} placeholder={i === 0 ? "KrishnaKant Joshi" : "Full name"}
+                                className={`${field} mt-1 ${i === 0 ? "border-marigold/50" : ""}`} />
+                        </label>
+                    ))}
+                </div>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <label className="text-sm"><span className="text-white/60">Lead passenger&apos;s WhatsApp / phone</span><input value={f.phone} onChange={(e) => set("phone", e.target.value)} inputMode="tel" placeholder="98765 43210" className={`${field} mt-1`} /></label>
                     <label className="text-sm"><span className="text-white/60">Email (gets the payment confirmation)</span><input value={f.email} onChange={(e) => set("email", e.target.value)} inputMode="email" placeholder="optional" className={`${field} mt-1`} /></label>
                 </div>
             </Step>
@@ -193,7 +213,7 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
                         </button>
                     ))}
                 </div>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <label className="text-sm"><span className="text-white/60">Date *</span><input type="date" value={f.date} onChange={(e) => set("date", e.target.value)} className={`${field} mt-1 [color-scheme:dark]`} /></label>
                     <label className="text-sm"><span className="text-white/60">{pkg.startLabel} *</span><input type="time" value={f.start} onChange={(e) => setStart(e.target.value)} className={`${field} mt-1 [color-scheme:dark]`} /></label>
                     <label className="text-sm"><span className="text-white/60">Reach the ghat by *</span><input type="time" value={f.report} onChange={(e) => set("report", e.target.value)} className={`${field} mt-1 [color-scheme:dark]`} /></label>
@@ -204,7 +224,6 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
                         </select>
                         {!GHATS.includes(f.ghat) && <input value={f.ghat} onChange={(e) => set("ghat", e.target.value)} placeholder="Ghat name" className={`${field} mt-2`} />}
                     </label>
-                    <label className="text-sm"><span className="text-white/60">Guests</span><input value={f.guests} onChange={(e) => set("guests", e.target.value.replace(/\D/g, ""))} inputMode="numeric" className={`${field} mt-1`} /></label>
                 </div>
             </Step>
 

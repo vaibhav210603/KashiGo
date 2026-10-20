@@ -12,8 +12,11 @@ const text = (v: unknown, max: number) => String(v ?? "").replace(/\s+/g, " ").t
 function clean(b: any): { quote?: Omit<Quote, "id">; error?: string } {
     const pkg = quotePackage(String(b?.packageId ?? ""));
     if (!pkg) return { error: "Pick a package." };
-    const name = text(b.name, 80);
-    if (name.length < 2) return { error: "Enter the customer's name." };
+    // Lead passenger first; blank names further down are kept as "Guest N" so the head count stays right.
+    const named = (Array.isArray(b.passengers) ? b.passengers : [b.name]).slice(0, 20).map((p: unknown) => text(p, 80));
+    const name = named[0] || text(b.name, 80);
+    if (name.length < 2) return { error: "Enter the lead passenger's name." };
+    const passengers = [name, ...named.slice(1).map((p: string, i: number) => p || `Guest ${i + 2}`)];
     const date = String(b.date ?? "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date))) return { error: "Pick the ride date." };
     const startTime = text(b.startTime, 12);
@@ -21,7 +24,7 @@ function clean(b: any): { quote?: Omit<Quote, "id">; error?: string } {
     if (Number.isNaN(toMinutes(startTime)) || Number.isNaN(toMinutes(reportTime))) return { error: "Times look like 5:30 AM or 17:30." };
     const ghat = text(b.ghat, 60);
     if (!ghat) return { error: "Pick the meeting ghat." };
-    const guests = Math.max(0, Math.min(99, Math.floor(Number(b.guests) || 0)));
+    const guests = Math.max(passengers.length, Math.min(99, Math.floor(Number(b.guests) || 0)));
 
     const lines = (Array.isArray(b.lines) ? b.lines : []).slice(0, 12)
         .map((l: { label?: unknown; detail?: unknown; amountInr?: unknown }) => ({ label: text(l?.label, 90), detail: text(l?.detail, 140), amountInr: Math.round(Number(l?.amountInr)) }))
@@ -39,6 +42,7 @@ function clean(b: any): { quote?: Omit<Quote, "id">; error?: string } {
         quote: {
             issued: istNow().iso,
             validUntil: text(b.validUntil, 60) || date,
+            passengers,
             customer: { name, phone: text(b.phone, 20) || undefined, email: text(b.email, 120).toLowerCase() || undefined },
             ride: {
                 packageId: pkg.id,
