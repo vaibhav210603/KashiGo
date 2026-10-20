@@ -27,15 +27,26 @@ export async function POST(req: Request) {
       .from("email_leads")
       .insert([{ name: name.trim(), email: email.trim(), created_at: new Date().toISOString() }]);
 
-    if (error && !error.message.includes("duplicate")) {
+    const duplicate = !!error && (error.code === "23505" || error.message.includes("duplicate"));
+    if (error && !duplicate) {
+      // Never let a database problem stop the cheat sheet going out: the owner gets the lead by email instead.
       console.error("Email leads Supabase error:", error);
-      return NextResponse.json({ message: "Could not save. Please try again." }, { status: 500 });
+      try {
+        await createTransporter().sendMail({
+          from: `"KashiGo Leads" <${process.env.SMTP_USER}>`,
+          to: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+          subject: `New cheat sheet lead (not saved to DB): ${email.trim()}`,
+          text: `Name: ${name.trim()}\nEmail: ${email.trim()}\nDB error: ${error.message}`,
+        });
+      } catch (ownerErr) {
+        console.error("Lead owner email failed:", ownerErr);
+      }
     }
 
     // Deliver the free cheat sheet right away (Email 1 of the welcome sequence).
-    // Only on a first signup, so the endpoint can't be used to spam an address.
+    // Not on a repeat signup, so the endpoint can't be used to spam an address (also rate-limited above).
     // Best-effort: a mail failure must not lose the lead.
-    if (!error) try {
+    if (!duplicate) try {
       const first = name.trim().split(" ")[0].slice(0, 40);
       await createTransporter().sendMail({
         from: `"Vaibhav from KashiGo" <${process.env.SMTP_USER}>`,
