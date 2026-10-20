@@ -53,7 +53,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
     const total = quoteTotal(q);
     const [paid, qr] = await Promise.all([
         isQuotePaid(q),
-        QRCode.toString(SITE, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#070b18", light: "#00000000" } }),
+        QRCode.toString(`${SITE}/quote/${q.id}`, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#070b18", light: "#00000000" } }),
     ]);
     const journeyDate = fmt(q.ride.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
@@ -244,17 +244,17 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                             </div>
                         </section>
 
-                        {/* Website */}
+                        {/* Payment QR */}
                         <section className="rounded-3xl bg-night text-white p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
                             <div className="rounded-2xl bg-white p-4 shrink-0">
                                 <div className="h-36 w-36 [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: qr }} />
                             </div>
                             <div className="text-center sm:text-left">
-                                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-marigold">Scan to visit</p>
-                                <p className="mt-2 font-display text-3xl">kashigo.in</p>
-                                <p className="mt-2 text-white/65 max-w-md">Boat rides, Ganga Aarti guides, scam-proof travel tips and everything else for your time in Kashi.</p>
+                                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-marigold">{paid ? "Scan to view your booking" : "Scan to pay securely"}</p>
+                                <p className="mt-2 font-display text-2xl sm:text-3xl break-all">kashigo.in/quote/{q.id}</p>
+                                <p className="mt-2 text-white/65 max-w-md">Opens this quotation on your phone — pay {inr(total)} by UPI, card or net banking through Razorpay. No cash, ever.</p>
                                 <a href={SITE} className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-5 py-2.5 text-sm font-semibold transition-colors">
-                                    <Globe size={16} /> Visit the website
+                                    <Globe size={16} /> More at kashigo.in
                                 </a>
                             </div>
                         </section>
