@@ -6,6 +6,7 @@ import WhyKashiGo from "@/components/home/WhyKashiGo";
 import GhatMarquee from "@/components/home/GhatMarquee";
 import HowItWorks from "@/components/home/HowItWorks";
 import GoogleReviews from "@/components/home/GoogleReviews";
+import Gallery from "@/components/home/Gallery";
 import ShopShelf from "@/components/home/ShopShelf";
 import CheatSheetSignup from "@/components/home/CheatSheetSignup";
 import FAQSection from "@/components/sections/FAQSection";
@@ -151,6 +152,7 @@ export default function Home() {
       <GhatMarquee />
       <WhyKashiGo />
       <HowItWorks />
+      <Gallery />
       <GoogleReviews />
       <ShopShelf />
       <FAQSection />
