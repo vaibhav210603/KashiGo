@@ -72,7 +72,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
         QRCode.toString(`${SITE}/quote/${q.id}`, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#070b18", light: "#00000000" } }),
     ]);
     const paid = paidOrder !== null;
-    const journeyDate = fmt(q.ride.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    const journeyDate = q.ride.dateLabel ?? fmt(q.ride.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     const CARRY = carryList(q);
     const CAREFUL = carefulList(q);
     const people = travellersOf(q);
@@ -179,6 +179,19 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                             </ol>
                         </section>
 
+                        {q.gallery && q.gallery.length > 0 && (
+                            <section className="print:hidden">
+                                <SectionTitle kicker="✦" title="Your boat" />
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {q.gallery.map((g, i) => (
+                                        <a key={g.src} href={g.src} target="_blank" rel="noopener" className={`relative block overflow-hidden rounded-2xl ring-1 ring-sandstone/40 bg-night ${i === 0 ? "col-span-2 sm:col-span-2 sm:row-span-2 aspect-[16/10] sm:aspect-auto" : "aspect-[4/3]"}`}>
+                                            <Image src={g.src} alt={g.alt} fill sizes={i === 0 ? "(min-width: 640px) 66vw, 100vw" : "(min-width: 640px) 33vw, 50vw"} className="object-cover hover:scale-105 transition-transform duration-500" />
+                                        </a>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
                         {q.note && (
                             <section className="rounded-2xl bg-marigold/15 ring-1 ring-marigold/40 p-5 sm:p-6">
                                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-fire">A note from us</p>
@@ -190,7 +203,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                         <section>
                             <SectionTitle kicker="02" title="Quotation" />
                             {q.builder ? (
-                                <QuoteBuilder quote={{ id: q.id, lines: q.lines, builder: q.builder, customer: q.customer }} paid={paidOrder} readOnly={pdfMode} />
+                                <QuoteBuilder quote={{ id: q.id, lines: q.lines, builder: q.builder, customer: q.customer, inclusions: q.inclusions }} paid={paidOrder} readOnly={pdfMode} />
                             ) : (
                             <>
                             <div className="rounded-2xl overflow-hidden ring-1 ring-sandstone/50 bg-white">

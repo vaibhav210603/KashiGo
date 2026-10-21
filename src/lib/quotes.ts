@@ -26,7 +26,10 @@ export type Quote = {
         guests?: number;
         image: string;
         slot: Slot;
+        dateLabel?: string;  // shown instead of the formatted date (e.g. "To be confirmed")
     };
+    gallery?: { src: string; alt: string }[]; // photos of the boat the customer will get
+    inclusions?: { label: string; detail: string }[]; // free extras listed on the bill
     intro: string;       // the paragraph after "Namaste <name> ji, thank you for choosing KashiGo."
     note?: string;       // optional extra note shown to the customer
     itinerary: { time: string; what: string }[];
@@ -40,7 +43,8 @@ export const CHILD_FREE_UNDER = 6;
 export const CHILD_JACKET_INR = 150;
 export const travellersOf = (q: Pick<Quote, "passengers">): QuoteTraveller[] => (q.passengers ?? []).map((p) => (typeof p === "string" ? { name: p } : p));
 
-export type QuoteAddOn = { id: string; label: string; detail: string; amountInr: number; max: number };
+// `perPerson` add-ons are a checkbox charged for everyone on board (lead + named passengers).
+export type QuoteAddOn = { id: string; label: string; detail: string; amountInr: number; max: number; perPerson?: boolean };
 
 // Optional extras the customer picks on the quotation page. `lines` stay fixed; these are added on top, then tax.
 export type QuoteBuilder = {
@@ -67,7 +71,9 @@ export function cleanSelection(q: Pick<Quote, "builder">, raw: unknown): QuoteSe
         .map((p) => ({ name: text(p?.name, 60), age: text(p?.age, 3).replace(/\D/g, "") }));
     const addOns: Record<string, number> = {};
     for (const a of b.addOns) {
-        const n = Math.trunc(Number(r.addOns?.[a.id] ?? 0));
+        const n = a.perPerson
+            ? (Number(r.addOns?.[a.id] ?? 0) > 0 ? 1 + passengers.filter((p) => p.name).length : 0)
+            : Math.trunc(Number(r.addOns?.[a.id] ?? 0));
         if (n > 0) addOns[a.id] = Math.min(n, a.max);
     }
     return { returnTrip: Boolean(b.returnTrip && r.returnTrip), passengers, addOns };
@@ -89,7 +95,7 @@ export function priceQuote(q: Pick<Quote, "lines" | "builder">, sel: QuoteSelect
         }
         for (const a of b.addOns) {
             const n = sel.addOns[a.id] ?? 0;
-            if (n > 0) lines.push({ label: `${a.label} × ${n}`, detail: a.detail, amountInr: n * a.amountInr });
+            if (n > 0) lines.push({ label: `${a.label} × ${n}`, detail: a.perPerson ? `${a.detail} · ₹${a.amountInr.toLocaleString("en-IN")} per person` : a.detail, amountInr: n * a.amountInr });
         }
         if (b.taxInr) lines.push({ label: "Taxes", detail: "Applicable taxes & charges", amountInr: b.taxInr });
     }
@@ -110,6 +116,63 @@ export function describeSelection(q: Pick<Quote, "builder">, sel: QuoteSelection
 }
 
 export const STATIC_QUOTES: Record<string, Quote> = {
+    "KG-Q-261021-PKS": {
+        id: "KG-Q-261021-PKS",
+        issued: "2026-10-21",
+        validUntil: "7 days from issue",
+        customer: { name: "Mr. P. K. Sharma" },
+        ride: {
+            packageId: "p5",
+            title: "Private Bajra Boat — Evening Ganga Aarti & Ghat Tour",
+            ghat: "Dashashwamedh Ghat",
+            date: "2026-10-21",
+            dateLabel: "To be confirmed with you",
+            startLabel: "Ride starts",
+            startTime: "5:30 PM",
+            reportTime: "5:00 PM",
+            route: "Dashashwamedh Ghat → ghat tour along the river → Aarti at Dashashwamedh → back to Dashashwamedh Ghat",
+            image: "/quotes/bajra/8.jpg",
+            slot: "Evening",
+        },
+        intro: "Here is your quotation for an entire private Bajra boat — seating up to 50 guests — booked only for your group for the evening Dashashwamedh Ganga Aarti and a tour of the ghats. The whole boat is yours: no other passengers, front-row view of the Aarti from the river.",
+        note: "The whole Bajra is reserved for you — seating capacity 50 guests.\nFree for every guest: life jackets, packaged drinking water and snacks on board.\nWant the Aarti up close? Add VIP Darshan below for front-row seats on the ghat right next to the pandits.",
+        gallery: [
+            { src: "/quotes/bajra/8.jpg", alt: "The Bajra lit up at night" },
+            { src: "/quotes/bajra/3.jpg", alt: "The Bajra decorated with marigold garlands" },
+            { src: "/quotes/bajra/9.jpg", alt: "The Bajra's lit upper deck at night" },
+            { src: "/quotes/bajra/1.jpg", alt: "The Bajra with garlands on the Ganga" },
+            { src: "/quotes/bajra/11.jpg", alt: "The Bajra moored at the ghat" },
+            { src: "/quotes/bajra/10.jpg", alt: "Front deck of the Bajra" },
+            { src: "/quotes/bajra/4.jpg", alt: "The Bajra glowing at the ghat at night" },
+            { src: "/quotes/bajra/2.jpg", alt: "The Bajra on a misty morning" },
+            { src: "/quotes/bajra/5.jpg", alt: "Side view of the garlanded Bajra" },
+            { src: "/quotes/bajra/12.jpg", alt: "Bow and stairs of the Bajra" },
+            { src: "/quotes/bajra/6.jpg", alt: "The Bajra on the river at night" },
+            { src: "/quotes/bajra/7.jpg", alt: "The Bajra lit up beside small boats" },
+        ],
+        inclusions: [
+            { label: "Packaged drinking water", detail: "For every guest on board — on us" },
+            { label: "Snacks on board", detail: "Light snacks for every guest — on us" },
+        ],
+        itinerary: [
+            { time: "5:00 PM", what: "Report at Dashashwamedh Ghat — sharp. Your KashiGo team meets you at the steps." },
+            { time: "5:15 PM", what: "Board the Bajra, life jackets on, water and snacks served." },
+            { time: "5:30 PM", what: "Ghat tour — row past the great ghats of Kashi with the stories behind each one." },
+            { time: "~6:15 PM", what: "Bajra anchors in front of Dashashwamedh Ghat for the evening Ganga Aarti (VIP Darshan guests take their front-row seats on the ghat)." },
+            { time: "After the Aarti", what: "Return to Dashashwamedh Ghat." },
+        ],
+        lines: [
+            { label: "Private Bajra boat — entire boat booked", detail: "Evening Dashashwamedh Aarti + ghat tour · seats up to 50 · boatman & crew · includes 1 passenger", amountInr: 12000 },
+        ],
+        builder: {
+            perPassengerInr: 750,
+            maxPassengers: 49,
+            addOns: [
+                { id: "vip-darshan", label: "VIP Darshan — front row next to the pandits", detail: "Sit on the ghat in the very front row, right beside the pandits performing the Aarti — a once-in-a-lifetime experience", amountInr: 1100, max: 50, perPerson: true },
+            ],
+            taxInr: 0,
+        },
+    },
     "KG-Q-261021-KJ": {
         id: "KG-Q-261021-KJ",
         issued: "2026-10-20",

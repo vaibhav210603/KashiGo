@@ -7,7 +7,7 @@ import QuotePay from "./QuotePay";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
-type Props = { quote: Pick<Quote, "id" | "lines" | "builder" | "customer">; paid: { amountInr: number; choices: string } | null; readOnly: boolean };
+type Props = { quote: Pick<Quote, "id" | "lines" | "builder" | "customer" | "inclusions">; paid: { amountInr: number; choices: string } | null; readOnly: boolean };
 
 // The quotation table for quotes the customer can shape: return trip, extra passengers and add-ons, then tax and total.
 export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
@@ -107,8 +107,37 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                                     </div>
                                     <span className="rounded-full bg-ganga px-3 py-1 text-xs font-extrabold tracking-[0.15em] text-white">FREE</span>
                                 </li>
+                                {(quote.inclusions ?? []).map((f) => (
+                                    <li key={f.label} className="flex items-center gap-4 rounded-xl bg-ganga/10 ring-1 ring-ganga/30 px-4 py-3">
+                                        <span className="h-10 w-10 rounded-xl bg-ganga text-white grid place-items-center shrink-0"><Check size={20} /></span>
+                                        <div className="flex-1">
+                                            <p className="font-heading font-bold">{f.label}</p>
+                                            <p className="text-sm text-night/60">{f.detail}</p>
+                                        </div>
+                                        <span className="rounded-full bg-ganga px-3 py-1 text-xs font-extrabold tracking-[0.15em] text-white">FREE</span>
+                                    </li>
+                                ))}
                                 {b.addOns.map((a) => {
                                     const n = sel.addOns[a.id] ?? 0;
+                                    if (a.perPerson) {
+                                        const on = n > 0;
+                                        const count = clean.addOns[a.id] ?? 0;
+                                        return (
+                                            <li key={a.id}>
+                                                <label className={`flex items-center gap-4 rounded-xl px-4 py-3 cursor-pointer ring-1 transition-colors ${on ? "bg-marigold/15 ring-marigold/60" : "bg-parchment ring-transparent hover:ring-marigold/50"}`}>
+                                                    <input type="checkbox" className="sr-only" checked={on} onChange={(e) => setSel((s) => ({ ...s, addOns: { ...s.addOns, [a.id]: e.target.checked ? 1 : 0 } }))} />
+                                                    <span className={`h-6 w-6 rounded-md grid place-items-center shrink-0 border-2 ${on ? "bg-fire border-fire text-white" : "border-night/30 bg-white"}`}>
+                                                        {on && <Check size={16} strokeWidth={3} />}
+                                                    </span>
+                                                    <span className="flex-1">
+                                                        <span className="block font-heading font-bold">{a.label} <span className="font-normal text-night/55">· {inr(a.amountInr)} per person</span></span>
+                                                        <span className="block text-sm text-night/60">{a.detail}</span>
+                                                    </span>
+                                                    <span className="font-heading font-bold tabular-nums whitespace-nowrap">{on ? `+ ${inr(count * a.amountInr)}` : `+ ${inr(a.amountInr)}/person`}</span>
+                                                </label>
+                                            </li>
+                                        );
+                                    }
                                     return (
                                         <li key={a.id} className="flex items-center gap-4 rounded-xl bg-parchment px-4 py-3">
                                             <div className="flex-1">
@@ -165,6 +194,17 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                                     </Fragment>
                                 );
                             })}
+                            {!(b.taxInr > 0) && <FreeJacketsRow />}
+                            {(quote.inclusions ?? []).map((f) => (
+                                <tr key={f.label} className="border-t border-sandstone/30">
+                                    <td className="px-5 sm:px-6 py-4 align-top text-ganga"><Check size={18} /></td>
+                                    <td className="px-2 py-4">
+                                        <p className="font-heading font-bold">{f.label}</p>
+                                        <p className="text-sm text-night/60">{f.detail}</p>
+                                    </td>
+                                    <td className="px-5 sm:px-6 py-4 text-right font-heading font-extrabold text-ganga whitespace-nowrap">FREE</td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                     <TotalBar total={total} label="Total payable" />
