@@ -53,12 +53,18 @@ export type QuoteBuilder = {
     maxPassengers: number;       // extra passengers allowed
     addOns: QuoteAddOn[];
     taxInr: number;              // flat, charged once
+    coupons?: { code: string; percentOff: number }[]; // codes the customer can type in; taken off everything before tax
 };
 
 export type QuotePassenger = { name: string; age: string };
-export type QuoteSelection = { returnTrip: boolean; passengers: QuotePassenger[]; addOns: Record<string, number> };
+export type QuoteSelection = { returnTrip: boolean; passengers: QuotePassenger[]; addOns: Record<string, number>; coupon?: string };
 
-export const emptySelection = (): QuoteSelection => ({ returnTrip: false, passengers: [], addOns: {} });
+export const emptySelection = (): QuoteSelection => ({ returnTrip: false, passengers: [], addOns: {}, coupon: "" });
+
+const quoteCoupon = (b: QuoteBuilder | undefined, code?: string) => {
+    const c = String(code ?? "").trim().toUpperCase();
+    return c ? b?.coupons?.find((x) => x.code === c) ?? null : null;
+};
 
 // Cleans whatever the browser sent down to what the quote allows. Used on both sides, so the page and the charge always agree.
 export function cleanSelection(q: Pick<Quote, "builder">, raw: unknown): QuoteSelection {
@@ -76,7 +82,7 @@ export function cleanSelection(q: Pick<Quote, "builder">, raw: unknown): QuoteSe
             : Math.trunc(Number(r.addOns?.[a.id] ?? 0));
         if (n > 0) addOns[a.id] = Math.min(n, a.max);
     }
-    return { returnTrip: Boolean(b.returnTrip && r.returnTrip), passengers, addOns };
+    return { returnTrip: Boolean(b.returnTrip && r.returnTrip), passengers, addOns, coupon: quoteCoupon(b, r.coupon)?.code ?? "" };
 }
 
 // Every line on the bill for a selection, tax last.
@@ -97,6 +103,11 @@ export function priceQuote(q: Pick<Quote, "lines" | "builder">, sel: QuoteSelect
             const n = sel.addOns[a.id] ?? 0;
             if (n > 0) lines.push({ label: `${a.label} × ${n}`, detail: a.perPerson ? `${a.detail} · ₹${a.amountInr.toLocaleString("en-IN")} per person` : a.detail, amountInr: n * a.amountInr });
         }
+        const coupon = quoteCoupon(b, sel.coupon);
+        if (coupon) {
+            const subtotal = lines.reduce((s, l) => s + l.amountInr, 0);
+            lines.push({ label: `Coupon ${coupon.code}`, detail: `${coupon.percentOff}% off`, amountInr: -Math.round((subtotal * coupon.percentOff) / 100) });
+        }
         if (b.taxInr) lines.push({ label: "Taxes", detail: "Applicable taxes & charges", amountInr: b.taxInr });
     }
     return { lines, total: lines.reduce((s, l) => s + l.amountInr, 0) };
@@ -111,6 +122,7 @@ export function describeSelection(q: Pick<Quote, "builder">, sel: QuoteSelection
         b.returnTrip ? `Return: ${sel.returnTrip ? "yes" : "no"}` : "",
         named.length ? `Extra passengers: ${named.map((p) => (p.age ? `${p.name} (${p.age})` : p.name)).join(", ")}` : "Extra passengers: none",
         ...b.addOns.filter((a) => sel.addOns[a.id]).map((a) => `${a.label} ×${sel.addOns[a.id]}`),
+        quoteCoupon(b, sel.coupon) ? `Coupon: ${sel.coupon}` : "",
     ];
     return parts.filter(Boolean).join(" | ");
 }
@@ -165,12 +177,13 @@ export const STATIC_QUOTES: Record<string, Quote> = {
             { label: "Private Bajra boat — entire boat booked", detail: "Evening Dashashwamedh Aarti + ghat tour · seats up to 50 · boatman & crew · includes 1 passenger", amountInr: 12000 },
         ],
         builder: {
-            perPassengerInr: 750,
+            perPassengerInr: 450,
             maxPassengers: 49,
             addOns: [
                 { id: "vip-darshan", label: "VIP Darshan — front row next to the pandits", detail: "Sit on the ghat in the very front row, right beside the pandits performing the Aarti — a once-in-a-lifetime experience", amountInr: 1100, max: 50, perPerson: true },
             ],
             taxInr: 0,
+            coupons: [{ code: "MAXRIDE20", percentOff: 20 }],
         },
     },
     "KG-Q-261021-KJ": {

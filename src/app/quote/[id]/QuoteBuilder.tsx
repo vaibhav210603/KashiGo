@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
-import { Check, LifeBuoy, Minus, Plus, Sparkles, Trash2, UserPlus, Users } from "lucide-react";
+import { Check, LifeBuoy, Tag, Minus, Plus, Sparkles, Trash2, UserPlus, Users } from "lucide-react";
 import { cleanSelection, emptySelection, priceQuote, type Quote, type QuoteSelection } from "@/lib/quotes";
 import QuotePay from "./QuotePay";
 
@@ -17,6 +17,14 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
     const { lines, total } = priceQuote(quote, clean);
     const missingName = sel.passengers.some((p) => !p.name.trim());
     const locked = readOnly || Boolean(paid);
+    const [code, setCode] = useState("");
+    const [codeMsg, setCodeMsg] = useState("");
+    const applyCode = () => {
+        const c = code.trim().toUpperCase();
+        const hit = b.coupons?.find((x) => x.code === c);
+        setSel((s) => ({ ...s, coupon: hit ? hit.code : "" }));
+        setCodeMsg(!c ? "" : hit ? `${hit.code} applied — ${hit.percentOff}% off` : "That code isn't valid.");
+    };
 
     const setPassenger = (i: number, key: "name" | "age", v: string) =>
         setSel((s) => ({ ...s, passengers: s.passengers.map((p, j) => (j === i ? { ...p, [key]: key === "age" ? v.replace(/\D/g, "").slice(0, 3) : v.slice(0, 60) } : p)) }));
@@ -155,6 +163,24 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                             </ul>
                         </div>
                     )}
+
+                    {/* Coupon */}
+                    {b.coupons && b.coupons.length > 0 && (
+                        <div className="rounded-2xl bg-white/70 ring-1 ring-sandstone/40 p-5">
+                            <p className="flex items-center gap-2 font-heading font-bold"><Tag className="text-fire" size={20} /> Have a coupon code?</p>
+                            <form onSubmit={(e) => { e.preventDefault(); applyCode(); }} className="mt-3 flex gap-3">
+                                <input
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 30))}
+                                    placeholder="Enter code"
+                                    aria-label="Coupon code"
+                                    className="flex-1 min-w-0 h-11 rounded-lg bg-white px-3 ring-1 ring-sandstone/50 outline-none focus:ring-2 focus:ring-fire uppercase tracking-[0.1em] font-semibold"
+                                />
+                                <button type="submit" className="h-11 px-5 rounded-lg bg-night text-white font-heading font-bold hover:bg-fire transition-colors">Apply</button>
+                            </form>
+                            {codeMsg && <p className={`mt-2 text-sm font-semibold ${clean.coupon ? "text-emerald-700" : "text-red-600"}`}>{codeMsg}</p>}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -189,7 +215,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                                             <p className={`font-heading ${tax ? "font-semibold text-night/70" : "font-bold"}`}>{l.label}</p>
                                             <p className="text-sm text-night/60">{l.detail}</p>
                                         </td>
-                                        <td className="px-5 sm:px-6 py-4 text-right font-heading font-bold tabular-nums whitespace-nowrap">{inr(l.amountInr)}</td>
+                                        <td className={`px-5 sm:px-6 py-4 text-right font-heading font-bold tabular-nums whitespace-nowrap ${l.amountInr < 0 ? "text-emerald-700" : ""}`}>{l.amountInr < 0 ? `− ${inr(-l.amountInr)}` : inr(l.amountInr)}</td>
                                     </tr>
                                     </Fragment>
                                 );
