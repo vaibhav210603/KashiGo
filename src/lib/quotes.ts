@@ -224,8 +224,46 @@ export const STATIC_QUOTES: Record<string, Quote> = {
             taxInr: 150,
         },
     },
+    "KG-Q-261022-KD": {
+        id: "KG-Q-261022-KD",
+        issued: "2026-10-22",
+        validUntil: "7 days from issue",
+        customer: { name: "Kangkan Das" },
+        ride: {
+            packageId: "p2",
+            title: "Sunrise Aarti Boat Ride",
+            ghat: "Assi Ghat",
+            date: "2026-10-22",
+            dateLabel: "To be confirmed with you",
+            startLabel: "Aarti begins",
+            startTime: "5:00 AM",
+            reportTime: "4:30 AM",
+            route: "Assi Ghat → along the ghats",
+            image: "/m_aarti_bg.png",
+            slot: "Morning",
+        },
+        intro: "Here is your quotation for a private sunrise boat to the Subah-e-Banaras Ganga Aarti — one of the most peaceful hours you will spend on the Ganga.",
+        itinerary: [
+            { time: "4:30 AM", what: "Report at Assi Ghat — sharp. Your KashiGo boatman meets you at the steps." },
+            { time: "4:45 AM", what: "Board the boat, life jackets on, settle in for the best view." },
+            { time: "5:00 AM", what: "Subah-e-Banaras Ganga Aarti, watched from the river." },
+            { time: "~6:00 AM", what: "Sunrise over the Ganga as we row along the ghats." },
+            { time: "After sunrise", what: "Ride ends — or row back to Assi Ghat if you add the return journey." },
+        ],
+        lines: [
+            { label: "Sunrise Aarti Boat Ride", detail: "Assi Ghat · one way · private boat with boatman · lead passenger included", amountInr: 2200 },
+        ],
+        builder: {
+            returnTrip: { label: "Return journey to Assi Ghat", detail: "50% of the journey fare", amountInr: 1100 },
+            perPassengerInr: 450,
+            maxPassengers: 15,
+            addOns: [
+                { id: "bird-feed", label: "Bird feeder pack", detail: "2 sachets of bird feed for the gulls", amountInr: 50, max: 10 },
+            ],
+            taxInr: 150,
+        },
+    },
 };
-
 export const quoteTotal = (q: Pick<Quote, "lines">) => q.lines.reduce((s, l) => s + l.amountInr, 0);
 // Razorpay receipts are capped at 40 characters; this one ties every order back to its quote.
 export const quoteReceipt = (q: Pick<Quote, "id">) => `quote_${q.id}`.slice(0, 40);
