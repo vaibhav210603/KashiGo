@@ -117,7 +117,7 @@ export default function Home() {
             "name": "How do I book a boat ride in Varanasi online?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Book online through KashiGo at kashigo.in/book. Choose your ghat, date and ride (sunrise, Ganga Aarti, sunset, day tour or a custom route), then pay by UPI, card or PayPal — or pay at the ghat. You get a ride number and email confirmation instantly. You can also call +91 81759 66910."
+              "text": "Book online through KashiGo at kashigo.in/book. Choose your ghat, date and ride (sunrise, Ganga Aarti, sunset, day tour or a custom route), then pay by UPI, card or PayPal — or pay a 50% advance online and the rest at the ghat. You get a ride number and email confirmation instantly. You can also call +91 81759 66910."
             }
           },
           {

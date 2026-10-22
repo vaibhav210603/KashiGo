@@ -7,7 +7,7 @@ import { Eyebrow, SplitWords } from "@/components/motion/primitives";
 
 const STEPS = [
     { icon: MousePointerClick, title: "Pick ride & date", text: "Takes about a minute. Today or up to a week ahead." },
-    { icon: Wallet, title: "Pay how you like", text: "UPI, card or PayPal now — or pay at the ghat." },
+    { icon: Wallet, title: "Pay how you like", text: "UPI, card or PayPal now — or 50% advance online, rest at the ghat." },
     { icon: Sailboat, title: "Meet your boatman", text: "Your ride number and booking details arrive instantly by email." },
 ];
 

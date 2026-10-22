@@ -58,7 +58,7 @@ export default function AccountClient() {
                     <Block title="Your rides" empty="No rides booked with this number yet." items={account?.rides ?? []}
                         render={(r) => (
                             <Row key={r.ride_id} left={<><b>{productName(r.package_id)}</b><span className="text-night/55"> · {r.ride_date ? date(r.ride_date) : ""} {r.time_of_day}</span></>}
-                                sub={`${r.ride_id} · ${r.payment_status === "paid" ? "Paid" : r.payment_status === "pending" ? "Pay at the ghat" : r.payment_status}${r.credits_used ? ` · ${r.credits_used} coins used` : ""}`}
+                                sub={`${r.ride_id} · ${r.payment_status === "paid" ? "Paid" : r.payment_status === "pending" ? "Pay at the ghat" : r.payment_status === "advance" ? "50% paid · rest at the ghat" : r.payment_status}${r.credits_used ? ` · ${r.credits_used} coins used` : ""}`}
                                 right={<>₹{(Math.round(Number(r.amount) || 0) + (r.credits_used || 0)).toLocaleString("en-IN")}{r.refunded_inr > 0 && <span className="block text-xs text-ganga">Refunded {r.refunded_inr} coins</span>}</>} />
                         )} />
                     <Block title="Your guides" empty="No guides bought with this number yet." items={account?.purchases ?? []}

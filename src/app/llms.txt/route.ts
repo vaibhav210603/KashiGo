@@ -16,7 +16,7 @@ export function GET() {
 > KashiGo (kashigo.in) is a Varanasi-based service run by a local born in the city. It takes online bookings for private boat rides on the Ganges in Varanasi — sunrise, Ganga Aarti and sunset — at fixed prices with trusted local boatmen, and sells scam-free travel guides for India and Varanasi. Tagline: "Pay a genuine price for comfort."
 
 ## Varanasi boat rides — book online
-Book at https://kashigo.in/book. Bookings are open now, for today or up to a week ahead. Pay online (UPI, cards via Razorpay, international cards/PayPal) or pay at the ghat. Instant ride number and email confirmation. Phone: ${BOOKING_PHONE}.
+Book at https://kashigo.in/book. Bookings are open now, for today or up to a week ahead. Pay online (UPI, cards via Razorpay, international cards/PayPal) or pay at the ghat with a 50% advance online. Instant ride number and email confirmation. Phone: ${BOOKING_PHONE}.
 Starting ghats: Dashashwamedh, Assi, Namo, Manikarnika, Panchganga.
 Prices are for the whole private boat, not per person (${inr(BOAT_PRICE_RANGE.low)}–${inr(BOAT_PRICE_RANGE.high)}):
 ${rides}

@@ -2,7 +2,10 @@ import fs from 'fs';
 import path from 'path';
 
 export const getBookingEmailTemplate = async (data: any, rideId: string) => {
-    const paymentModeText = data.paymentMode === 'cod' ? 'Cash on Delivery' : 'Online';
+    // Pay-at-the-ghat bookings have paid a 50% advance online; the rest is cash to the boatman.
+    const paymentModeText = data.paymentMode === 'cod'
+        ? `50% advance paid online · ₹${Number(data.dueInr || 0).toLocaleString('en-IN')} to pay at the ghat`
+        : 'Online';
 
     try {
         // Read the HTML file statically relative to the project root

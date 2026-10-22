@@ -466,5 +466,5 @@ const SrcBadges = ({ s }: { s?: Src }) => !s ? null : (
 const Th = ({ children, className = "" }: { children?: React.ReactNode; className?: string }) => <th className={`px-4 py-3 font-semibold ${className}`}>{children}</th>;
 const Td = ({ children, className = "", colSpan }: { children?: React.ReactNode; className?: string; colSpan?: number }) => <td colSpan={colSpan} className={`px-4 py-3 ${className}`}>{children}</td>;
 const Status = ({ s }: { s: string }) => (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${s === "paid" ? "bg-ganga/20 text-ganga" : s === "pending" ? "bg-marigold/15 text-marigold" : "bg-ember/20 text-ember"}`}>{s === "pending" ? "at ghat" : s}</span>
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${s === "paid" ? "bg-ganga/20 text-ganga" : s === "pending" || s === "advance" ? "bg-marigold/15 text-marigold" : "bg-ember/20 text-ember"}`}>{s === "pending" ? "at ghat" : s === "advance" ? "50% paid" : s}</span>
 );

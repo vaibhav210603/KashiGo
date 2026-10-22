@@ -129,6 +129,8 @@ export default function BookingFlow() {
     const coversAll = coinsOn && balance >= afterCode;
     const coinsUsed = !coinsOn ? 0 : coversAll ? afterCode : Math.min(balance, afterCode - 1);
     const price = afterCode - coinsUsed;
+    // Pay at the ghat = 50% advance online now, the rest in cash to the boatman.
+    const advance = Math.ceil(price / 2);
     const payMode = coversAll ? "credits" : pay;
     const rideLabel = ride === "custom" ? CUSTOM_RIDE.short : selected?.short || "";
     const dateLabel = dates.find((d) => d.iso === selectedDate);
@@ -223,10 +225,11 @@ export default function BookingFlow() {
     useEffect(() => { submitRef.current = submitBooking; });
 
     const payRazorpay = async () => {
-        track("begin_checkout", { currency: "INR", value: price, item_id: product, payment_type: "razorpay" });
-        const order = await apiPost("/api/razorpay", { product, coupon, useCredits: coinsOn }).then((r) => r.data).catch(() => ({ success: false }));
+        const isAdvance = payMode === "cod";
+        track("begin_checkout", { currency: "INR", value: isAdvance ? advance : price, item_id: product, payment_type: isAdvance ? "razorpay_advance" : "razorpay" });
+        const order = await apiPost("/api/razorpay", { product, coupon, useCredits: coinsOn, advance: isAdvance }).then((r) => r.data).catch(() => ({ success: false }));
         if (!order.success && order.message) { setNotice(order.message); return; }
-        if (!order.success) { setNotice("Online payment isn't available right now — choose “Pay at the ghat” or try again."); return; }
+        if (!order.success) { setNotice("Online payment isn't available right now — please try again or call +91 81759 66910."); return; }
         await new Promise<void>((resolve, reject) => {
             if ((window as any).Razorpay) return resolve();
             const s = document.createElement("script");
@@ -237,7 +240,7 @@ export default function BookingFlow() {
         await new Promise<void>((resolve) => {
             const rzp = new (window as any).Razorpay({
                 key: order.keyId, amount: order.amount, currency: order.currency, order_id: order.orderId,
-                name: "KashiGo", description: `${rideLabel} · ${dateLabel?.bottom} · ${ghat}`, image: "/icon.png",
+                name: "KashiGo", description: `${isAdvance ? "50% advance · " : ""}${rideLabel} · ${dateLabel?.bottom} · ${ghat}`, image: "/icon.png",
                 prefill: { name, email, contact: phone }, theme: { color: "#f97316" },
                 handler: async (r: any) => { await submitBooking(r.razorpay_payment_id); resolve(); },
                 modal: { ondismiss: () => resolve() },
@@ -255,10 +258,10 @@ export default function BookingFlow() {
         }
         setBusy(true);
         try {
-            if (payMode === "cod" || payMode === "credits") await submitBooking();
+            if (payMode === "credits") await submitBooking();
             else await payRazorpay();
         } catch {
-            setNotice("Couldn't open the payment window — check your connection or choose “Pay at the ghat”.");
+            setNotice("Couldn't open the payment window — check your connection and try again.");
         } finally {
             setBusy(false);
         }
@@ -282,7 +285,7 @@ export default function BookingFlow() {
                         ["From", ghat],
                         ["Guests", String(guests)],
                         ...(returnFare ? [["Boat ride", money(ridePrice, currency)], ["Return journey", money(returnFare, currency)]] : []),
-                        ["Total", `${money(price, currency)}${currency === "usd" ? ` (${inr(price)})` : ""} · ${done.paid ? "paid" : "pay at the ghat"}`],
+                        ["Total", `${money(price, currency)}${currency === "usd" ? ` (${inr(price)})` : ""} · ${pay === "cod" ? `${inr(advance)} paid · ${inr(price - advance)} at the ghat` : done.paid ? "paid" : "pay at the ghat"}`],
                     ].map(([k, v]) => (
                         <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-white/50">{k}</dt><dd className="font-semibold text-white text-right">{v}</dd></div>
                     ))}
@@ -389,7 +392,7 @@ export default function BookingFlow() {
                     {([
                         ["online_domestic", Smartphone, "UPI / Indian card", "Pay now in ₹ · Razorpay"],
                         ["online_international", Globe, "International card / PayPal", "Pay now in $ · secure PayPal checkout"],
-                        ["cod", Wallet, "Pay at the ghat", "Cash or UPI to your boatman"],
+                        ["cod", Wallet, "Pay at the ghat", "50% advance online now · rest in cash to your boatman"],
                     ] as const).map(([mode, Icon, title, sub]) => (
                         <button key={mode} type="button" onClick={() => setPay(mode)} aria-pressed={pay === mode}
                             className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${pay === mode ? "border-night bg-night text-white" : "border-night/15 bg-white/50 hover:border-night/40"}`}>
@@ -400,6 +403,11 @@ export default function BookingFlow() {
                     ))}
                 </div>
 
+                {pay === "cod" && (
+                    <p className="mt-3 rounded-2xl bg-marigold/15 px-4 py-3 text-sm text-night/80">
+                        <b className="text-night">A 50% advance is required online to confirm your boat.</b> {price > 0 ? <>Pay {inr(advance)} now by UPI or card (Razorpay), and the remaining {inr(price - advance)}</> : <>Pay half now by UPI or card (Razorpay), and the other half</>} in cash or UPI to your boatman at the ghat.
+                    </p>
+                )}
                 {pay !== "cod" && (
                     <div className="mt-4">
                         <label htmlFor="booking-code" className="flex items-center gap-2 text-sm font-semibold text-night/75"><Tag size={16} className="text-fire" /> Discount code</label>
@@ -494,15 +502,15 @@ export default function BookingFlow() {
                             <p className="text-[11px] text-white/60 truncate">Ride {money(ridePrice, currency)} + return journey {money(returnFare, currency)}</p>
                         )}
                         {/* The payment method decides the currency actually charged — say so when it differs from the display. */}
-                        {price > 0 && payMode !== "credits" && (pay === "online_international" ? currency === "inr" : currency === "usd") && (
+                        {price > 0 && payMode !== "credits" && (pay === "cod" || (pay === "online_international" ? currency === "inr" : currency === "usd")) && (
                             <p className="text-[11px] text-white/50 truncate">
-                                {pay === "online_international" ? `Charged ${money(price, "usd")} via PayPal` : pay === "cod" ? `Pay ${inr(price)} at the ghat` : `Charged ${inr(price)} via Razorpay`}
+                                {pay === "online_international" ? `Charged ${money(price, "usd")} via PayPal` : pay === "cod" ? `${inr(advance)} now · ${inr(price - advance)} at the ghat` : `Charged ${inr(price)} via Razorpay`}
                             </p>
                         )}
                     </div>
                     <button onClick={confirm} disabled={busy}
                         className={`${FIRE_BTN} h-12 px-6 sm:px-10`}>
-                        {busy ? "Processing…" : payMode === "credits" ? "Book with coins" : pay === "cod" ? "Confirm booking" : pay === "online_international" ? "Pay with PayPal" : "Pay & book"}
+                        {busy ? "Processing…" : payMode === "credits" ? "Book with coins" : pay === "cod" ? (price > 0 ? `Pay 50% · ${inr(advance)}` : "Pay 50% advance") : pay === "online_international" ? "Pay with PayPal" : "Pay & book"}
                     </button>
                 </div>
             </div>
