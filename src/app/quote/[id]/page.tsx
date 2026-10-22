@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
-import { AlertTriangle, Backpack, BadgeIndianRupee, CalendarDays, Clock, Globe, LifeBuoy, MapPin, Phone, ShieldCheck, Sunrise, Users } from "lucide-react";
+import { AlertTriangle, Backpack, BadgeIndianRupee, CalendarDays, ChevronDown, Clock, Globe, LifeBuoy, MapPin, Phone, ShieldCheck, Sunrise, Users } from "lucide-react";
+import type { PaidOrder } from "@/lib/quotePayments";
 import { CHILD_FREE_UNDER, CHILD_JACKET_INR, quoteTotal, travellersOf, type Quote } from "@/lib/quotes";
 import { getQuote } from "@/lib/quoteStore";
 import { paidQuoteOrder } from "@/lib/quotePayments";
@@ -76,6 +77,9 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
     const CARRY = carryList(q);
     const CAREFUL = carefulList(q);
     const people = travellersOf(q);
+
+    // Quotes the customer shapes get a short checkout on screen; the full document stays for the PDF.
+    if (q.builder && !pdfMode) return <CompactQuote q={q} paidOrder={paidOrder} journeyDate={journeyDate} carry={CARRY} careful={CAREFUL} />;
 
     return (
         <div data-quote-doc className="bg-night min-h-screen print:bg-white">
@@ -382,5 +386,117 @@ function PaidStamp() {
         <div className="flex justify-center mb-4">
             <span className="rotate-[-6deg] rounded-xl border-4 border-emerald-600 px-6 py-2 font-heading font-extrabold text-3xl tracking-[0.3em] text-emerald-600">PAID</span>
         </div>
+    );
+}
+
+function CompactQuote({ q, paidOrder, journeyDate, carry, careful }: { q: Quote; paidOrder: PaidOrder | null; journeyDate: string; carry: string[][]; careful: ReturnType<typeof carefulList> }) {
+    const first = q.customer.name.replace(/^(mr|mrs|ms|dr)\.?\s+/i, "").split(" ")[0];
+    return (
+        <div className="bg-parchment min-h-screen text-night">
+            <style>{`@media print { ${PRINT_CSS} [data-no-print] { display: none !important; } details > *:not(summary) { display: block !important; } }`}</style>
+
+            {/* Header — sits under the site bar, so it stays short */}
+            <section className="relative h-[188px] sm:h-[220px] overflow-hidden">
+                <Image src={q.ride.image} alt={`${q.ride.title} at ${q.ride.ghat}, Varanasi`} fill priority sizes="100vw" className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-night via-night/60 to-night/30" />
+                <div className="relative h-full max-w-xl mx-auto px-4 flex items-end gap-3 pb-4">
+                    <div className="relative h-12 w-12 rounded-full bg-white overflow-hidden shrink-0 ring-2 ring-marigold/50">
+                        <Image src="/KashiGo.png" alt="KashiGo logo" fill sizes="48px" priority className="object-cover" />
+                    </div>
+                    <div className="min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">KashiGo · Quote {q.id}</p>
+                        <h1 className="font-display text-white text-2xl sm:text-3xl leading-tight truncate">{q.ride.title}</h1>
+                    </div>
+                </div>
+            </section>
+
+            <div className="max-w-xl mx-auto px-4 py-4 space-y-3">
+                {/* Booking details */}
+                <section className="rounded-2xl bg-white ring-1 ring-sandstone/50 p-4">
+                    <p className="text-sm text-night/70">Namaste <b className="text-night">{first} ji</b> — your booking details:</p>
+                    <dl className="mt-3 grid grid-cols-2 gap-2">
+                        <Detail icon={CalendarDays} label="Date" value={journeyDate} />
+                        <Detail icon={Clock} label="Reach by" value={`${q.ride.reportTime} sharp`} strong />
+                        <Detail icon={Sunrise} label={q.ride.startLabel} value={q.ride.startTime} />
+                        <Detail icon={MapPin} label="Meet at" value={q.ride.ghat} />
+                    </dl>
+                    <p className="mt-2.5 text-xs text-night/55">Private boat with boatman · {q.ride.route}</p>
+                    {q.note && <p className="mt-2 text-xs text-night/75 bg-marigold/15 rounded-lg px-3 py-2 whitespace-pre-line">{q.note}</p>}
+                </section>
+
+                {q.gallery && q.gallery.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 snap-x" data-no-print>
+                        {q.gallery.map((g) => (
+                            <a key={g.src} href={g.src} target="_blank" rel="noopener" className="relative h-24 w-36 shrink-0 overflow-hidden rounded-xl ring-1 ring-sandstone/50 snap-start">
+                                <Image src={g.src} alt={g.alt} fill sizes="144px" className="object-cover" />
+                            </a>
+                        ))}
+                    </div>
+                )}
+
+                <QuoteBuilder quote={{ id: q.id, lines: q.lines, builder: q.builder, customer: q.customer, inclusions: q.inclusions }} paid={paidOrder} readOnly={false} />
+
+                <p className="flex items-start gap-2 rounded-xl bg-red-50 ring-1 ring-red-200 px-3 py-2.5 text-xs text-red-800">
+                    <BadgeIndianRupee size={16} className="shrink-0 mt-px" />
+                    <span><b>No cash at the ghat.</b> Pay only on this page. If anyone asks for money, call <a href="tel:+918175966910" className="font-bold underline">+91 81759 66910</a>.</span>
+                </p>
+
+                {/* Everything else, folded away */}
+                <div className="pt-3 space-y-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-night/45 px-1">Before you go</p>
+                    <Fold title="Timeline">
+                        <ol className="space-y-2">
+                            {q.itinerary.map((s, i) => (
+                                <li key={i} className="flex gap-3 text-sm"><span className="w-20 shrink-0 font-semibold text-fire">{s.time}</span><span className="text-night/75">{s.what}</span></li>
+                            ))}
+                        </ol>
+                    </Fold>
+                    <Fold title="Things to carry">
+                        <ul className="space-y-1.5">
+                            {carry.map(([t, d]) => <li key={t} className="text-sm"><b>{t}</b> <span className="text-night/60">— {d}</span></li>)}
+                        </ul>
+                    </Fold>
+                    <Fold title="Safety & dos and don'ts">
+                        <ul className="space-y-2">
+                            {careful.map(({ title, body }) => <li key={title} className="text-sm"><b>{title}.</b> <span className="text-night/65">{body}</span></li>)}
+                        </ul>
+                    </Fold>
+                    <Fold title="Quotation details">
+                        <dl className="grid grid-cols-2 gap-y-1.5 text-sm">
+                            <dt className="text-night/55">Prepared for</dt><dd className="font-semibold">{q.customer.name}</dd>
+                            <dt className="text-night/55">Quotation no.</dt><dd className="font-semibold">{q.id}</dd>
+                            <dt className="text-night/55">Issued</dt><dd className="font-semibold">{fmt(q.issued, { day: "numeric", month: "short", year: "numeric" })}</dd>
+                            <dt className="text-night/55">Valid until</dt><dd className="font-semibold">{q.validUntil}</dd>
+                        </dl>
+                    </Fold>
+                </div>
+
+                <footer className="pt-4 pb-2 text-center text-xs text-night/55 space-y-1">
+                    <p><span className="font-deva text-fire text-base">शुभ यात्रा</span> · Have a safe &amp; blessed journey — Team KashiGo</p>
+                    <p className="flex items-center justify-center gap-1.5"><Phone size={12} /> <a href="tel:+918175966910">+91 81759 66910</a> · <a href={SITE} className="text-fire font-semibold">kashigo.in</a></p>
+                </footer>
+            </div>
+        </div>
+    );
+}
+
+function Detail({ icon: Icon, label, value, strong }: { icon: typeof Clock; label: string; value: string; strong?: boolean }) {
+    return (
+        <div className={`rounded-xl px-3 py-2 ${strong ? "bg-marigold/25" : "bg-parchment"}`}>
+            <dt className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-night/50"><Icon size={11} />{label}</dt>
+            <dd className={`mt-0.5 text-sm leading-snug ${strong ? "font-extrabold" : "font-semibold"}`}>{value}</dd>
+        </div>
+    );
+}
+
+function Fold({ title, children }: { title: string; children: React.ReactNode }) {
+    return (
+        <details className="group rounded-xl bg-white/70 ring-1 ring-sandstone/40">
+            <summary className="flex items-center justify-between px-4 h-11 cursor-pointer list-none text-sm font-semibold [&::-webkit-details-marker]:hidden">
+                {title}
+                <ChevronDown size={16} className="text-night/40 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="px-4 pb-4">{children}</div>
+        </details>
     );
 }

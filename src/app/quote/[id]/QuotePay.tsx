@@ -82,15 +82,15 @@ export default function QuotePay({ id, name, total, paid: initiallyPaid, selecti
             <button
                 onClick={pay}
                 disabled={busy}
-                className="group w-full h-16 rounded-full bg-gradient-to-r from-fire to-marigold text-night font-heading font-extrabold text-lg shadow-[0_18px_40px_-12px_rgba(255,122,26,0.65)] hover:shadow-[0_22px_50px_-10px_rgba(255,122,26,0.8)] hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:translate-y-0 flex items-center justify-center gap-3"
+                className="group w-full h-[52px] rounded-full bg-gradient-to-r from-fire to-marigold text-night font-heading font-extrabold text-base shadow-[0_14px_30px_-12px_rgba(255,122,26,0.65)] hover:shadow-[0_22px_50px_-10px_rgba(255,122,26,0.8)] hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:translate-y-0 flex items-center justify-center gap-3"
             >
                 {busy ? <Loader2 className="animate-spin" size={22} /> : <Lock size={20} />}
                 {busy ? "Opening secure checkout…" : `Pay ${total} securely`}
             </button>
             <p className="mt-3 text-center text-xs text-slate-500">UPI · Cards · Net banking · Wallets — processed by Razorpay</p>
             {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
-            <button onClick={() => window.print()} className="mt-4 mx-auto flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-fire transition-colors">
-                <Printer size={16} /> Download / print this quotation
+            <button onClick={() => window.print()} className="mt-2 mx-auto flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-fire transition-colors">
+                <Printer size={14} /> Download / print this quotation
             </button>
         </div>
     );
