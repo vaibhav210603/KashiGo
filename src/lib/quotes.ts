@@ -248,13 +248,12 @@ export const STATIC_QUOTES: Record<string, Quote> = {
             { time: "4:45 AM", what: "Board the boat, life jackets on, settle in for the best view." },
             { time: "5:00 AM", what: "Subah-e-Banaras Ganga Aarti, watched from the river." },
             { time: "~6:00 AM", what: "Sunrise over the Ganga as we row along the ghats." },
-            { time: "After sunrise", what: "Ride ends — or row back to Assi Ghat if you add the return journey." },
+            { time: "After sunrise", what: "Ride ends — thank you for riding with KashiGo." },
         ],
         lines: [
             { label: "Sunrise Aarti Boat Ride", detail: "Assi Ghat · one way · private boat with boatman · lead passenger included", amountInr: 2200 },
         ],
         builder: {
-            returnTrip: { label: "Return journey to Assi Ghat", detail: "50% of the journey fare", amountInr: 1100 },
             perPassengerInr: 450,
             maxPassengers: 15,
             addOns: [

@@ -27,7 +27,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
         io.observe(el);
         return () => io.disconnect();
     }, []);
-    const freebies = ["Life jackets", ...(quote.inclusions ?? []).map((f) => f.label)];
+    const freebies = [`Life jackets × ${1 + sel.passengers.length}`, ...(quote.inclusions ?? []).map((f) => f.label)];
 
     const applyCode = () => {
         const c = code.trim().toUpperCase();
@@ -77,7 +77,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                                         placeholder="Full name"
                                         aria-label={`Passenger ${i + 2} name`}
                                         autoFocus={i === sel.passengers.length - 1}
-                                        className={`flex-1 min-w-0 h-10 rounded-lg bg-white px-3 text-sm ring-1 outline-none focus:ring-2 focus:ring-fire ${p.name.trim() ? "ring-sandstone/60" : "ring-red-300"}`}
+                                        className={`flex-1 min-w-0 h-10 rounded-lg bg-white px-3 text-base ring-1 outline-none focus:ring-2 focus:ring-fire ${p.name.trim() ? "ring-sandstone/60" : "ring-red-300"}`}
                                     />
                                     <input
                                         value={p.age}
@@ -85,7 +85,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                                         placeholder="Age"
                                         inputMode="numeric"
                                         aria-label={`Passenger ${i + 2} age`}
-                                        className="w-14 h-10 rounded-lg bg-white px-2 text-sm text-center ring-1 ring-sandstone/60 outline-none focus:ring-2 focus:ring-fire"
+                                        className="w-14 h-10 rounded-lg bg-white px-2 text-base text-center ring-1 ring-sandstone/60 outline-none focus:ring-2 focus:ring-fire"
                                     />
                                     <button
                                         onClick={() => setSel((s) => ({ ...s, passengers: s.passengers.filter((_, j) => j !== i) }))}
@@ -179,7 +179,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                                         onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 30))}
                                         placeholder="Enter code"
                                         aria-label="Coupon code"
-                                        className="flex-1 min-w-0 h-10 rounded-lg bg-white px-3 text-sm ring-1 ring-sandstone/60 outline-none focus:ring-2 focus:ring-fire uppercase tracking-wider font-semibold"
+                                        className="flex-1 min-w-0 h-10 rounded-lg bg-white px-3 text-base ring-1 ring-sandstone/60 outline-none focus:ring-2 focus:ring-fire uppercase tracking-wider font-semibold"
                                     />
                                     <button type="submit" className="h-10 px-4 rounded-lg bg-night text-white text-sm font-bold hover:bg-fire transition-colors">Apply</button>
                                 </form>
