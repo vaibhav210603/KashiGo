@@ -261,6 +261,7 @@ export const STATIC_QUOTES: Record<string, Quote> = {
                 { id: "bird-feed", label: "Bird feeder pack", detail: "2 sachets of bird feed for the gulls", amountInr: 50, max: 10 },
             ],
             taxInr: 150,
+            coupons: [{ code: "MAXRIDE20", percentOff: 20 }],
         },
     },
 };
