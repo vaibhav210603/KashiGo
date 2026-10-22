@@ -104,8 +104,8 @@ function AdminLogin({ onDone }: { onDone: () => void }) {
 /* ───────────────────────── Orders + refunds ───────────────────────── */
 
 type BoatOrder = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any -- rows from the existing orders table
-type Src = { email: boolean; db: boolean };
-type Sources = { email: { ok: boolean; count: number; error: string | null }; db: { ok: boolean; error: string | null }; synced: number; syncError: string | null };
+type Src = { email: boolean; db: boolean; razorpay?: boolean };
+type Sources = { email: { ok: boolean; count: number; error: string | null }; db: { ok: boolean; error: string | null }; synced: number; syncError: string | null; quotes?: number };
 type OrdersResponse = { boats: BoatOrder[]; shop: ShopOrder[]; errors: string[]; sources: Sources | null };
 type ShopOrder = { _src?: Src; order_ref: string; product: string; customer_email: string | null; name: string | null; phone: string | null; provider: string; amount_inr: number; amount_usd: number | null; credits_used: number; coupon: string | null; refunded_inr: number; created_at: string };
 type RefundTarget = { kind: "boat" | "shop"; key: string; label: string; paid: number; refunded: number; email: string | null; fallbackEmail: string | null };
@@ -146,7 +146,7 @@ function Orders() {
                 <table className="w-full min-w-[56rem] text-sm">
                     <thead className="bg-white/5 text-left text-[11px] uppercase tracking-wider text-white/50">
                         {view === "boats" ? (
-                            <tr><Th>Ride</Th><Th>When</Th><Th>Customer</Th><Th>Payment</Th><Th className="text-right">Paid</Th><Th className="text-right">Refunded</Th><Th /></tr>
+                            <tr><Th>Ride</Th><Th>Ride date · booked</Th><Th>Customer</Th><Th>Payment</Th><Th className="text-right">Paid</Th><Th className="text-right">Refunded</Th><Th /></tr>
                         ) : (
                             <tr><Th>Order</Th><Th>Bought</Th><Th>Customer</Th><Th>Via</Th><Th className="text-right">Paid</Th><Th className="text-right">Refunded</Th><Th /></tr>
                         )}
@@ -158,7 +158,7 @@ function Orders() {
                             return (
                                 <tr key={o.ride_id + (o.id ?? "")} className="border-t border-white/10 align-top">
                                     <Td><b>{o.ride_id}</b> <SrcBadges s={o._src} /><span className="block text-white/55">{productName(o.package_id)} · {o.ghat}</span></Td>
-                                    <Td>{o.ride_date || ""}<span className="block text-white/55">{o.time_of_day}</span></Td>
+                                    <Td>{o.ride_date ? <b>{o.ride_date}</b> : <span className="text-white/55">Date TBC</span>}<span className="block text-white/55">{o.time_of_day}</span>{o.created_at && <span className="block text-xs text-white/40">Booked {when(o.created_at)}</span>}</Td>
                                     <Td>{o.passenger_name}<span className="block text-white/55">{email || o.passenger_email || "no email"} · {formatPhone(o.passenger_phone) || o.passenger_phone}{o.passengers_count ? ` · ${o.passengers_count} guests` : ""}</span></Td>
                                     <Td><Status s={o.payment_status} /><span className="block text-white/55">{o.payment_mode}{o.coupon ? ` · ${o.coupon}` : ""}</span>{o.check_notes && <span className="block text-xs text-ember">{o.check_notes}</span>}</Td>
                                     <Td className="text-right">{rupees(paid)}{o.credits_used ? <span className="block text-xs text-white/50">{o.credits_used} in coins</span> : null}</Td>
@@ -446,6 +446,7 @@ function SourceBar({ s }: { s: Sources }) {
             <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${s.db.ok ? "border-ganga/40 text-ganga" : "border-marigold/40 text-marigold"}`}>
                 <Database size={13} /> {s.db.ok ? "Database: connected" : `Database unavailable — showing email copies; refunds wait until it's back${s.db.error ? ` (${s.db.error})` : ""}`}
             </span>
+            {s.quotes ? <span className="inline-flex items-center gap-1.5 rounded-full border border-marigold/40 px-3 py-1.5 text-marigold">Quotation payments: {s.quotes}</span> : null}
             {s.synced > 0 && <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1.5 text-white/75">Copied {s.synced} order{s.synced === 1 ? "" : "s"} from email into the database</span>}
             {s.syncError && <span className="inline-flex items-center gap-1.5 rounded-full border border-ember/40 px-3 py-1.5 text-ember">Copy to database failed: {s.syncError}</span>}
         </div>
@@ -455,6 +456,7 @@ function SourceBar({ s }: { s: Sources }) {
 const SrcBadges = ({ s }: { s?: Src }) => !s ? null : (
     <span className="ml-1 inline-flex gap-1 align-middle">
         {s.email && <span title="Found in the order emails" className="inline-flex items-center rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70"><Mail size={10} /></span>}
+        {s.razorpay && <span title="Paid through a quotation link (Razorpay)" className="inline-flex items-center rounded-full bg-marigold/20 px-1.5 py-0.5 text-[10px] font-semibold text-marigold">Quote</span>}
         {s.db && <span title="Saved in the database" className="inline-flex items-center rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70"><Database size={10} /></span>}
     </span>
 );

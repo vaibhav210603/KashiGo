@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { cleanSelection, describeSelection, priceQuote, quoteReceipt, type Quote } from "@/lib/quotes";
 import { getQuote, markQuotePaid } from "@/lib/quoteStore";
-import { isQuotePaid, razorpay as rz } from "@/lib/quotePayments";
+import { isQuotePaid, quoteOrderRecord, razorpay as rz } from "@/lib/quotePayments";
+import { orderMailParts, syncOrdersToDb, type OrderRecord } from "@/lib/orderMail";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
 import { rateLimited } from "@/lib/rateLimit";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const longDate = (iso: string) => new Date(`${iso}T00:00:00+05:30`).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" });
 
-async function notify(q: Quote, payment: any, choices: string) {
+async function notify(q: Quote, payment: any, choices: string, record: OrderRecord) {
     const owner = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
     if (!owner) return;
     const total = inr(Number(payment.amount) / 100);
@@ -19,6 +20,8 @@ async function notify(q: Quote, payment: any, choices: string) {
             from: `"KashiGo Quotes" <${owner}>`,
             to: owner,
             subject: `Quote paid: ${q.id} — ${q.customer.name} — ${total}`,
+            // The order attachment puts this payment in /admin → Orders, like a site booking.
+            ...orderMailParts(record),
             text: [
                 `Quote: ${q.id}`,
                 `Customer: ${q.customer.name}`,
@@ -74,7 +77,7 @@ export async function POST(req: Request) {
                 amount: total * 100,
                 currency: "INR",
                 receipt: quoteReceipt(q),
-                notes: { quote: q.id, customer: q.customer.name, ride: `${q.ride.title} · ${q.ride.date}`, choices: describeSelection(q, sel).slice(0, 250) },
+                notes: { quote: q.id, customer: q.customer.name, ride: `${q.ride.title} · ${q.ride.date}`, choices: describeSelection(q, sel).slice(0, 250), pax: String(1 + sel.passengers.filter((p) => p.name).length) },
             });
             return NextResponse.json({ success: true, orderId: order.id, amount: order.amount, keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID });
         }
@@ -92,7 +95,12 @@ export async function POST(req: Request) {
             if (order?.notes?.quote !== q.id || Number(payment?.amount) !== Number(order?.amount)) {
                 return NextResponse.json({ success: false, message: "This payment doesn't match the quotation." }, { status: 400 });
             }
-            await Promise.all([notify(q, payment, String(order?.notes?.choices ?? "")), markQuotePaid(q.id, paymentId)]);
+            const record = quoteOrderRecord(q, order, payment);
+            await Promise.all([
+                notify(q, payment, String(order?.notes?.choices ?? ""), record),
+                markQuotePaid(q.id, paymentId),
+                syncOrdersToDb([record]).then((r) => r.error && console.error("Quote order not saved to the database:", r.error)),
+            ]);
             return NextResponse.json({ success: true, paymentId });
         }
 
