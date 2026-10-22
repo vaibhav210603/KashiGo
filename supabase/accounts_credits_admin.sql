@@ -90,11 +90,16 @@ insert into public.coupons (code, kind, value, applies_to, max_uses, per_custome
     ('KASHIGO21',   'fixed_price', 10, '{boat}',        null, null, 'Boat ride for ₹10 (test code)')
 on conflict (code) do nothing;
 
--- Carry over a BLISS20 that was already claimed under the old system.
-insert into public.coupon_uses (code, email, order_ref, status, paid_at)
-select upper(code), 'legacy', order_ref, 'paid', claimed_at from public.coupon_redemptions
-where upper(code) in (select code from public.coupons)
-on conflict (order_ref) do nothing;
+-- Carry over a BLISS20 that was already claimed under the old system (only if that older table exists).
+do $$
+begin
+    if to_regclass('public.coupon_redemptions') is not null then
+        insert into public.coupon_uses (code, email, order_ref, status, paid_at)
+        select upper(code), 'legacy', order_ref, 'paid', claimed_at from public.coupon_redemptions
+        where upper(code) in (select code from public.coupons)
+        on conflict (order_ref) do nothing;
+    end if;
+end $$;
 
 -- ── Orders: who paid, coins used, refunds ──────────────────────────────────────────────────
 alter table public.orders add column if not exists customer_email text;
