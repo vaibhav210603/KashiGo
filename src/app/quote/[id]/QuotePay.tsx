@@ -4,7 +4,8 @@ import { useState } from "react";
 import { CheckCircle2, Loader2, Lock, Printer } from "lucide-react";
 import type { QuoteSelection } from "@/lib/quotes";
 
-type Props = { id: string; name: string; total: string; paid: boolean; selection?: QuoteSelection; blocked?: string };
+// `due`: on a 50%-advance quote, what's left to pay at the ghat (then `total` is the advance charged now).
+type Props = { id: string; name: string; total: string; paid: boolean; selection?: QuoteSelection; blocked?: string; due?: string };
 
 const loadRazorpay = () =>
     new Promise<void>((resolve, reject) => {
@@ -19,7 +20,7 @@ const loadRazorpay = () =>
 const post = (body: object) =>
     fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());
 
-export default function QuotePay({ id, name, total, paid: initiallyPaid, selection, blocked }: Props) {
+export default function QuotePay({ id, name, total, paid: initiallyPaid, selection, blocked, due }: Props) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [paymentId, setPaymentId] = useState(initiallyPaid ? "received" : "");
@@ -70,7 +71,7 @@ export default function QuotePay({ id, name, total, paid: initiallyPaid, selecti
                     <p className="font-heading font-bold text-emerald-900 text-lg">Payment received — your boat is confirmed.</p>
                     <p className="text-emerald-800/80 text-sm mt-1">
                         {paymentId !== "received" && <>Payment ID <span className="font-mono">{paymentId}</span>. </>}
-                        A confirmation is on its way to your email. Nothing more is to be paid at the ghat.
+                        A confirmation is on its way to your email. {due ? <>Pay the remaining <b>{due}</b> to your KashiGo boatman at the ghat — nobody else.</> : "Nothing more is to be paid at the ghat."}
                     </p>
                 </div>
             </div>
@@ -85,9 +86,9 @@ export default function QuotePay({ id, name, total, paid: initiallyPaid, selecti
                 className="group w-full h-[52px] rounded-full bg-gradient-to-r from-fire to-marigold text-night font-heading font-extrabold text-base shadow-[0_14px_30px_-12px_rgba(255,122,26,0.65)] hover:shadow-[0_22px_50px_-10px_rgba(255,122,26,0.8)] hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:translate-y-0 flex items-center justify-center gap-3"
             >
                 {busy ? <Loader2 className="animate-spin" size={22} /> : <Lock size={20} />}
-                {busy ? "Opening secure checkout…" : `Pay ${total} securely`}
+                {busy ? "Opening secure checkout…" : due ? `Pay 50% advance · ${total}` : `Pay ${total} securely`}
             </button>
-            <p className="mt-3 text-center text-xs text-slate-500">UPI · Cards · Net banking · Wallets — processed by Razorpay</p>
+            <p className="mt-3 text-center text-xs text-slate-500">{due ? <>The remaining {due} is paid at the ghat · </> : null}UPI · Cards · Net banking · Wallets — processed by Razorpay</p>
             {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
             <button onClick={() => window.print()} className="mt-2 mx-auto flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-fire transition-colors">
                 <Printer size={14} /> Download / print this quotation

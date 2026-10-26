@@ -35,6 +35,7 @@ export type Quote = {
     itinerary: { time: string; what: string }[];
     lines: QuoteLine[];
     builder?: QuoteBuilder; // lets the customer shape the quote on the page before paying
+    payment?: QuotePaymentMethod; // how it's paid; missing = all online
 };
 
 // A passenger on an admin-made quote. Children under 6 ride free and pay only for their life jacket.
@@ -265,6 +266,14 @@ export const STATIC_QUOTES: Record<string, Quote> = {
     },
 };
 export const quoteTotal = (q: Pick<Quote, "lines">) => q.lines.reduce((s, l) => s + l.amountInr, 0);
+
+// "advance50": half (rounded up) online through Razorpay to confirm the boat, the rest to the boatman at the ghat.
+export type QuotePaymentMethod = "online" | "advance50";
+export function quoteSplit(q: Pick<Quote, "payment">, total: number): { online: number; atGhat: number } {
+    if (q.payment !== "advance50") return { online: total, atGhat: 0 };
+    const online = Math.ceil(total / 2);
+    return { online, atGhat: total - online };
+}
 // Razorpay receipts are capped at 40 characters; this one ties every order back to its quote.
 export const quoteReceipt = (q: Pick<Quote, "id">) => `quote_${q.id}`.slice(0, 40);
 

@@ -5,7 +5,7 @@ import type { OrderRecord } from "@/lib/orderMail";
 
 export const razorpay = () => new Razorpay({ key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!, key_secret: process.env.RAZORPAY_KEY_SECRET! });
 
-export type PaidOrder = { amountInr: number; choices: string };
+export type PaidOrder = { amountInr: number; choices: string; dueInr: number }; // dueInr: still to collect at the ghat (50% advance quotes)
 
 // The paid Razorpay order for this quote, if any — the page shows "Paid" and the API refuses a second charge.
 export async function paidQuoteOrder(q: Quote): Promise<PaidOrder | null> {
@@ -13,7 +13,7 @@ export async function paidQuoteOrder(q: Quote): Promise<PaidOrder | null> {
     try {
         const list: any = await razorpay().orders.all({ receipt: quoteReceipt(q) } as any);
         const o = (list?.items ?? []).find((o: any) => o.status === "paid");
-        return o ? { amountInr: Number(o.amount) / 100, choices: String(o.notes?.choices ?? "") } : null;
+        return o ? { amountInr: Number(o.amount) / 100, choices: String(o.notes?.choices ?? ""), dueInr: Number(o.notes?.due) || 0 } : null;
     } catch {
         return null;
     }
@@ -34,6 +34,7 @@ export function paxFromChoices(choices: string): number {
 export function quoteOrderRecord(q: Quote, order: any, payment: any): OrderRecord {
     const choices = String(order?.notes?.choices ?? "");
     const coupon = /Coupon: (\S+)/.exec(choices)?.[1] ?? null;
+    const due = Number(order?.notes?.due) || 0; // 50%-advance quotes: the rest is collected at the ghat
     return {
         v: 1,
         kind: "boat",
@@ -44,13 +45,13 @@ export function quoteOrderRecord(q: Quote, order: any, payment: any): OrderRecor
         customer_email: String(payment?.email || q.customer.email || "").toLowerCase() || null,
         phone: String(payment?.contact || q.customer.phone || ""),
         email: String(payment?.email || q.customer.email || ""),
-        payment_mode: "online_domestic",
-        payment_status: "paid",
+        payment_mode: due ? "cod" : "online_domestic",
+        payment_status: due ? "advance" : "paid",
         payment_ref: String(payment?.id ?? ""),
         amount: Number(payment?.amount ?? order?.amount ?? 0) / 100,
         credits_used: 0,
         coupon,
-        notes: [`Quotation ${q.id}`, q.ride.dateLabel ? `Date: ${q.ride.dateLabel}` : "", choices].filter(Boolean).join(" · "),
+        notes: [`Quotation ${q.id}`, due ? `₹${due.toLocaleString("en-IN")} to collect at the ghat` : "", q.ride.dateLabel ? `Date: ${q.ride.dateLabel}` : "", choices].filter(Boolean).join(" · "),
         ghat: q.ride.ghat,
         ride_date: q.ride.dateLabel ? undefined : q.ride.date,
         time_of_day: `${q.ride.slot}, ${q.ride.startTime}`,

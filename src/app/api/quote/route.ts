@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { cleanSelection, describeSelection, priceQuote, quoteReceipt, type Quote } from "@/lib/quotes";
+import { cleanSelection, describeSelection, priceQuote, quoteReceipt, quoteSplit, type Quote } from "@/lib/quotes";
 import { getQuote, markQuotePaid } from "@/lib/quoteStore";
 import { isQuotePaid, quoteOrderRecord, razorpay as rz } from "@/lib/quotePayments";
 import { orderMailParts, syncOrdersToDb, type OrderRecord } from "@/lib/orderMail";
@@ -10,7 +10,7 @@ import { rateLimited } from "@/lib/rateLimit";
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const longDate = (iso: string) => new Date(`${iso}T00:00:00+05:30`).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" });
 
-async function notify(q: Quote, payment: any, choices: string, record: OrderRecord) {
+async function notify(q: Quote, payment: any, choices: string, record: OrderRecord, due: number) {
     const owner = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
     if (!owner) return;
     const total = inr(Number(payment.amount) / 100);
@@ -19,7 +19,7 @@ async function notify(q: Quote, payment: any, choices: string, record: OrderReco
         await t.sendMail({
             from: `"KashiGo Quotes" <${owner}>`,
             to: owner,
-            subject: `Quote paid: ${q.id} — ${q.customer.name} — ${total}`,
+            subject: `Quote ${due ? "50% advance" : "paid"}: ${q.id} — ${q.customer.name} — ${total}${due ? ` (+ ${inr(due)} at the ghat)` : ""}`,
             // The order attachment puts this payment in /admin → Orders, like a site booking.
             ...orderMailParts(record),
             text: [
@@ -29,7 +29,8 @@ async function notify(q: Quote, payment: any, choices: string, record: OrderReco
                 `Date: ${longDate(q.ride.date)} — report ${q.ride.reportTime}, ${q.ride.startLabel.toLowerCase()} ${q.ride.startTime}`,
                 ...(choices ? [`Choices: ${choices}`] : []),
                 `Customer contact on quote: ${q.customer.phone || "—"} / ${q.customer.email || "—"}`,
-                `Paid: ${inr(Number(payment.amount) / 100)} via ${payment.method}`,
+                `Paid: ${inr(Number(payment.amount) / 100)} via ${payment.method}${due ? " (50% advance)" : ""}`,
+                ...(due ? [`TO COLLECT AT THE GHAT: ${inr(due)} (cash or UPI to the boatman)`] : []),
                 `Payment ID: ${payment.id}`,
                 `Payer: ${payment.email || "—"} / ${payment.contact || "—"}`,
             ].join("\n"),
@@ -45,12 +46,14 @@ async function notify(q: Quote, payment: any, choices: string, record: OrderReco
             to,
             subject: `Confirmed: ${q.ride.title} on ${longDate(q.ride.date)}`,
             html: simpleEmail({
-                preheader: `Payment of ${total} received. Please reach ${q.ride.ghat} by ${q.ride.reportTime} sharp.`,
+                preheader: `${due ? "Advance" : "Payment"} of ${total} received.${due ? ` ${inr(due)} to pay at the ghat.` : ""} Please reach ${q.ride.ghat} by ${q.ride.reportTime} sharp.`,
                 heading: `You're all set, ${q.customer.name.split(" ")[0]}!`,
                 paragraphs: [
                     `We've received your payment of <b>${total}</b> for the <b>${q.ride.title}</b> (quotation ${q.id}). Payment ID: ${payment.id}.${choices ? `<br/>${choices.replace(/[<>&]/g, "")}` : ""}`,
                     `<b>${longDate(q.ride.date)}</b> — please reach <b>${q.ride.ghat}</b> by <b>${q.ride.reportTime} sharp</b>. ${q.ride.startLabel} at ${q.ride.startTime}.`,
-                    `Your ride is fully paid. <b>Please do not pay any cash</b> to the boatman or anyone else at the ghat. Keep your life jacket on for the whole ride.`,
+                    due
+                        ? `You've paid a 50% advance. Please pay the remaining <b>${inr(due)}</b> to your KashiGo boatman at the ghat (cash or UPI). <b>Don't pay anyone else</b>, and nothing beyond ${inr(due)}. Keep your life jacket on for the whole ride.`
+                        : `Your ride is fully paid. <b>Please do not pay any cash</b> to the boatman or anyone else at the ghat. Keep your life jacket on for the whole ride.`,
                     `Need us? Call or WhatsApp <a href="tel:+918175966910">+91 81759 66910</a>. Have a safe and beautiful journey — Har Har Mahadev.`,
                 ],
                 links: [{ label: "View your quotation", url: `https://kashigo.in/quote/${q.id}` }],
@@ -72,12 +75,14 @@ export async function POST(req: Request) {
             const sel = cleanSelection(q, body.selection);
             if (sel.passengers.some((p) => !p.name)) return NextResponse.json({ success: false, message: "Please enter a name for every passenger you added." }, { status: 400 });
             const { total } = priceQuote(q, sel);
+            // A 50%-advance quote charges half online; the rest is collected at the ghat.
+            const { online, atGhat } = quoteSplit(q, total);
             if (await isQuotePaid(q)) return NextResponse.json({ success: false, message: "This quotation is already paid." }, { status: 409 });
             const order = await rz().orders.create({
-                amount: total * 100,
+                amount: online * 100,
                 currency: "INR",
                 receipt: quoteReceipt(q),
-                notes: { quote: q.id, customer: q.customer.name, ride: `${q.ride.title} · ${q.ride.date}`, choices: describeSelection(q, sel).slice(0, 250), pax: String(1 + sel.passengers.filter((p) => p.name).length) },
+                notes: { quote: q.id, customer: q.customer.name, ride: `${q.ride.title} · ${q.ride.date}`, choices: describeSelection(q, sel).slice(0, 250), pax: String(1 + sel.passengers.filter((p) => p.name).length), total: String(total), due: String(atGhat) },
             });
             return NextResponse.json({ success: true, orderId: order.id, amount: order.amount, keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID });
         }
@@ -97,7 +102,7 @@ export async function POST(req: Request) {
             }
             const record = quoteOrderRecord(q, order, payment);
             await Promise.all([
-                notify(q, payment, String(order?.notes?.choices ?? ""), record),
+                notify(q, payment, String(order?.notes?.choices ?? ""), record, Number(order?.notes?.due) || 0),
                 markQuotePaid(q.id, paymentId),
                 syncOrdersToDb([record]).then((r) => r.error && console.error("Quote order not saved to the database:", r.error)),
             ]);

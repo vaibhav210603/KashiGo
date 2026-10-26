@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { AlertTriangle, Backpack, BadgeIndianRupee, CalendarDays, ChevronDown, Clock, Globe, LifeBuoy, MapPin, Phone, ShieldCheck, Sunrise, Users } from "lucide-react";
 import type { PaidOrder } from "@/lib/quotePayments";
-import { CHILD_FREE_UNDER, CHILD_JACKET_INR, quoteTotal, travellersOf, type Quote } from "@/lib/quotes";
+import { CHILD_FREE_UNDER, CHILD_JACKET_INR, quoteSplit, quoteTotal, travellersOf, type Quote } from "@/lib/quotes";
 import { getQuote } from "@/lib/quoteStore";
 import { paidQuoteOrder } from "@/lib/quotePayments";
 import QuotePay from "./QuotePay";
@@ -68,6 +68,9 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
     if (!q) notFound();
 
     const total = quoteTotal(q);
+    // 50%-advance quotes charge half online; the rest is paid to the boatman at the ghat.
+    const split = quoteSplit(q, total);
+    const advance = split.atGhat > 0;
     const [paidOrder, qr] = await Promise.all([
         paidQuoteOrder(q),
         QRCode.toString(`${SITE}/quote/${q.id}`, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#070b18", light: "#00000000" } }),
@@ -245,19 +248,32 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                                 </table>
                                 <div className="flex items-center justify-between gap-4 px-5 sm:px-6 py-5 bg-gradient-to-r from-night to-night-3 text-white">
                                     <div>
-                                        <p className="text-[11px] uppercase tracking-[0.25em] text-white/55 font-bold">Total payable</p>
-                                        <p className="text-xs text-white/50 mt-0.5">One-time · no cash at the ghat</p>
+                                        <p className="text-[11px] uppercase tracking-[0.25em] text-white/55 font-bold">Total {advance ? "fare" : "payable"}</p>
+                                        <p className="text-xs text-white/50 mt-0.5">{advance ? "50% online now · 50% at the ghat" : "One-time · no cash at the ghat"}</p>
                                     </div>
                                     <p className="font-display text-4xl sm:text-5xl text-marigold tabular-nums">{inr(total)}</p>
                                 </div>
+                                {advance && (
+                                    <div className="grid grid-cols-2 divide-x divide-sandstone/40 bg-parchment text-night">
+                                        <div className="px-5 sm:px-6 py-4">
+                                            <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-fire">{paid ? "Paid online (50%)" : "Pay online now (50%)"}</p>
+                                            <p className="mt-1 font-heading font-extrabold text-2xl tabular-nums">{inr(split.online)}</p>
+                                        </div>
+                                        <div className="px-5 sm:px-6 py-4">
+                                            <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-night/55">Due at the ghat</p>
+                                            <p className="mt-1 font-heading font-extrabold text-2xl tabular-nums">{inr(split.atGhat)}</p>
+                                            <p className="text-xs text-night/55">To your KashiGo boatman · cash or UPI</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-6 max-w-xl mx-auto">
                                 {paid && <PaidStamp />}
-                                {!pdfMode && <QuotePay id={q.id} name={q.customer.name} total={inr(total)} paid={paid} />}
+                                {!pdfMode && <QuotePay id={q.id} name={q.customer.name} total={inr(split.online)} paid={paid} due={advance ? inr(split.atGhat) : undefined} />}
                                 {!paid && (
                                     <div className={`${pdfMode ? "" : "hidden print:block"} rounded-2xl bg-white ring-2 ring-marigold/60 p-5 text-center`}>
-                                        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-night/50">Pay securely online · UPI, cards, net banking</p>
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-night/50">{advance ? `Pay the ${inr(split.online)} advance online · UPI, cards, net banking` : "Pay securely online · UPI, cards, net banking"}</p>
                                         <p className="mt-1.5 font-heading font-extrabold text-lg text-fire break-all">kashigo.in/quote/{q.id}</p>
                                     </div>
                                 )}
@@ -278,12 +294,26 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                                 <BadgeIndianRupee size={34} />
                             </div>
                             <div>
-                                <p className="font-heading font-extrabold text-xl sm:text-2xl">Please do not pay anything in cash.</p>
-                                <p className="mt-1.5 text-white/90 leading-relaxed">
-                                    Your ride is paid only through this secure Razorpay link. The boatman, a &ldquo;guide&rdquo; or anyone claiming to be from KashiGo
-                                    will <b>never</b> ask you for cash, tips-in-advance or an extra fee. If anyone does, don&apos;t pay — call us on
-                                    <a href="tel:+918175966910" className="font-bold underline underline-offset-2"> +91 81759 66910</a>.
-                                </p>
+                                {advance ? (
+                                    <>
+                                        <p className="font-heading font-extrabold text-xl sm:text-2xl">Pay only {inr(split.atGhat)} at the ghat — and only to your boatman.</p>
+                                        <p className="mt-1.5 text-white/90 leading-relaxed">
+                                            Pay the {inr(split.online)} advance through this secure Razorpay link, then the remaining <b>{inr(split.atGhat)}</b> to your KashiGo boatman
+                                            (cash or UPI). Nobody — a &ldquo;guide&rdquo; or anyone claiming to be from KashiGo — should ask for more, tips-in-advance or an extra fee.
+                                            If anyone does, don&apos;t pay — call us on
+                                            <a href="tel:+918175966910" className="font-bold underline underline-offset-2"> +91 81759 66910</a>.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="font-heading font-extrabold text-xl sm:text-2xl">Please do not pay anything in cash.</p>
+                                        <p className="mt-1.5 text-white/90 leading-relaxed">
+                                            Your ride is paid only through this secure Razorpay link. The boatman, a &ldquo;guide&rdquo; or anyone claiming to be from KashiGo
+                                            will <b>never</b> ask you for cash, tips-in-advance or an extra fee. If anyone does, don&apos;t pay — call us on
+                                            <a href="tel:+918175966910" className="font-bold underline underline-offset-2"> +91 81759 66910</a>.
+                                        </p>
+                                    </>
+                                )}
                             </div>
                         </section>
 
@@ -329,7 +359,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                             <div className="text-center sm:text-left">
                                 <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-marigold">{paid ? "Scan to view your booking" : "Scan to pay securely"}</p>
                                 <p className="mt-2 font-display text-2xl sm:text-3xl break-all">kashigo.in/quote/{q.id}</p>
-                                <p className="mt-2 text-white/65 max-w-md">Opens this quotation on your phone — {q.builder ? "add passengers and extras, then pay" : `pay ${inr(total)}`} by UPI, card or net banking through Razorpay. No cash, ever.</p>
+                                <p className="mt-2 text-white/65 max-w-md">Opens this quotation on your phone — {q.builder ? "add passengers and extras, then pay" : advance ? `pay the ${inr(split.online)} advance` : `pay ${inr(total)}`} by UPI, card or net banking through Razorpay.{advance ? ` The remaining ${inr(split.atGhat)} goes to your boatman at the ghat.` : " No cash, ever."}</p>
                                 <a href={SITE} className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-5 py-2.5 text-sm font-semibold transition-colors">
                                     <Globe size={16} /> More at kashigo.in
                                 </a>

@@ -61,6 +61,7 @@ function clean(b: any): { quote?: Omit<Quote, "id">; error?: string } {
             },
             intro: text(b.intro, 400) || pkg.intro,
             note: String(b.note ?? "").trim().slice(0, 600) || undefined,
+            payment: b.payment === "advance50" ? "advance50" : "online",
             itinerary,
             lines,
         },
