@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/adminApi";
 import { istNow, toMinutes } from "@/lib/boatRides";
-import { quotePackage, quoteTotal, slotFor, type Quote, type QuoteTraveller } from "@/lib/quotes";
+import { returnFareInr } from "@/lib/boatPrices";
+import { priceQuote, quotePackage, quoteTotal, slotFor, startSelection, type Quote, type QuoteAddOn, type QuoteBuilder, type QuotePassenger } from "@/lib/quotes";
 import { deleteQuote, listQuotes, quoteIdTaken, saveQuote } from "@/lib/quoteStore";
 import { isQuotePaid } from "@/lib/quotePayments";
 
@@ -12,13 +13,12 @@ const text = (v: unknown, max: number) => String(v ?? "").replace(/\s+/g, " ").t
 function clean(b: any): { quote?: Omit<Quote, "id">; error?: string } {
     const pkg = quotePackage(String(b?.packageId ?? ""));
     if (!pkg) return { error: "Pick a package." };
-    // Lead passenger first; blank names further down are kept as "Guest N" so the head count stays right.
-    // Each passenger is a name or { name, child }; children under 6 are flagged so the quote shows it. The lead is never a child.
-    const raw: { name: string; child: boolean }[] = (Array.isArray(b.passengers) ? b.passengers : [b.name]).slice(0, 20)
-        .map((p: unknown) => (typeof p === "object" && p ? { name: text((p as { name?: unknown }).name, 80), child: Boolean((p as { child?: unknown }).child) } : { name: text(p, 80), child: false }));
+    // Lead passenger first; the rest become the passengers the customer starts with on the page (name + age, editable there).
+    const raw: { name: string; age: string }[] = (Array.isArray(b.passengers) ? b.passengers : [b.name]).slice(0, 20)
+        .map((p: unknown) => (typeof p === "object" && p ? { name: text((p as { name?: unknown }).name, 60), age: text((p as { age?: unknown }).age, 3).replace(/\D/g, "") } : { name: text(p, 60), age: "" }));
     const name = raw[0]?.name || text(b.name, 80);
     if (name.length < 2) return { error: "Enter the lead passenger's name." };
-    const passengers: QuoteTraveller[] = [{ name }, ...raw.slice(1).map((p, i) => (p.child ? { name: p.name || `Child ${i + 2}`, child: true } : { name: p.name || `Guest ${i + 2}` }))];
+    const initialPassengers: QuotePassenger[] = raw.slice(1).filter((p) => p.name);
     const date = String(b.date ?? "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date))) return { error: "Pick the ride date." };
     const startTime = text(b.startTime, 12);
@@ -26,15 +26,37 @@ function clean(b: any): { quote?: Omit<Quote, "id">; error?: string } {
     if (Number.isNaN(toMinutes(startTime)) || Number.isNaN(toMinutes(reportTime))) return { error: "Times look like 5:30 AM or 17:30." };
     const ghat = text(b.ghat, 60);
     if (!ghat) return { error: "Pick the meeting ghat." };
-    const guests = Math.max(passengers.length, Math.min(99, Math.floor(Number(b.guests) || 0)));
+    const guests = 1 + initialPassengers.length;
 
     const lines = (Array.isArray(b.lines) ? b.lines : []).slice(0, 12)
         .map((l: { label?: unknown; detail?: unknown; amountInr?: unknown }) => ({ label: text(l?.label, 90), detail: text(l?.detail, 140), amountInr: Math.round(Number(l?.amountInr)) }))
         .filter((l: { label: string }) => l.label);
     if (!lines.length) return { error: "Add at least one line to the quotation." };
     if (lines.some((l: { amountInr: number }) => !Number.isFinite(l.amountInr) || Math.abs(l.amountInr) > 500000)) return { error: "Every line needs an amount in rupees." };
-    const total = quoteTotal({ lines });
-    if (total < 1) return { error: "The total must be at least ₹1." };
+    if (quoteTotal({ lines }) < 1) return { error: "The total must be at least ₹1." };
+
+    // The customer-side checkout (same as the hand-made quotes): extra passengers, extras, coupon and tax.
+    const int = (v: unknown, lo: number, hi: number, d: number) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : d; };
+    const c = b.builder ?? {};
+    const addOns: QuoteAddOn[] = (Array.isArray(c.addOns) ? c.addOns : []).slice(0, 8)
+        .map((a: { label?: unknown; detail?: unknown; amountInr?: unknown; max?: unknown; perPerson?: unknown }, i: number) => ({
+            id: `x${i + 1}`, label: text(a?.label, 60), detail: text(a?.detail, 120), amountInr: int(a?.amountInr, 0, 100000, 0), max: int(a?.max, 1, 50, 10), perPerson: Boolean(a?.perPerson) || undefined,
+        }))
+        .filter((a: QuoteAddOn) => a.label && a.amountInr > 0);
+    const coupons = (Array.isArray(c.coupons) ? c.coupons : []).slice(0, 5)
+        .map((x: { code?: unknown; percentOff?: unknown }) => ({ code: text(x?.code, 30).toUpperCase().replace(/[^A-Z0-9_-]/g, ""), percentOff: int(x?.percentOff, 1, 90, 0) }))
+        .filter((x: { code: string; percentOff: number }) => x.code.length >= 3 && x.percentOff > 0);
+    const builder: QuoteBuilder = {
+        perPassengerInr: int(c.perPassengerInr, 0, 100000, 0),
+        maxPassengers: int(c.maxPassengers, Math.max(1, initialPassengers.length), 30, 15),
+        returnTrip: c.offerReturn ? { label: `Return journey to ${ghat}`, detail: "50% of the journey fare", amountInr: returnFareInr(lines[0].amountInr) } : undefined,
+        addOns,
+        taxInr: int(c.taxInr, 0, 100000, 0),
+        coupons: coupons.length ? coupons : undefined,
+        kidsUnder6: true,
+        initialPassengers,
+    };
+    if (priceQuote({ lines, builder }, startSelection({ builder })).total < 1) return { error: "The total must be at least ₹1." };
 
     const itinerary = (Array.isArray(b.itinerary) ? b.itinerary : []).slice(0, 15)
         .map((s: { time?: unknown; what?: unknown }) => ({ time: text(s?.time, 30), what: text(s?.what, 200) }))
@@ -44,13 +66,13 @@ function clean(b: any): { quote?: Omit<Quote, "id">; error?: string } {
         quote: {
             issued: istNow().iso,
             validUntil: text(b.validUntil, 60) || date,
-            passengers,
             customer: { name, phone: text(b.phone, 20) || undefined, email: text(b.email, 120).toLowerCase() || undefined },
             ride: {
                 packageId: pkg.id,
                 title: text(b.title, 80) || pkg.title,
                 ghat,
                 date,
+                dateLabel: b.dateTbc ? "To be confirmed with you" : undefined,
                 startLabel: pkg.startLabel,
                 startTime,
                 reportTime,
@@ -64,6 +86,7 @@ function clean(b: any): { quote?: Omit<Quote, "id">; error?: string } {
             payment: b.payment === "advance50" ? "advance50" : "online",
             itinerary,
             lines,
+            builder,
         },
     };
 }
@@ -87,7 +110,7 @@ export async function GET(req: Request) {
         const rows = await listQuotes();
         // Razorpay is the source of truth for payment; only quotes not yet marked paid are checked.
         const paid = await Promise.all(rows.map((r) => (r.paidAt ? true : isQuotePaid(r.quote))));
-        return NextResponse.json({ quotes: rows.map((r, i) => ({ ...r, total: quoteTotal(r.quote), paid: paid[i] })) });
+        return NextResponse.json({ quotes: rows.map((r, i) => ({ ...r, total: priceQuote(r.quote, startSelection(r.quote)).total, paid: paid[i] })) });
     } catch (e) {
         return NextResponse.json({ quotes: [], error: (e as Error).message }, { status: 500 });
     }

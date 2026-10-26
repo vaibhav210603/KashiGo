@@ -210,7 +210,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                         <section>
                             <SectionTitle kicker="02" title="Quotation" />
                             {q.builder ? (
-                                <QuoteBuilder quote={{ id: q.id, lines: q.lines, builder: q.builder, customer: q.customer, inclusions: q.inclusions }} paid={paidOrder} readOnly={pdfMode} />
+                                <QuoteBuilder quote={{ id: q.id, lines: q.lines, builder: q.builder, customer: q.customer, inclusions: q.inclusions, payment: q.payment }} paid={paidOrder} readOnly={pdfMode} />
                             ) : (
                             <>
                             <div className="rounded-2xl overflow-hidden ring-1 ring-sandstone/50 bg-white">
@@ -464,11 +464,13 @@ function CompactQuote({ q, paidOrder, journeyDate, carry, careful }: { q: Quote;
                     </div>
                 )}
 
-                <QuoteBuilder quote={{ id: q.id, lines: q.lines, builder: q.builder, customer: q.customer, inclusions: q.inclusions }} paid={paidOrder} readOnly={false} />
+                <QuoteBuilder quote={{ id: q.id, lines: q.lines, builder: q.builder, customer: q.customer, inclusions: q.inclusions, payment: q.payment }} paid={paidOrder} readOnly={false} />
 
                 <p className="flex items-start gap-2 rounded-xl bg-red-50 ring-1 ring-red-200 px-3 py-2.5 text-xs text-red-800">
                     <BadgeIndianRupee size={16} className="shrink-0 mt-px" />
-                    <span><b>No cash at the ghat.</b> Pay only on this page. If anyone asks for money, call <a href="tel:+918175966910" className="font-bold underline">+91 81759 66910</a>.</span>
+                    {q.payment === "advance50"
+                        ? <span><b>Pay the 50% advance on this page</b>, and the rest only to your KashiGo boatman at the ghat. If anyone else asks for money, call <a href="tel:+918175966910" className="font-bold underline">+91 81759 66910</a>.</span>
+                        : <span><b>No cash at the ghat.</b> Pay only on this page. If anyone asks for money, call <a href="tel:+918175966910" className="font-bold underline">+91 81759 66910</a>.</span>}
                 </p>
 
                 {/* Everything else, folded away */}

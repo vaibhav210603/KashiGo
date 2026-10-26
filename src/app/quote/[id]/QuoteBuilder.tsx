@@ -2,19 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, LifeBuoy, Minus, Plus, Tag, Trash2, UserPlus, X } from "lucide-react";
-import { cleanSelection, emptySelection, priceQuote, type Quote, type QuoteSelection } from "@/lib/quotes";
+import { CHILD_FREE_UNDER, CHILD_JACKET_INR, cleanSelection, priceQuote, quoteSplit, startSelection, type Quote, type QuoteSelection } from "@/lib/quotes";
 import QuotePay from "./QuotePay";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
-type Props = { quote: Pick<Quote, "id" | "lines" | "builder" | "customer" | "inclusions">; paid: { amountInr: number; choices: string } | null; readOnly: boolean };
+type Props = { quote: Pick<Quote, "id" | "lines" | "builder" | "customer" | "inclusions" | "payment">; paid: { amountInr: number; choices: string; dueInr?: number } | null; readOnly: boolean };
 
 // Checkout for quotes the customer can shape, in the order they decide: who's coming, extras, coupon, bill, pay.
 export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
     const b = quote.builder!;
-    const [sel, setSel] = useState<QuoteSelection>(emptySelection);
+    const [sel, setSel] = useState<QuoteSelection>(() => startSelection(quote));
     const clean = useMemo(() => cleanSelection(quote, sel), [quote, sel]);
     const { lines, total } = priceQuote(quote, clean);
+    // 50%-advance quotes: half online now, the rest to the boatman at the ghat.
+    const split = quoteSplit(quote, total);
     const missingName = sel.passengers.some((p) => !p.name.trim());
     const locked = readOnly || Boolean(paid);
     const [code, setCode] = useState("");
@@ -27,7 +29,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
         io.observe(el);
         return () => io.disconnect();
     }, []);
-    const freebies = [`Life jackets × ${1 + sel.passengers.length}`, ...(quote.inclusions ?? []).map((f) => f.label)];
+    const freebies = [b.kidsUnder6 ? "Life jackets for adults" : `Life jackets × ${1 + sel.passengers.length}`, ...(quote.inclusions ?? []).map((f) => f.label)];
 
     const applyCode = () => {
         const c = code.trim().toUpperCase();
@@ -48,10 +50,16 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                 <p className="text-sm font-semibold">{quote.lines[0]?.label}</p>
                 {paid.choices && <p className="text-xs text-night/60 mt-1">{paid.choices}</p>}
                 <div className="mt-3 flex items-center justify-between border-t border-sandstone/40 pt-3">
-                    <span className="text-sm font-bold">Total paid</span>
+                    <span className="text-sm font-bold">{paid.dueInr ? "Advance paid (50%)" : "Total paid"}</span>
                     <span className="font-heading font-extrabold text-xl text-emerald-700 tabular-nums">{inr(paid.amountInr)}</span>
                 </div>
-                <div className="mt-3"><QuotePay id={quote.id} name={quote.customer.name} total={inr(paid.amountInr)} paid /></div>
+                {paid.dueInr ? (
+                    <div className="mt-1.5 flex items-center justify-between">
+                        <span className="text-sm font-bold">Due at the ghat <span className="font-normal text-xs text-night/50">to your boatman</span></span>
+                        <span className="font-heading font-extrabold text-xl tabular-nums">{inr(paid.dueInr)}</span>
+                    </div>
+                ) : null}
+                <div className="mt-3"><QuotePay id={quote.id} name={quote.customer.name} total={inr(paid.amountInr)} paid due={paid.dueInr ? inr(paid.dueInr) : undefined} /></div>
             </Card>
         );
     }
@@ -61,7 +69,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
             {!locked && (
                 <>
                     {/* Passengers */}
-                    <Card title={`Passengers · ${1 + sel.passengers.length}`} aside={`+${inr(b.perPassengerInr)} each extra`}>
+                    <Card title={`Passengers · ${1 + sel.passengers.length}`} aside={`+${inr(b.perPassengerInr)} each extra${b.kidsUnder6 ? ` · under ${CHILD_FREE_UNDER}: ${inr(CHILD_JACKET_INR)}` : ""}`}>
                         <ol className="space-y-2">
                             <li className="flex items-center gap-2.5 h-10">
                                 <Num n={1} />
@@ -105,6 +113,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                                 <UserPlus size={16} /> Add passenger
                             </button>
                         )}
+                        {b.kidsUnder6 && <p className="mt-2 text-[11px] text-night/55">Children under {CHILD_FREE_UNDER} ride free — enter their age and only the {inr(CHILD_JACKET_INR)} life jacket is charged.</p>}
                     </Card>
 
                     {/* Extras */}
@@ -202,8 +211,21 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                 </ul>
                 <div className="mt-3 flex items-center justify-between border-t border-sandstone/50 pt-3">
                     <span className="font-bold">Total <span className="font-normal text-xs text-night/50">incl. taxes</span></span>
-                    <span className="font-heading font-extrabold text-2xl text-fire tabular-nums">{inr(total)}</span>
+                    <span className={`font-heading font-extrabold text-2xl tabular-nums ${split.atGhat ? "text-night" : "text-fire"}`}>{inr(total)}</span>
                 </div>
+                {split.atGhat > 0 && (
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                        <div className="rounded-lg bg-marigold/20 px-3 py-2">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-fire">Pay online now · 50%</p>
+                            <p className="font-heading font-extrabold text-lg tabular-nums">{inr(split.online)}</p>
+                        </div>
+                        <div className="rounded-lg bg-parchment px-3 py-2">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-night/55">Due at the ghat</p>
+                            <p className="font-heading font-extrabold text-lg tabular-nums">{inr(split.atGhat)}</p>
+                            <p className="text-[10px] text-night/50">To your boatman · cash/UPI</p>
+                        </div>
+                    </div>
+                )}
             </Card>
 
             {!readOnly && (
@@ -212,9 +234,10 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                         <QuotePay
                             id={quote.id}
                             name={quote.customer.name}
-                            total={inr(total)}
+                            total={inr(split.online)}
                             paid={false}
                             selection={clean}
+                            due={split.atGhat ? inr(split.atGhat) : undefined}
                             blocked={missingName ? "Enter a name for every passenger you added (or remove the empty row)." : undefined}
                         />
                     </div>
@@ -222,8 +245,8 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                     <div className="sm:hidden h-16" aria-hidden />
                     <div className={`sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-sandstone/50 px-4 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] flex items-center gap-3 print:hidden transition-transform duration-300 ${payInView ? "translate-y-full" : ""}`}>
                         <div className="flex-1">
-                            <p className="text-[11px] text-night/50 leading-none">Total · {1 + clean.passengers.filter((p) => p.name).length} pax</p>
-                            <p className="font-heading font-extrabold text-xl text-night tabular-nums leading-tight">{inr(total)}</p>
+                            <p className="text-[11px] text-night/50 leading-none">{split.atGhat ? "Pay now (50%)" : "Total"} · {1 + clean.passengers.filter((p) => p.name).length} pax</p>
+                            <p className="font-heading font-extrabold text-xl text-night tabular-nums leading-tight">{inr(split.online)}</p>
                         </div>
                         <button
                             onClick={() => document.getElementById("quote-pay")?.scrollIntoView({ behavior: "smooth", block: "center" })}

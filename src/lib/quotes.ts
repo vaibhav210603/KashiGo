@@ -55,12 +55,18 @@ export type QuoteBuilder = {
     addOns: QuoteAddOn[];
     taxInr: number;              // flat, charged once
     coupons?: { code: string; percentOff: number }[]; // codes the customer can type in; taken off everything before tax
+    kidsUnder6?: boolean;        // passengers under 6 ride free and pay only CHILD_JACKET_INR (admin-generated quotes)
+    initialPassengers?: QuotePassenger[]; // extra passengers the admin already knows; the customer can edit them
 };
+
+const isChild = (b: QuoteBuilder, p: QuotePassenger) => Boolean(b.kidsUnder6 && p.age !== "" && Number(p.age) < CHILD_FREE_UNDER);
 
 export type QuotePassenger = { name: string; age: string };
 export type QuoteSelection = { returnTrip: boolean; passengers: QuotePassenger[]; addOns: Record<string, number>; coupon?: string };
 
 export const emptySelection = (): QuoteSelection => ({ returnTrip: false, passengers: [], addOns: {}, coupon: "" });
+// What the customer starts from: the passengers the admin entered, nothing else ticked.
+export const startSelection = (q: Pick<Quote, "builder">): QuoteSelection => ({ ...emptySelection(), passengers: (q.builder?.initialPassengers ?? []).map((p) => ({ ...p })) });
 
 const quoteCoupon = (b: QuoteBuilder | undefined, code?: string) => {
     const c = String(code ?? "").trim().toUpperCase();
@@ -93,11 +99,20 @@ export function priceQuote(q: Pick<Quote, "lines" | "builder">, sel: QuoteSelect
     if (b) {
         if (sel.returnTrip && b.returnTrip) lines.push(b.returnTrip);
         const named = sel.passengers.filter((p) => p.name);
-        if (named.length) {
+        const adults = named.filter((p) => !isChild(b, p));
+        const kids = named.filter((p) => isChild(b, p));
+        if (adults.length) {
             lines.push({
-                label: `Additional passenger${named.length === 1 ? "" : "s"} × ${named.length}`,
-                detail: `${named.map((p) => (p.age ? `${p.name} (${p.age})` : p.name)).join(", ")} · ₹${b.perPassengerInr} each`,
-                amountInr: named.length * b.perPassengerInr,
+                label: `Additional passenger${adults.length === 1 ? "" : "s"} × ${adults.length}`,
+                detail: `${adults.map((p) => (p.age ? `${p.name} (${p.age})` : p.name)).join(", ")} · ₹${b.perPassengerInr} each${b.kidsUnder6 ? " · life jacket included" : ""}`,
+                amountInr: adults.length * b.perPassengerInr,
+            });
+        }
+        if (kids.length) {
+            lines.push({
+                label: `Children under ${CHILD_FREE_UNDER} × ${kids.length}`,
+                detail: `${kids.map((p) => `${p.name} (${p.age})`).join(", ")} · ride free · ₹${CHILD_JACKET_INR} life jacket each`,
+                amountInr: kids.length * CHILD_JACKET_INR,
             });
         }
         for (const a of b.addOns) {
