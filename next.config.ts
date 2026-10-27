@@ -56,6 +56,18 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Paid downloads: keep them out of search results, and make the audiobook files save rather than stream.
+        source: "/dl/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        source: "/dl/:path*.m4b",
+        headers: [
+          { key: "Content-Type", value: "audio/mp4" },
+          { key: "Content-Disposition", value: "attachment" },
+        ],
+      },
+      {
         source: "/:path*.html",
         headers: [
           {

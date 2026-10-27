@@ -17,20 +17,26 @@ const FILES: Record<string, File[]> = {
         { label: "Kashi Unveiled (EPUB — Kindle / Apple Books)", url: `${DL}/Kashi-Unveiled.epub` },
     ],
     "walk-the-ghats": [
-        { label: "Walk the Ghats — 20 MP3 tracks (ZIP)", url: `${DL}/Walk-the-Ghats-Audio-Tour.zip` },
+        { label: "Walk the Ghats — one-file audiobook with chapters (M4B, 27 MB · best on phones)", url: `${DL}/Walk-the-Ghats-Audio-Tour.m4b` },
+        { label: "Walk the Ghats — 20 MP3 tracks + listening guide (ZIP, 53 MB)", url: `${DL}/Walk-the-Ghats-Audio-Tour.zip` },
         { label: "Walk the Ghats — route card & script (PDF)", url: `${DL}/Walk-the-Ghats-Companion.pdf` },
     ],
     "scam-proof-audiobook": [
-        { label: "India Scam-Proof Audiobook — 17 MP3 chapters (ZIP)", url: `${DL}/India-Scam-Proof-Audiobook.zip` },
+        { label: "India Scam-Proof Audiobook — one file with chapters (M4B, 47 MB · best on phones)", url: `${DL}/India-Scam-Proof-Audiobook.m4b` },
+        { label: "India Scam-Proof Audiobook — 17 MP3 chapters + listening guide (ZIP, 75 MB)", url: `${DL}/India-Scam-Proof-Audiobook.zip` },
+        { label: "India Scam-Proof — listener's quick reference: scripts, prices, numbers (PDF)", url: `${DL}/India-Scam-Proof-Quick-Reference.pdf` },
     ],
 };
+
+FILES["guide-trivia"] = FILES.guide;
 
 FILES["complete-bundle"] = [
     ...FILES.guide,
     ...FILES["india-scam-proof"],
     ...FILES["kashi-unveiled"],
     ...FILES["walk-the-ghats"],
-    ...FILES["scam-proof-audiobook"],
+    // The bundle already has the full ebook, so the audiobook's quick-reference extract is left out.
+    ...FILES["scam-proof-audiobook"].filter((f) => !f.url.endsWith("Quick-Reference.pdf")),
 ];
 
 export function getDownloads(product: string, origin = "https://kashigo.in"): File[] | null {

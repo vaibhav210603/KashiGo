@@ -8,7 +8,7 @@ export type ProductId =
     | "custom-boat"
     | "p1" | "p2" | "p3" | "p4" | "p5" | "p6"
     | "india-scam-proof" | "kashi-unveiled" | "walk-the-ghats"
-    | "scam-proof-audiobook" | "complete-bundle";
+    | "scam-proof-audiobook" | "complete-bundle" | "guide-trivia";
 
 const INR_PRICES: Record<ProductId, number> = {
     guide: 999,
@@ -17,6 +17,7 @@ const INR_PRICES: Record<ProductId, number> = {
     "walk-the-ghats": 499,
     "scam-proof-audiobook": 499,
     "complete-bundle": 1699,
+    "guide-trivia": 499, // the guide, for answering the cheat-sheet trivia
     "india-tour": 2374,
     "custom-boat": BOAT_PRICES_INR.custom,
     p1: rideTotalInr(BOAT_PRICES_INR.p1), // ride + return journey
@@ -36,9 +37,10 @@ const USD_PRICES: Partial<Record<ProductId, number>> = {
     "walk-the-ghats": 7.99,
     "scam-proof-audiobook": 7.99,
     "complete-bundle": 24.99,
+    "guide-trivia": 5.99,
 };
 
-const SHOP_PRODUCTS = ["india-scam-proof", "kashi-unveiled", "walk-the-ghats", "scam-proof-audiobook", "complete-bundle"];
+const SHOP_PRODUCTS = ["india-scam-proof", "kashi-unveiled", "walk-the-ghats", "scam-proof-audiobook", "complete-bundle", "guide-trivia"];
 
 export function isShopProduct(product: string): boolean {
     return SHOP_PRODUCTS.includes(product);

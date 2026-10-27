@@ -38,6 +38,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/scam-cheat-sheet`,
+      lastModified: new Date("2026-10-21"),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/ebooks`,
       lastModified: new Date("2026-10-14"),
       changeFrequency: "weekly" as const,

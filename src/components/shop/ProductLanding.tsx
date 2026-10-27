@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
-import { Check, ArrowRight, Plus } from "lucide-react";
+import { Check, ArrowRight, Plus, Play, Pause, ListMusic } from "lucide-react";
 import { SHOP_PRODUCTS, ShopProduct, ShopProductId, LAUNCH_CODE } from "@/lib/products";
 import Checkout from "@/components/shop/Checkout";
 import { useRegion } from "@/components/shop/useRegion";
@@ -29,11 +29,71 @@ type Props = {
     otherPage: { href: string; label: string };
     // Faint Devanagari word behind the hero headline.
     deva?: string;
+    // A page-specific section between the trust row and the FAQ.
+    extra?: ReactNode;
 };
 
 type Row = { key: string; name: string; tagline: string; cover: string; inr: number; usd: number; bullets: string[]; format: string; badge?: string; product?: ShopProduct; href?: string };
 
-export default function ProductLanding({ eyebrow, title, highlight, intro, productIds, linkedProduct, video, faqs, otherPage, deva }: Props) {
+// Listen-before-you-buy: a free sample and the full track list for an audio product.
+function AudioSample({ audio, name }: { audio: NonNullable<ShopProduct["audio"]>; name: string }) {
+    const ref = useRef<HTMLAudioElement>(null);
+    const [playing, setPlaying] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [showTracks, setShowTracks] = useState(false);
+    const toggle = () => {
+        const el = ref.current;
+        if (!el) return;
+        if (el.paused) {
+            // Only one sample plays at a time.
+            document.querySelectorAll("audio").forEach((a) => a !== el && a.pause());
+            el.play();
+        } else el.pause();
+    };
+    return (
+        <div className="mt-5 rounded-2xl bg-night/[0.04] ring-1 ring-night/10 p-3 sm:p-4">
+            <audio ref={ref} src={audio.preview} preload="none" onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
+                onEnded={() => { setPlaying(false); setProgress(0); }}
+                onTimeUpdate={(e) => { const a = e.currentTarget; setProgress(a.duration ? a.currentTime / a.duration : 0); }} />
+            <div className="flex items-center gap-3">
+                <button onClick={toggle} aria-label={`${playing ? "Pause" : "Play"} ${name} sample`}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-night text-marigold transition-transform hover:scale-105">
+                    {playing ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
+                </button>
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-night">{audio.previewLabel}</p>
+                    <div className="mt-1.5 h-1 rounded-full bg-night/10 overflow-hidden">
+                        <div className="h-full bg-fire transition-[width] duration-300" style={{ width: `${progress * 100}%` }} />
+                    </div>
+                </div>
+                <button onClick={() => setShowTracks(!showTracks)} aria-expanded={showTracks}
+                    className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-night/60 hover:text-night">
+                    <ListMusic size={16} />{audio.tracks.length} tracks · {audio.minutes} min
+                </button>
+            </div>
+            <button onClick={() => setShowTracks(!showTracks)} aria-expanded={showTracks}
+                className="sm:hidden mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-night/60">
+                <ListMusic size={16} />{showTracks ? "Hide" : "See all"} {audio.tracks.length} tracks · {audio.minutes} min
+            </button>
+            {/* Always in the HTML (just collapsed) so crawlers can read the track list */}
+            <div className="accordion" data-open={showTracks} aria-hidden={!showTracks}>
+                <div>
+                    <ol className="mt-3 grid sm:grid-cols-2 gap-x-6 border-t border-night/10 pt-3">
+                        {audio.tracks.map(([t, d], i) => (
+                            <li key={t} className="flex items-baseline gap-3 py-1 text-[13px] text-night/70">
+                                <span className="w-5 shrink-0 font-mono text-[11px] text-night/35">{String(i + (audio.tracks[0][0] === "Trailer" ? 0 : 1)).padStart(2, "0")}</span>
+                                <span className="flex-1 min-w-0 truncate" title={t}>{t}</span>
+                                <span className="font-mono text-[11px] text-night/40">{d}</span>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function ProductLanding({ eyebrow, title, highlight, intro, productIds, linkedProduct, video, faqs, otherPage, deva, extra }: Props) {
     const [region, setRegion] = useRegion();
     const [active, setActive] = useState<ShopProduct | null>(null);
     const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -83,6 +143,7 @@ export default function ProductLanding({ eyebrow, title, highlight, intro, produ
                                             </div>
                                         </div>
                                     </div>
+                                    {r.product?.audio && <AudioSample audio={r.product.audio} name={r.name} />}
                                     <ul className="mt-5 grid sm:grid-cols-2 gap-x-6 gap-y-2 border-t border-dashed border-night/15 pt-5">
                                         {r.bullets.map((b) => <li key={b} className="flex gap-2.5 text-[15px] text-night/75"><Check size={17} className="text-[#1d7f76] shrink-0 mt-0.5" />{b}</li>)}
                                     </ul>
@@ -120,6 +181,8 @@ export default function ProductLanding({ eyebrow, title, highlight, intro, produ
                     )}
 
                     <div className="pt-16"><TrustRow /></div>
+
+                    {extra}
 
                     <div className="pt-16 grid gap-8 md:grid-cols-[0.7fr_1.3fr]">
                         <div>

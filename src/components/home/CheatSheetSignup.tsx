@@ -40,7 +40,10 @@ export default function CheatSheetSignup() {
                             </div>
                             <div>
                                 {state === "done" ? (
-                                    <p className="flex items-center gap-3 rounded-2xl border border-ganga/40 bg-ganga/10 p-5 font-semibold text-white"><Check className="text-ganga" /> Sent! Check your inbox.</p>
+                                    <div className="rounded-2xl border border-ganga/40 bg-ganga/10 p-5 text-white">
+                                        <p className="flex items-center gap-3 font-semibold"><Check className="text-ganga" /> Sent! Check your inbox.</p>
+                                        <a href="/scam-cheat-sheet#trivia" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-marigold underline underline-offset-4">Ace the 5-question trivia → full guide for $5.99 <ArrowRight size={15} /></a>
+                                    </div>
                                 ) : (
                                     <form onSubmit={submit} className="grid gap-3">
                                         <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="First name" autoComplete="given-name"

@@ -97,7 +97,7 @@ export default function ShopClient() {
 
                     <div className="mt-16"><TrustRow /></div>
                     <p className="text-center text-sm text-night/55 mt-10">
-                        Not ready yet? Get the <a href="/Varanasi-Scam-Cheat-Sheet.pdf" className={LINK_LIGHT}>free Varanasi Scam Cheat Sheet</a>.
+                        Not ready yet? Get the <a href="/scam-cheat-sheet" className={LINK_LIGHT}>free Varanasi Scam Cheat Sheet</a>.
                     </p>
                 </div>
             </section>

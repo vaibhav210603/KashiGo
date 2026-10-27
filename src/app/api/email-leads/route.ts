@@ -61,7 +61,10 @@ export async function POST(req: Request) {
             "If you read one thing today, make it scam #1. The boat quote you'll get at the ghat is a test. A private sunrise boat for 2–4 people is about ₹800–1,500 an hour — agree the <b>total</b> and the <b>duration</b> before you step in.",
             "Planning more of India? Everything else I've written — ebooks and an audio walking tour of the ghats — is at <a href=\"https://kashigo.in/shop\" style=\"color:#f97316;\">kashigo.in/shop</a>. Use code <b>INSIDER20</b> for 20% off as a thank-you for joining.",
           ],
-          links: [{ label: "Download the Varanasi Scam Cheat Sheet (PDF)", url: "https://kashigo.in/Varanasi-Scam-Cheat-Sheet.pdf" }],
+          links: [
+            { label: "Download the Varanasi Scam Cheat Sheet (PDF)", url: "https://kashigo.in/Varanasi-Scam-Cheat-Sheet.pdf" },
+            { label: "Answer 5 questions, get the full guide for $5.99", url: "https://kashigo.in/scam-cheat-sheet#trivia" },
+          ],
         }),
       });
     } catch (mailErr) {

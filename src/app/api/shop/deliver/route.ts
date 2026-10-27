@@ -11,7 +11,7 @@ import { normalizeEmail } from "@/lib/email";
 import { hasServiceRole, supabaseAdmin } from "@/lib/supabaseAdmin";
 import { orderMailParts, shopRow, type OrderRecord } from "@/lib/orderMail";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
-import { SHOP_PRODUCTS } from "@/lib/products";
+import { findShopProduct } from "@/lib/products";
 import { rateLimited } from "@/lib/rateLimit";
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
 
         const origin = new URL(req.url).origin.includes("localhost") ? new URL(req.url).origin : "https://kashigo.in";
         const downloads = getDownloads(product, origin)!;
-        const meta = SHOP_PRODUCTS.find((p) => p.id === product)!;
+        const meta = findShopProduct(product)!;
 
         if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             try {
@@ -120,7 +120,7 @@ export async function POST(req: Request) {
                         heading: `Thank you${name ? ", " + String(name).split(" ")[0] : ""} — your files are ready`,
                         paragraphs: [
                             `Here's everything in <strong>${meta.name}</strong>. Save the files to your phone before you travel so they work offline.`,
-                            "Ebooks: the PDF opens anywhere; the EPUB is for Kindle (send it via Send to Kindle) or Apple Books. Audio: unzip on a computer, or open the ZIP in the Files app on your phone.",
+                            "Ebooks: the PDF opens anywhere; the EPUB is for Kindle (send it via Send to Kindle) or Apple Books. Audio: on a phone, take the single M4B file. It has chapters and remembers your place in Apple Books, BookPlayer (iPhone) or Smart AudioBook Player (Android). The ZIP has the same audio as MP3s for any player, plus a short listening guide.",
                         ],
                         links: downloads,
                         footer: `Payment reference: ${reference}. Questions, a broken link or want a refund? Just reply — I read every email.`,
@@ -169,7 +169,7 @@ async function recordShopOrder(rec: OrderRecord) {
 async function notifyShopSale(rec: OrderRecord) {
     const to = process.env.SMTP_USER;
     if (!to) return;
-    const meta = SHOP_PRODUCTS.find((p) => p.id === rec.product);
+    const meta = findShopProduct(rec.product);
     try {
         await createTransporter().sendMail({
             from: `"KashiGo Shop" <${to}>`,
