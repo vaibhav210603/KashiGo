@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Check, Minus, Plus, Phone, Headphones, Wallet, Smartphone, Globe, Tag, Coins, LogOut } from "lucide-react";
-import { BOAT_PRICES_INR, returnFareInr, rideTotalInr } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, EXTRA_PASSENGER_INR, FREE_PASSENGERS, passengerFeeInr } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, BOOKING_WINDOW_DAYS } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
 import { money, useCurrency } from "@/lib/currency";
@@ -114,14 +114,15 @@ export default function BookingFlow() {
 
     const selected = RIDES_BY_POPULARITY.find((r) => r.id === ride);
     const ridePrice = ride === "custom" ? BOAT_PRICES_INR.custom : selected ? BOAT_PRICES_INR[selected.id] : 0;
-    // Fixed packages add the boat's journey back (lib/boatPrices.ts); the server charges the same total.
-    const returnFare = selected ? returnFareInr(ridePrice) : 0;
-    const listPrice = selected ? rideTotalInr(ridePrice) : ridePrice;
+    // 2 passengers are included; each one after that adds ₹250 (lib/boatPrices.ts). The server charges the same total.
+    const extraGuests = Math.max(0, guests - FREE_PASSENGERS);
+    const guestFee = ride ? passengerFeeInr(guests) : 0;
+    const listPrice = ridePrice + guestFee;
     const product = ride === "custom" ? "custom-boat" : ride;
-    // A code is priced for one ride and only applies to online payment.
+    // A code is priced for one ride (the boat only) and only applies to online payment.
     const codePrice = applied && applied.product === product ? applied.inr : null;
     const coupon = codePrice !== null && pay !== "cod" ? code.trim().toUpperCase() : undefined;
-    const afterCode = coupon ? codePrice! : listPrice;
+    const afterCode = coupon ? codePrice! + guestFee : listPrice;
     // Coins only apply to online payment. If they cover the whole ride, there's nothing to pay (mode "credits");
     // otherwise at least ₹1 is left for Razorpay / PayPal. The server recomputes all of this.
     const balance = account?.credits ?? 0;
@@ -147,7 +148,7 @@ export default function BookingFlow() {
             if (!auth.loggedIn) { setShowLogin(true); setCodeMsg("Log in to use a code."); return; }
             const { data } = await apiPost("/api/coupon", { product, code: c });
             if (data.needsLogin) { setShowLogin(true); setCodeMsg(data.message); return; }
-            if (data.valid && typeof data.inr === "number") { setApplied({ product, inr: data.inr }); setCodeMsg(`Code applied — you pay ${money(data.inr, currency)}`); return; }
+            if (data.valid && typeof data.inr === "number") { setApplied({ product, inr: data.inr }); setCodeMsg(`Code applied — boat price now ${money(data.inr, currency)}`); return; }
             if (data.message) { setApplied(null); setCodeMsg(data.message); return; }
         } catch { }
         setApplied(null); setCodeMsg("That code isn't valid.");
@@ -227,7 +228,7 @@ export default function BookingFlow() {
     const payRazorpay = async () => {
         const isAdvance = payMode === "cod";
         track("begin_checkout", { currency: "INR", value: isAdvance ? advance : price, item_id: product, payment_type: isAdvance ? "razorpay_advance" : "razorpay" });
-        const order = await apiPost("/api/razorpay", { product, coupon, useCredits: coinsOn, advance: isAdvance }).then((r) => r.data).catch(() => ({ success: false }));
+        const order = await apiPost("/api/razorpay", { product, coupon, useCredits: coinsOn, advance: isAdvance, guests }).then((r) => r.data).catch(() => ({ success: false }));
         if (!order.success && order.message) { setNotice(order.message); return; }
         if (!order.success) { setNotice("Online payment isn't available right now — please try again or call +91 81759 66910."); return; }
         await new Promise<void>((resolve, reject) => {
@@ -284,7 +285,7 @@ export default function BookingFlow() {
                         ["When", `${dateLabel?.top}, ${dateLabel?.bottom} · ${ride === "custom" ? customTime : selected?.time}`],
                         ["From", ghat],
                         ["Guests", String(guests)],
-                        ...(returnFare ? [["Boat ride", money(ridePrice, currency)], ["Return journey", money(returnFare, currency)]] : []),
+                        ...(guestFee ? [["Boat ride", money(ridePrice, currency)], [`${extraGuests} extra passenger${extraGuests > 1 ? "s" : ""}`, money(guestFee, currency)]] : []),
                         ["Total", `${money(price, currency)}${currency === "usd" ? ` (${inr(price)})` : ""} · ${pay === "cod" ? `${inr(advance)} paid · ${inr(price - advance)} at the ghat` : done.paid ? "paid" : "pay at the ghat"}`],
                     ].map(([k, v]) => (
                         <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-white/50">{k}</dt><dd className="font-semibold text-white text-right">{v}</dd></div>
@@ -383,7 +384,10 @@ export default function BookingFlow() {
                             <button type="button" aria-label="More guests" onClick={() => setGuests((g) => Math.min(20, g + 1))} className="w-10 h-10 rounded-full border border-night/15 text-night inline-flex items-center justify-center transition-colors hover:bg-night hover:text-marigold"><Plus size={18} /></button>
                         </div>
                     </div>
-                    <p className="text-xs text-night/50">The price is for the whole private boat — not per person.</p>
+                    <p className="text-xs text-night/50">
+                        {FREE_PASSENGERS} passengers are included in the boat price · {inr(EXTRA_PASSENGER_INR)} for each extra passenger
+                        {guestFee > 0 && <> · <b className="text-night/75">+{money(guestFee, currency)}</b> for {extraGuests}</>}
+                    </p>
                 </div>
             </Section>
 
@@ -461,10 +465,10 @@ export default function BookingFlow() {
                         {isValid ? (
                             <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "ATMGtSsoMxvX5hrhLzFYYuN1yNCAonxN-vV1xAtNKBRvL7cbgpMQ_EG1Nf7j-43XGcyyUlN6Eb4Our_0", currency: "USD" }}>
                                 <PayPalButtons
-                                    forceReRender={[product, coupon, coinsOn]}
+                                    forceReRender={[product, coupon, coinsOn, guests]}
                                     style={{ layout: "vertical", color: "gold", shape: "pill", label: "pay", height: 48 }}
                                     createOrder={async () => {
-                                        const { data: o } = await apiPost("/api/paypal/create-order", { product, coupon, useCredits: coinsOn });
+                                        const { data: o } = await apiPost("/api/paypal/create-order", { product, coupon, useCredits: coinsOn, guests });
                                         if (!o.success) { if (o.message) setNotice(o.message); throw new Error("Could not create PayPal order"); }
                                         return o.orderId;
                                     }}
@@ -498,8 +502,8 @@ export default function BookingFlow() {
                             {(coupon || coinsUsed > 0) && <s className="mr-2 text-sm font-medium text-white/40">{money(listPrice, currency)}</s>}
                             {price || coversAll ? money(price, currency) : "—"}
                         </p>
-                        {returnFare > 0 && (
-                            <p className="text-[11px] text-white/60 truncate">Ride {money(ridePrice, currency)} + return journey {money(returnFare, currency)}</p>
+                        {guestFee > 0 && (
+                            <p className="text-[11px] text-white/60 truncate">Ride {money(ridePrice, currency)} + {extraGuests} extra passenger{extraGuests > 1 ? "s" : ""} {money(guestFee, currency)}</p>
                         )}
                         {/* The payment method decides the currency actually charged — say so when it differs from the display. */}
                         {price > 0 && payMode !== "credits" && (pay === "cod" || (pay === "online_international" ? currency === "inr" : currency === "usd")) && (

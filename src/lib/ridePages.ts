@@ -91,7 +91,7 @@ export const RIDE_PAGES: RidePage[] = [
             },
             {
                 q: "Is the price per person or per boat?",
-                a: "Per boat. The price covers your whole group in a private boat.",
+                a: "Per boat. The price covers a private boat with 2 passengers; each extra passenger in your group is ₹250.",
             },
         ],
         related: ["p2", "p5", "p6"],

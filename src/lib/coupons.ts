@@ -1,6 +1,6 @@
 // Server-only. Coupons live in the `coupons` table and are managed from /admin, so a new code works
 // the moment it's created. Using a code requires logging in; per-customer limits count per email.
-import { LEGACY_RULES, priceOf, ruleApplies, type CouponRule, type Price } from "@/lib/pricing";
+import { LEGACY_RULES, priceOf, ruleApplies, withPassengers, type CouponRule, type Price } from "@/lib/pricing";
 import { hasServiceRole, supabaseAdmin } from "@/lib/supabaseAdmin";
 
 const normalize = (code?: string | null) => String(code ?? "").trim().toUpperCase();
@@ -39,9 +39,11 @@ export const couponMessage = (status: string) => STATUS_MESSAGES[status] ?? "Tha
 export type Quote = { ok: true; price: Price; base: Price; rule: CouponRule | null } | { ok: false; message: string };
 
 // What this customer would pay for the product with this code, after checking the code can be used by them.
-export async function quote(product: string, code: string | null | undefined, email: string | null): Promise<Quote> {
-    const base = priceOf(product);
-    if (!base) return { ok: false, message: "Unknown product." };
+// `guests` adds the extra-passenger charge for boat rides.
+export async function quote(product: string, code: string | null | undefined, email: string | null, guests?: number): Promise<Quote> {
+    const ride = priceOf(product);
+    if (!ride) return { ok: false, message: "Unknown product." };
+    const base = withPassengers(ride, product, guests);
     if (!normalize(code)) return { ok: true, price: base, base, rule: null };
     if (!email) return { ok: false, message: "Log in to use a code." };
 
@@ -49,7 +51,7 @@ export async function quote(product: string, code: string | null | undefined, em
     if (!rule || !ruleApplies(rule, product)) return { ok: false, message: "That code doesn't apply to this." };
     const status = await couponStatus(rule.code, email);
     if (status !== "ok") return { ok: false, message: couponMessage(status) };
-    const price = priceOf(product, rule)!;
+    const price = withPassengers(priceOf(product, rule)!, product, guests);
     if (price.inr >= base.inr) return { ok: false, message: "That code doesn't change the price of this." };
     return { ok: true, price, base, rule };
 }

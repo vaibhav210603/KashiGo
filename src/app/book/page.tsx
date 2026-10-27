@@ -147,7 +147,7 @@ export default function BookPage() {
             </tbody>
           </table>
         </div>
-        <p className="text-sm text-night/55 mt-4">Price is for the whole private boat, not per person. Book today or up to a week ahead. Dates further out? Call us.</p>
+        <p className="text-sm text-night/55 mt-4">Price is for the whole private boat and includes 2 passengers — each extra passenger is ₹250. Book today or up to a week ahead. Dates further out? Call us. <Link href="/policies" className="underline decoration-night/25 underline-offset-2 hover:text-night">Booking &amp; refund policy</Link>.</p>
       </section>
 
       {/* Boat-ride story, relocated from the old homepage */}

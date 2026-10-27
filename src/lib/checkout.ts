@@ -36,13 +36,13 @@ export async function getBalance(email: string): Promise<number> {
     return Number(data?.credits_inr ?? 0);
 }
 
-export async function prepareCheckout(req: Request, opts: { product: string; coupon?: string | null; useCredits?: boolean; provider: Provider }): Promise<Prepared> {
+export async function prepareCheckout(req: Request, opts: { product: string; coupon?: string | null; useCredits?: boolean; provider: Provider; guests?: number }): Promise<Prepared> {
     const session = await getSession(req);
     const email = session?.email ?? null;
     const wantsCoins = opts.useCredits || opts.provider === "credits";
     if (wantsCoins && !email) return { ok: false, message: "Log in to use your KashiGo coins.", status: 401 };
 
-    const q = await quote(opts.product, opts.coupon, email);
+    const q = await quote(opts.product, opts.coupon, email, opts.guests);
     if (!q.ok) return { ok: false, message: q.message, status: q.message.startsWith("Log in") ? 401 : 409 };
     const { inr, usd } = q.price;
 

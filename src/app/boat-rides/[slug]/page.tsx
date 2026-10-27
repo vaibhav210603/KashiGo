@@ -101,7 +101,7 @@ export default async function RidePageView({ params }: PageProps) {
           "priceCurrency": "INR",
           "availability": "https://schema.org/InStock",
           "url": `${BASE}${bookHref.replace("#booking", "")}`,
-          "description": "Price per private boat, not per person",
+          "description": "Price per private boat, 2 passengers included; ₹250 per extra passenger",
         },
       }} />
       <JsonLd data={{
@@ -141,7 +141,7 @@ export default async function RidePageView({ params }: PageProps) {
       <article className="max-w-3xl mx-auto px-4">
         <section aria-label="Ride details" className="grain relative -mt-4 overflow-hidden rounded-[1.75rem] bg-night p-5 sm:p-7 text-white shadow-[0_40px_90px_-40px_rgba(7,11,24,0.7)]">
           <dl className="relative grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 text-sm">
-            <div><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><BadgeIndianRupee size={13} className="text-marigold" />Price</dt><dd className="mt-1.5 font-display text-3xl text-marigold">{inr(ride.price)}</dd><dd className="text-xs text-white/50">per boat, not per person</dd></div>
+            <div><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><BadgeIndianRupee size={13} className="text-marigold" />Price</dt><dd className="mt-1.5 font-display text-3xl text-marigold">{inr(ride.price)}</dd><dd className="text-xs text-white/50">per boat · 2 passengers included</dd></div>
             <div><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><Clock size={13} className="text-marigold" />Starts</dt><dd className="mt-1.5 font-display text-xl">{ride.time}</dd><dd className="text-xs text-white/50">{page.duration}</dd></div>
             <div className="col-span-2 sm:col-span-1 min-w-0"><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><MapPin size={13} className="text-marigold" />From</dt><dd className="mt-1.5 font-display text-lg leading-snug [overflow-wrap:anywhere]">{page.startPoint}</dd></div>
             <div className="col-span-2 sm:col-span-1 min-w-0"><dt className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45"><Sailboat size={13} className="text-ganga" />Included</dt><dd className="mt-1.5 font-display text-lg leading-snug">Private boat, local boatman</dd></div>
@@ -198,7 +198,7 @@ export default async function RidePageView({ params }: PageProps) {
         <section className="grain relative mt-14 overflow-hidden rounded-[2rem] bg-night p-6 sm:p-10 text-white">
           <div aria-hidden className="flicker absolute -right-16 -top-20 h-60 w-60 rounded-full bg-fire/35 blur-[80px]" />
           <h2 className="relative font-display font-light text-3xl sm:text-5xl tracking-[-0.02em] leading-[1.02]">Book your <em className="text-fire pr-1">{ride.short.toLowerCase()}</em></h2>
-          <p className="relative mt-3 text-white/65">One fixed price for the whole private boat — {inr(ride.price)}. No haggling on the ghat. Book today or up to a week ahead.</p>
+          <p className="relative mt-3 text-white/65">One fixed price for the whole private boat — {inr(ride.price)}, 2 passengers included (₹250 per extra passenger). No haggling on the ghat. Book today or up to a week ahead.</p>
           <Link href={bookHref} className={`${FIRE_BTN} relative mt-6 h-12 px-8`}>Book now<ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></Link>
         </section>
 

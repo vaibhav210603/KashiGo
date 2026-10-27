@@ -4,7 +4,7 @@ import crypto from "crypto";
 import Razorpay from "razorpay";
 import { createTransporter } from "@/lib/mailer";
 import { getBookingEmailTemplate } from "@/lib/emailTemplate";
-import { priceOf } from "@/lib/pricing";
+import { priceOf, withPassengers } from "@/lib/pricing";
 import { INR_PER_USD } from "@/lib/boatPrices";
 import { getRule } from "@/lib/coupons";
 import { getSession } from "@/lib/auth";
@@ -112,7 +112,9 @@ function parseBooking(data: any): { booking: Booking; problems: string[] } {
 // Confirms an online payment with the provider — that it went through, that it was for this
 // ride, and that the full price was paid (after any coupon and coins) — so we never trust the client's word for it.
 async function verifyPayment(b: Booking): Promise<Verified> {
-    const list = priceOf(b.product)?.inr ?? 0;
+    // Every price here includes the extra-passenger charge for the guests on this booking.
+    const priced = (coupon?: string | null) => getRule(coupon).then((rule) => { const p = priceOf(b.product, rule); return p && withPassengers(p, b.product, b.guests); });
+    const list = (await priced())?.inr ?? 0;
     if (!b.paymentRef) return { status: "pending", amount: list, credits: 0, ref: "" };
 
     try {
@@ -139,14 +141,14 @@ async function verifyPayment(b: Booking): Promise<Verified> {
             const credits = Number(order?.notes?.credits || 0);
             const orderProduct = order?.notes?.product;
             if (orderProduct !== b.product) return { status: "unverified", amount: paid, credits, ref, note: `This payment was for "${orderProduct || "unknown"}", not ${b.product}.` };
-            const expected = (priceOf(b.product, await getRule(order?.notes?.coupon))?.inr ?? Infinity) - credits;
+            const expected = ((await priced(order?.notes?.coupon))?.inr ?? Infinity) - credits;
             if (paid + 0.5 < expected) return { status: "unverified", amount: paid, credits, ref, note: `Paid ${inr(paid)} but the ride costs ${inr(expected)}.` };
             return { status: "paid", amount: paid, credits, ref };
         }
         if (b.paymentMode === "online_international") {
             const ref = `paypal:${b.paymentRef}`;
             const held = await refInfo(ref);
-            const price = priceOf(b.product, await getRule(held.coupon ?? b.coupon));
+            const price = await priced(held.coupon ?? b.coupon);
             const listed = (price?.inr ?? list) - held.creditsInr;
             const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString("base64");
             const tok = await fetch(`${paypalBase}/v1/oauth2/token`, {
@@ -274,7 +276,7 @@ export async function POST(req: Request) {
     let verified: Verified;
     if (b.paymentMode === "credits") {
         // Paid entirely in KashiGo coins: reserve them now (nothing has been charged yet, so problems can still refuse).
-        const prep = await prepareCheckout(req, { product: b.product, coupon: b.coupon, provider: "credits" });
+        const prep = await prepareCheckout(req, { product: b.product, coupon: b.coupon, provider: "credits", guests: b.guests });
         if (!prep.ok) return NextResponse.json({ success: false, message: prep.message }, { status: prep.status });
         const ref = `credits:${rideId}`;
         const problem = await prep.commit(ref);

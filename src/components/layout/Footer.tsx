@@ -6,7 +6,7 @@ import RiverWave from "@/components/motion/RiverWave";
 const COLS = [
     { title: "Boat rides", links: [["/book", "Book a boat ride"], ["/book#prices", "Prices"], ["/blog/varanasi-boat-ride-price-guide-foreigners", "Boat price guide"]] },
     { title: "Guides", links: [["/shop", "Complete bundle"], ["/guide", "Varanasi Insider Guide"], ["/ebooks", "Ebooks"], ["/audiobooks", "Audio tours"], ["/india-tour", "India Field Guide"]] },
-    { title: "KashiGo", links: [["/about", "About"], ["/blog", "Blog"]] },
+    { title: "KashiGo", links: [["/about", "About"], ["/blog", "Blog"], ["/policies", "Policies"]] },
 ];
 
 export default function Footer() {

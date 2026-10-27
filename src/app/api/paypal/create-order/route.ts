@@ -22,10 +22,10 @@ async function generateAccessToken() {
 
 export async function POST(req: Request) {
     try {
-        const { product, coupon, useCredits } = await req.json();
+        const { product, coupon, useCredits, guests } = await req.json();
 
         // Price is resolved server-side from the product id, the coupon and the buyer's coins. Client-sent amounts are ignored.
-        const prep = await prepareCheckout(req, { product: String(product), coupon, useCredits: Boolean(useCredits), provider: "paypal" });
+        const prep = await prepareCheckout(req, { product: String(product), coupon, useCredits: Boolean(useCredits), provider: "paypal", guests: Number(guests) || undefined });
         if (!prep.ok) return NextResponse.json({ success: false, message: prep.message }, { status: prep.status });
 
         const amountInUSD = prep.payUsd.toFixed(2);

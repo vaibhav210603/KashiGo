@@ -1,6 +1,6 @@
 // Server-side price catalog. Payment routes must NEVER trust a client-sent amount —
 // all prices are resolved here from the product id (and a coupon rule from lib/coupons).
-import { BOAT_PRICES_INR, INR_PER_USD, rideTotalInr } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, INR_PER_USD, passengerFeeInr } from "@/lib/boatPrices";
 
 export type ProductId =
     | "guide"
@@ -20,12 +20,12 @@ const INR_PRICES: Record<ProductId, number> = {
     "guide-trivia": 499, // the guide, for answering the cheat-sheet trivia
     "india-tour": 2374,
     "custom-boat": BOAT_PRICES_INR.custom,
-    p1: rideTotalInr(BOAT_PRICES_INR.p1), // ride + return journey
-    p2: rideTotalInr(BOAT_PRICES_INR.p2), // ride + return journey
-    p3: rideTotalInr(BOAT_PRICES_INR.p3), // ride + return journey
-    p4: rideTotalInr(BOAT_PRICES_INR.p4), // ride + return journey
-    p5: rideTotalInr(BOAT_PRICES_INR.p5), // ride + return journey
-    p6: rideTotalInr(BOAT_PRICES_INR.p6), // ride + return journey
+    p1: BOAT_PRICES_INR.p1,
+    p2: BOAT_PRICES_INR.p2,
+    p3: BOAT_PRICES_INR.p3,
+    p4: BOAT_PRICES_INR.p4,
+    p5: BOAT_PRICES_INR.p5,
+    p6: BOAT_PRICES_INR.p6,
 };
 
 // Products sold with their own dollar price. Everything else (boat rides) converts at INR_PER_USD.
@@ -106,6 +106,13 @@ export function priceOf(product: string, rule?: CouponRule | null): Price | null
         usd = Number((rule.value / INR_PER_USD).toFixed(2));
     }
     return { inr: Math.max(1, Math.min(inr, baseInr)), usd: Math.max(0.01, Math.min(usd, baseUsd)) };
+}
+
+// Boat rides add ₹250 for each passenger after the first 2 (lib/boatPrices.ts). Added after any coupon,
+// so a code discounts the boat, not the passenger charge.
+export function withPassengers(price: Price, product: string, guests?: number): Price {
+    const fee = isBoatProduct(product) && guests ? passengerFeeInr(guests) : 0;
+    return fee ? { inr: price.inr + fee, usd: Number((price.usd + fee / INR_PER_USD).toFixed(2)) } : price;
 }
 
 export const INR_TO_USD_RATE = INR_PER_USD;
