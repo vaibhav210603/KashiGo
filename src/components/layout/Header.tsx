@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SHOW_ON } from "@/components/layout/MobileActionBar";
 import CurrencyToggle from "@/components/layout/CurrencyToggle";
-import { Phone, Sailboat, BookOpen, Headphones, ShoppingBag, Newspaper, Info, UserRound } from "lucide-react";
+import { Phone, Sailboat, BookOpen, Headphones, ShoppingBag, Newspaper, Info, UserRound, Flame, Sparkles } from "lucide-react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
 
 const NAV = [
     { href: "/book", label: "Boat rides", icon: Sailboat },
+    { href: "/puja", label: "Puja & Yajna", icon: Flame },
+    { href: "/services", label: "Other services", icon: Sparkles },
     { href: "/shop", label: "Guides & bundle", icon: ShoppingBag },
     { href: "/ebooks", label: "Ebooks", icon: BookOpen },
     { href: "/audiobooks", label: "Audio tours", icon: Headphones },
@@ -60,10 +62,11 @@ export default function Header() {
                     <Link href="/" aria-label="KashiGo home"><Logo dark /></Link>
 
                     <nav className="hidden md:flex items-center gap-1 text-sm font-medium">
-                        {NAV.slice(0, 5).map((n) => {
+                        {NAV.filter((n) => n.href !== "/services").slice(0, 6).map((n, i) => {
                             const here = pathname === n.href;
                             return (
-                                <Link key={n.href} href={n.href} className={`group relative px-3 py-2 transition-colors ${here ? "text-white" : "text-white/65 hover:text-white"}`}>
+                                <Link key={n.href} href={n.href} className={`group relative whitespace-nowrap px-3 py-2 transition-colors ${i >= 3 ? "hidden xl:block" : ""} ${here ? "text-white" : "text-white/65 hover:text-white"}`}>
+                                    {n.href === "/puja" && <span aria-hidden className="flicker mr-1.5 inline-block h-1.5 w-1.5 -translate-y-0.5 rounded-full bg-marigold" />}
                                     {n.label}
                                     <span className={`absolute inset-x-3 bottom-1 h-px origin-left bg-marigold transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${here ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
                                 </Link>
@@ -73,12 +76,15 @@ export default function Header() {
 
                     <div className="flex items-center gap-2">
                         <CurrencyToggle />
+                        <Link href="/services" className={`hidden lg:inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-medium transition-colors ${pathname === "/services" ? "border-marigold text-marigold" : "border-marigold/40 text-white/85 hover:border-marigold hover:text-marigold"}`}>
+                            <Sparkles size={14} className="text-marigold" /> Other services
+                        </Link>
                         <Link href="/account" aria-label="Your account and KashiGo coins" title="Your account & coins"
                             className={`hidden md:inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${pathname === "/account" ? "border-marigold text-marigold" : "border-white/20 text-white/80 hover:text-white hover:border-white/40"}`}>
                             <UserRound size={18} />
                         </Link>
                         {!onBook && (
-                            <Link href="/book" className={`${SHOW_ON(pathname || "") ? "hidden md:inline-flex" : "inline-flex"} btn-sheen h-10 px-5 items-center rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(255,122,26,0.8)]`}>
+                            <Link href="/book" className={`${SHOW_ON(pathname || "") ? "hidden md:inline-flex" : "inline-flex"} btn-sheen h-10 px-5 items-center whitespace-nowrap rounded-full bg-gradient-to-r from-marigold via-fire to-ember text-night text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(255,122,26,0.8)]`}>
                                 Book a boat
                             </Link>
                         )}

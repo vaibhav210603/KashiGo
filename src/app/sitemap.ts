@@ -68,6 +68,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
     {
+      url: `${baseUrl}/services`,
+      lastModified: new Date("2026-10-29"),
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/puja`,
+      lastModified: new Date("2026-10-29"),
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/about`,
       lastModified: new Date("2026-10-14"),
       changeFrequency: "monthly" as const,

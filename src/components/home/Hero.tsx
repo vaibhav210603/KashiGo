@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight, Sparkles } from "lucide-react";
 import { BOAT_RIDES, BOAT_PRICE_RANGE, istNow, toMinutes } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
 import { SplitWords, Magnetic } from "@/components/motion/primitives";
@@ -97,10 +97,16 @@ export default function Hero() {
                                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-night text-marigold transition-transform duration-500 group-hover:rotate-[-45deg]"><ArrowRight size={16} /></span>
                                 </Link>
                             </Magnetic>
-                            <Link href="#rides" className="h-14 px-8 inline-flex items-center justify-center rounded-full border border-white/25 text-white font-medium backdrop-blur-sm transition-colors hover:bg-white hover:text-night">
-                                See rides &amp; prices
+                            <Link href="/services" className="h-14 px-8 inline-flex items-center justify-center gap-2 rounded-full border border-white/25 text-white font-medium backdrop-blur-sm transition-colors hover:bg-white hover:text-night">
+                                <Sparkles size={16} className="text-marigold" /> Other services
                             </Link>
                         </div>
+                        <p className="mt-5 text-sm text-white/55">
+                            Also by KashiGo:{" "}
+                            <Link href="/puja" className="text-white/80 underline decoration-marigold/60 underline-offset-4 hover:text-marigold">Puja &amp; Yajna</Link>{" · "}
+                            <Link href="/services#vip-darshan" className="text-white/80 underline decoration-marigold/60 underline-offset-4 hover:text-marigold">VIP darshan</Link>{" · "}
+                            <Link href="/services#quiet-kashi" className="text-white/80 underline decoration-marigold/60 underline-offset-4 hover:text-marigold">a crowd-free Kashi</Link>
+                        </p>
                     </motion.div>
 
                     {/* Rotating badge → rides */}

@@ -9,6 +9,7 @@ import GoogleReviews from "@/components/home/GoogleReviews";
 import Gallery from "@/components/home/Gallery";
 import ShopShelf from "@/components/home/ShopShelf";
 import CheatSheetSignup from "@/components/home/CheatSheetSignup";
+import BeyondTheBoat from "@/components/home/BeyondTheBoat";
 import FAQSection from "@/components/sections/FAQSection";
 import { BOAT_RIDES, BOAT_PRICE_RANGE, boatPrice, inr } from "@/lib/boatRides";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
@@ -146,14 +147,15 @@ export default function Home() {
           }
         ]
       }} />
-      {/* Order = what most visitors came for, then highest value: book a boat → trust → guides */}
+      {/* Order: the boat (our USP) → proof it's good → why us → everything else we do in Kashi → how booking works → guides */}
       <Hero />
       <RideRail />
       <GhatMarquee />
+      <GoogleReviews />
       <WhyKashiGo />
+      <BeyondTheBoat />
       <HowItWorks />
       <Gallery />
-      <GoogleReviews />
       <ShopShelf />
       <FAQSection />
       <CheatSheetSignup />
