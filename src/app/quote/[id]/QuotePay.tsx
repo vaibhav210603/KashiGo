@@ -24,7 +24,7 @@ const post = (body: object) =>
 export default function QuotePay({ id, name, total, paid: initiallyPaid, selection, blocked, due }: Props) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
-    const [paymentId, setPaymentId] = useState(initiallyPaid ? "received" : "");
+    const [paymentId] = useState(initiallyPaid ? "received" : "");
 
     const pay = async () => {
         if (blocked) return setError(blocked);
@@ -46,16 +46,17 @@ export default function QuotePay({ id, name, total, paid: initiallyPaid, selecti
                 notes: { quote: id },
                 theme: { color: "#f97316" },
                 handler: async (r: any) => {
-                    const v = await post({ action: "verify", id, ...r });
-                    if (v.success) return goToThankYou({
-                        title: "Your boat is confirmed!",
-                        message: `A confirmation is on its way to your email. ${due ? `Pay the remaining ${due} to your KashiGo boatman at the ghat — nobody else.` : "Nothing more is to be paid at the ghat."}`,
+                    // Razorpay has taken the money by now: land on /thank-you even if our check fails, and say so.
+                    const v = await post({ action: "verify", id, ...r }).catch(() => ({ success: false }));
+                    goToThankYou({
+                        title: v.success ? "Your boat is confirmed!" : "Payment received!",
+                        message: v.success
+                            ? `A confirmation is on its way to your email. ${due ? `Pay the remaining ${due} to your KashiGo boatman at the ghat — nobody else.` : "Nothing more is to be paid at the ghat."}`
+                            : "We couldn't confirm it automatically. Please WhatsApp +91 81759 66910 with your payment ID and we'll confirm your boat.",
                         ref: { label: "Payment ID", value: r.razorpay_payment_id },
                         rows: [["Quotation", id], ["Paid online", total], ...(due ? [["Due at the ghat", due]] as [string, string][] : [])],
                         cta: { label: "View your quotation", href: `/quote/${id}` },
                     });
-                    setError(`${v.message} Your payment ID is ${r.razorpay_payment_id} — please WhatsApp us and we'll sort it out.`);
-                    setBusy(false);
                 },
                 modal: { ondismiss: () => setBusy(false) },
             });
