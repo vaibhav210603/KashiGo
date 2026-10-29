@@ -8,11 +8,20 @@ import {
 } from "lucide-react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import Image from "next/image";
+import { goToThankYou } from "@/lib/thankYou";
 
 export default function GuideClient() {
     const [paymentMode, setPaymentMode] = useState<"domestic" | "international">("international");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasPaid, setHasPaid] = useState(false);
+    const guideThankYou = () => {
+        setHasPaid(true);
+        goToThankYou({
+            title: "Thank you!",
+            message: "Your Varanasi Travel Guide 2026 is ready to download.",
+            downloads: [{ label: "Varanasi Travel Guide 2026 (PDF)", url: "/Varanasi_Travel_Guide_2026.pdf" }],
+        });
+    };
 
     useEffect(() => {
         try {
@@ -90,9 +99,7 @@ export default function GuideClient() {
                 order_id: orderData.orderId,
                 theme: { color: "#f97316" },
                 handler: function (response: any) {
-                    if (response.razorpay_payment_id) {
-                        setHasPaid(true);
-                    }
+                    if (response.razorpay_payment_id) guideThankYou();
                 },
                 modal: {
                     ondismiss: () => {
@@ -284,7 +291,7 @@ export default function GuideClient() {
                                                                     });
                                                                     const captureData = await res.json();
                                                                     if (captureData.success) {
-                                                                        setHasPaid(true);
+                                                                        guideThankYou();
                                                                     } else {
                                                                         throw new Error("Payment capture failed");
                                                                     }

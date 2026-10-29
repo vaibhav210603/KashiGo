@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import { Check, Minus, Plus, Phone, Headphones, Wallet, Smartphone, Globe, Tag, Coins, LogOut } from "lucide-react";
+import { Check, Minus, Plus, Wallet, Smartphone, Globe, Tag, Coins, LogOut } from "lucide-react";
 import { BOAT_PRICES_INR, EXTRA_PASSENGER_INR, FREE_PASSENGERS, passengerFeeInr } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, BOOKING_WINDOW_DAYS } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
+import { goToThankYou } from "@/lib/thankYou";
 import { money, useCurrency } from "@/lib/currency";
 import { normalizeEmail } from "@/lib/email";
 import { apiPost, authHeaders, useAuth } from "@/components/auth/useAuth";
@@ -84,7 +84,6 @@ export default function BookingFlow() {
     const [code, setCode] = useState("");
     const [applied, setApplied] = useState<{ product: string; inr: number } | null>(null);
     const [codeMsg, setCodeMsg] = useState("");
-    const [done, setDone] = useState<{ rideId: string; paid: boolean } | null>(null);
     // Phone login unlocks discount codes and KashiGo coins (refunds come back as coins).
     const auth = useAuth();
     const { account, refresh: refreshAccount } = useAccount();
@@ -212,12 +211,23 @@ export default function BookingFlow() {
         }
         const finalRideId = rideId || `KASHI-${String(paymentRef).slice(-6).toUpperCase()}`;
         const paid = Boolean(paymentRef) || payMode === "credits";
-        setDone({ rideId: finalRideId, paid });
         if (coinsUsed) refreshAccount();
         // Only paid rides are revenue; pay-at-ghat bookings are leads until the boatman is paid.
         if (paid) track("purchase", { transaction_id: finalRideId, currency: "INR", value: price, item_id: product });
         else track("generate_lead", { lead_source: "boat_booking_pay_at_ghat", currency: "INR", value: price });
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        goToThankYou({
+            title: "You're booked!",
+            message: email ? `Confirmation sent to ${email}.` : "Keep your ride number handy.",
+            ref: { label: "Your ride number", value: finalRideId },
+            rows: [
+                ["Ride", rideLabel],
+                ["When", `${dateLabel?.top}, ${dateLabel?.bottom} · ${ride === "custom" ? customTime : selected?.time}`],
+                ["From", ghat],
+                ["Guests", String(guests)],
+                ...(guestFee ? [["Boat ride", money(ridePrice, currency)], [`${extraGuests} extra passenger${extraGuests > 1 ? "s" : ""}`, money(guestFee, currency)]] as [string, string][] : []),
+                ["Total", `${money(price, currency)}${currency === "usd" ? ` (${inr(price)})` : ""} · ${pay === "cod" ? `${inr(advance)} paid · ${inr(price - advance)} at the ghat` : paid ? "paid" : "pay at the ghat"}`],
+            ],
+        });
     };
 
     // PayPal keeps the callbacks from when its button first rendered; route them through a ref
@@ -267,40 +277,6 @@ export default function BookingFlow() {
             setBusy(false);
         }
     };
-
-    if (done) {
-        return (
-            <div ref={topRef} className="grain relative overflow-hidden rounded-[2rem] bg-night p-6 sm:p-10 text-center text-white shadow-[0_40px_90px_-30px_rgba(7,11,24,0.7)]">
-                <div aria-hidden className="flicker absolute -right-16 -top-20 h-60 w-60 rounded-full bg-fire/35 blur-[80px]" />
-                <div className="relative w-20 h-20 mx-auto rounded-full bg-ganga/15 text-ganga ring-1 ring-ganga/40 flex items-center justify-center"><Check size={40} /></div>
-                <h2 className="relative mt-5 font-display font-light text-4xl sm:text-5xl tracking-tight">You&apos;re <em className="text-fire pr-1">booked!</em></h2>
-                <p className="relative mt-2 text-white/60">{email ? `Confirmation sent to ${email}.` : "Keep your ride number handy."}</p>
-                <div className="relative mt-6 mx-auto max-w-sm rounded-2xl border border-dashed border-marigold/50 bg-white/5 p-5">
-                    <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/45">Your ride number</p>
-                    <p className="mt-1 font-mono font-bold text-2xl text-marigold">{done.rideId}</p>
-                </div>
-                <dl className="relative mt-6 mx-auto max-w-sm text-left text-[15px] divide-y divide-white/10">
-                    {[
-                        ["Ride", rideLabel],
-                        ["When", `${dateLabel?.top}, ${dateLabel?.bottom} · ${ride === "custom" ? customTime : selected?.time}`],
-                        ["From", ghat],
-                        ["Guests", String(guests)],
-                        ...(guestFee ? [["Boat ride", money(ridePrice, currency)], [`${extraGuests} extra passenger${extraGuests > 1 ? "s" : ""}`, money(guestFee, currency)]] : []),
-                        ["Total", `${money(price, currency)}${currency === "usd" ? ` (${inr(price)})` : ""} · ${pay === "cod" ? `${inr(advance)} paid · ${inr(price - advance)} at the ghat` : done.paid ? "paid" : "pay at the ghat"}`],
-                    ].map(([k, v]) => (
-                        <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-white/50">{k}</dt><dd className="font-semibold text-white text-right">{v}</dd></div>
-                    ))}
-                </dl>
-                <a href="tel:+918175966910" className="relative mt-6 inline-flex items-center gap-2 h-12 px-6 rounded-full border border-white/20 font-semibold text-white transition-colors hover:border-marigold">
-                    <Phone size={18} className="text-marigold" /> Questions? +91 81759 66910
-                </a>
-                <Link href="/audiobooks#walk-the-ghats" className="relative mt-8 block rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition-colors hover:border-marigold/50">
-                    <p className="flex items-center gap-2 font-semibold text-white"><Headphones size={18} className="text-marigold" /> Before or after your ride</p>
-                    <p className="text-sm text-white/60">Walk the Ghats — a local&apos;s 90-minute audio tour from Assi to Manikarnika. →</p>
-                </Link>
-            </div>
-        );
-    }
 
     return (
         <div ref={topRef} className="space-y-4">

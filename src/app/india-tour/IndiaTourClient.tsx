@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { goToThankYou } from "@/lib/thankYou";
 import { motion, AnimatePresence } from "framer-motion";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Check, ChevronRight, Phone, Lock, Clock, ArrowRight } from "lucide-react";
@@ -65,9 +66,11 @@ export default function IndiaTourClient() {
   const handlePaymentSuccess = () => {
     setIsSuccess(true);
     localStorage.setItem("hasPaidIndiaGuide", "true");
-    setTimeout(() => {
-      window.location.href = "/india-guide";
-    }, 2000);
+    goToThankYou({
+      title: "Thank you!",
+      message: "Your All India Tour Guide 2026 is unlocked on this device.",
+      cta: { label: "Open your India guide", href: "/india-guide" },
+    });
   };
 
   const handleRazorpay = async () => {

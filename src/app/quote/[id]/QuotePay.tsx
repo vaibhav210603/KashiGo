@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, Loader2, Lock, Printer } from "lucide-react";
 import type { QuoteSelection } from "@/lib/quotes";
+import { goToThankYou } from "@/lib/thankYou";
 
 // `due`: on a 50%-advance quote, what's left to pay at the ghat (then `total` is the advance charged now).
 type Props = { id: string; name: string; total: string; paid: boolean; selection?: QuoteSelection; blocked?: string; due?: string };
@@ -46,8 +47,14 @@ export default function QuotePay({ id, name, total, paid: initiallyPaid, selecti
                 theme: { color: "#f97316" },
                 handler: async (r: any) => {
                     const v = await post({ action: "verify", id, ...r });
-                    if (v.success) setPaymentId(r.razorpay_payment_id);
-                    else setError(`${v.message} Your payment ID is ${r.razorpay_payment_id} — please WhatsApp us and we'll sort it out.`);
+                    if (v.success) return goToThankYou({
+                        title: "Your boat is confirmed!",
+                        message: `A confirmation is on its way to your email. ${due ? `Pay the remaining ${due} to your KashiGo boatman at the ghat — nobody else.` : "Nothing more is to be paid at the ghat."}`,
+                        ref: { label: "Payment ID", value: r.razorpay_payment_id },
+                        rows: [["Quotation", id], ["Paid online", total], ...(due ? [["Due at the ghat", due]] as [string, string][] : [])],
+                        cta: { label: "View your quotation", href: `/quote/${id}` },
+                    });
+                    setError(`${v.message} Your payment ID is ${r.razorpay_payment_id} — please WhatsApp us and we'll sort it out.`);
                     setBusy(false);
                 },
                 modal: { ondismiss: () => setBusy(false) },

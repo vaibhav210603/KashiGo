@@ -3,16 +3,15 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Check, Coins, Download, Tag, X } from "lucide-react";
+import { Coins, Tag, X } from "lucide-react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import type { ShopProduct } from "@/lib/products";
 import { track } from "@/lib/analytics";
+import { goToThankYou } from "@/lib/thankYou";
 import { INR_PER_USD } from "@/lib/boatPrices";
 import { apiPost, useAuth } from "@/components/auth/useAuth";
 import { useAccount } from "@/components/auth/useAccount";
 import EmailLogin from "@/components/auth/EmailLogin";
-
-type Dl = { label: string; url: string };
 
 export default function Checkout({ product, region, onClose }: { product: ShopProduct; region: "inr" | "usd"; onClose: () => void }) {
     const [email, setEmail] = useState("");
@@ -22,8 +21,6 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
     const [codeMsg, setCodeMsg] = useState("");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
-    const [downloads, setDownloads] = useState<Dl[] | null>(null);
-    const [received, setReceived] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
     const [useCoins, setUseCoins] = useState(true);
     const auth = useAuth();
@@ -61,10 +58,16 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
         const { data } = await apiPost("/api/shop/deliver", { product: product.id, email, name, coupon, ...payload });
         if (payload.provider === "credits" && !data.success && data.message) { setError(data.message); return; }
         // Paid but files couldn't be released automatically: the owner has been alerted and sends them by email.
-        if (!data.success) { setReceived(true); return; }
-        setDownloads(data.downloads);
+        if (!data.success) { thankYouPending(); return; }
         track("purchase", { transaction_id: payload.razorpay_payment_id || payload.paypalOrderId, currency: region === "inr" ? "INR" : "USD", value: region === "inr" ? finalInr : finalUsd, item_id: product.id });
+        goToThankYou({ title: "You're all set!", message: `Download now. We've also emailed these links to ${email}.`, rows: [["Order", product.name]], downloads: data.downloads });
     };
+
+    const thankYouPending = () => goToThankYou({
+        title: "Payment received!",
+        message: `Your files are being prepared and will arrive at ${email} shortly. If you don't see them within a few hours, check spam or write to support@kashigo.in.`,
+        rows: [["Order", product.name]],
+    });
 
     const payRazorpay = async () => {
         track("begin_checkout", { currency: "INR", value: finalInr, item_id: product.id, payment_type: "razorpay" });
@@ -85,7 +88,7 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
                 prefill: { email, name }, theme: { color: "#f97316" },
                 handler: async (r: any) => {
                     try { await deliver({ provider: "razorpay", razorpay_order_id: r.razorpay_order_id, razorpay_payment_id: r.razorpay_payment_id, razorpay_signature: r.razorpay_signature }); }
-                    catch { setReceived(true); }
+                    catch { thankYouPending(); }
                     finally { setBusy(false); }
                 },
                 modal: { ondismiss: () => setBusy(false) },
@@ -107,28 +110,6 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
             <motion.div initial={{ y: 40 }} animate={{ y: 0 }} exit={{ y: 40 }} onClick={(e) => e.stopPropagation()}
                 data-lenis-prevent className="bg-white text-slate-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] max-h-[92vh] overflow-y-auto relative">
                 <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700" aria-label="Close"><X /></button>
-                {received && !downloads ? (
-                    <div className="space-y-4">
-                        <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><Check /></div>
-                        <h3 className="text-2xl font-bold text-slate-900">Payment received — thank you!</h3>
-                        <p className="text-sm text-slate-600">
-                            Your files are being prepared and will arrive at <b>{email}</b> shortly. If you don&apos;t see them within a few hours, check spam or write to <a href="mailto:support@kashigo.in" className="text-orange-600 font-semibold">support@kashigo.in</a>.
-                        </p>
-                    </div>
-                ) : downloads ? (
-                    <div className="space-y-4">
-                        <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><Check /></div>
-                        <h3 className="text-2xl font-bold text-slate-900">Thank you — you're all set!</h3>
-                        <p className="text-sm text-slate-600">Download now. We've also emailed these links to <b>{email}</b>.</p>
-                        <div className="space-y-2">
-                            {downloads.map((d) => (
-                                <a key={d.url} href={d.url} download className="flex items-center gap-3 bg-orange-50 hover:bg-orange-100 text-slate-900 font-semibold text-sm p-3 rounded-xl">
-                                    <Download size={18} className="text-orange-500 shrink-0" />{d.label}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                ) : (
                     <div className="space-y-4">
                         <div className="flex gap-4 items-center">
                             <div className="relative w-16 h-22 aspect-[5/7] shrink-0 rounded-md overflow-hidden bg-slate-100"><Image src={product.cover} alt="" fill className="object-cover" sizes="64px" /></div>
@@ -200,7 +181,7 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
                                             try {
                                                 await fetch("/api/paypal/capture-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId: data.orderID }) });
                                                 await deliver({ provider: "paypal", paypalOrderId: data.orderID });
-                                            } catch { setReceived(true); }
+                                            } catch { thankYouPending(); }
                                             finally { setBusy(false); }
                                         }}
                                         onError={() => setError("PayPal payment failed or was cancelled.")}
@@ -211,7 +192,6 @@ export default function Checkout({ product, region, onClose }: { product: ShopPr
                         {error && <p className="text-sm text-red-600">{error}</p>}
                         <p className="text-[11px] text-slate-400 text-center">Secure checkout · Instant download · 7-day money-back guarantee</p>
                     </div>
-                )}
             </motion.div>
         </motion.div>
     );
