@@ -160,7 +160,18 @@ export const ACHARYA_WORD = {
     closing: "जय श्रीमन नारायण",
     name: "Ramanuj Das Badri Narayan Upadhyay",
     nameDeva: "रामानुज दास बदरी नारायण उपाध्याय",
-    photo: null as string | null,
+    photo: "/puja/badri-narayan-upadhyay.jpg" as string | null,
+    // His spoken message, shown in place of the photo until `until` (IST) — it names the Deepavali date, so it retires after it.
+    // Hindi subtitles are burned in; English captions are the .vtt track.
+    video: {
+        src: "/puja/acharya-lakshmi-puja.mp4",
+        poster: "/puja/acharya-lakshmi-puja.jpg",
+        captions: "/puja/acharya-lakshmi-puja.en.vtt",
+        duration: 50,
+        uploaded: "2026-10-29",
+        until: "2026-11-08",
+        puja: "lakshmi-puja",
+    } as { src: string; poster: string; captions: string; duration: number; uploaded: string; until: string; puja: string } | null,
 };
 
 // Short video bytes from the acharyas who perform the rites. Add an entry per video dropped in /public/puja.

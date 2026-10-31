@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useSyncExternalStore, type FormEvent } from "react";
-import { ArrowRight, Check, Clock, Flame, MapPin, MessageCircle, Phone, Plus, ScrollText, ShieldCheck, Users, Video } from "lucide-react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { ArrowRight, Check, Clock, Flame, MapPin, MessageCircle, Phone, Plus, ScrollText, ShieldCheck, Users, Video, Volume2 } from "lucide-react";
 import PageHero from "@/components/layout/PageHero";
 import { Eyebrow, Reveal } from "@/components/motion/primitives";
 import { FIRE_BTN, GHOST_BTN_DARK, H2_LIGHT, PAPER_CARD } from "@/components/ui/styles";
+import { track } from "@/lib/analytics";
 import { money, useCurrency } from "@/lib/currency";
 import { ACHARYA_BYTES, ACHARYA_WORD, INTENTS, MODES, PUJAS, type Intent, type Mode, type Puja } from "@/lib/pujas";
 
@@ -33,7 +34,7 @@ export default function PujaClient() {
     return (
         <div className="w-full bg-parchment">
             <Hero onChoose={choose} />
-            <AcharyaWord />
+            <AcharyaWord onChoose={choose} />
             <Modes />
             <Rites onChoose={choose} />
             <Unfolds />
@@ -95,26 +96,35 @@ function SeasonCard({ puja, days, onChoose }: { puja: Puja; days: number | null;
     );
 }
 
-function AcharyaWord() {
+function AcharyaWord({ onChoose }: { onChoose: (id: string) => void }) {
     const w = ACHARYA_WORD;
+    const [currency] = useCurrency();
+    const days = useDaysUntil(w.video?.until);
+    const video = w.video && (days === null || days >= 0) ? w.video : null;
+    const puja = video ? PUJAS.find((p) => p.id === video.puja) : undefined;
     return (
         <section className="relative overflow-hidden py-20 md:py-28">
             <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr]">
-                <Reveal className="mx-auto w-full max-w-sm">
+                <Reveal className={`mx-auto w-full ${video ? "max-w-[22rem]" : "max-w-sm"}`}>
                     <div className="relative">
-                        <div aria-hidden className="absolute -inset-4 rounded-[2.5rem] border border-fire/25" />
-                        <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-gradient-to-b from-night-3 to-night">
-                            {w.photo ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={w.photo} alt={w.name} className="h-full w-full object-cover" />
-                            ) : (
-                                <div className="flex h-full flex-col items-center justify-center text-center">
-                                    <span aria-hidden className="flicker h-16 w-8 rounded-[50%_50%_50%_50%/60%_60%_40%_40%] bg-gradient-to-t from-ember via-fire to-marigold blur-[1px]" />
-                                    <span className="mt-6 font-deva text-7xl text-marigold/80">ॐ</span>
-                                </div>
-                            )}
+                        <div className="relative">
+                            <div aria-hidden className="absolute -inset-4 rounded-[2.5rem] border border-fire/25" />
+                            <div className={`relative overflow-hidden rounded-[2rem] bg-gradient-to-b from-night-3 to-night ${video ? "aspect-[9/16]" : "aspect-[4/5]"}`}>
+                                {video ? (
+                                    <AcharyaVideo video={video} name={w.name} />
+                                ) : w.photo ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={w.photo} alt={w.name} className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="flex h-full flex-col items-center justify-center text-center">
+                                        <span aria-hidden className="flicker h-16 w-8 rounded-[50%_50%_50%_50%/60%_60%_40%_40%] bg-gradient-to-t from-ember via-fire to-marigold blur-[1px]" />
+                                        <span className="mt-6 font-deva text-7xl text-marigold/80">ॐ</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                        <div className="absolute -bottom-5 left-1/2 w-[85%] -translate-x-1/2 rounded-2xl bg-night px-5 py-3 text-center text-white shadow-xl">
+                        {/* Over the photo it overlaps the frame; under the video it sits clear of the player controls. */}
+                        <div className={video ? "relative mt-8 w-full rounded-2xl bg-night px-5 py-3 text-center text-white shadow-xl" : "absolute -bottom-5 left-1/2 w-[85%] -translate-x-1/2 rounded-2xl bg-night px-5 py-3 text-center text-white shadow-xl"}>
                             <p className="font-deva text-lg text-marigold">{w.nameDeva}</p>
                             <p className="text-[11px] uppercase tracking-[0.2em] text-white/55">Senior Acharya · KashiGo Anushthan</p>
                         </div>
@@ -128,9 +138,57 @@ function AcharyaWord() {
                     <p className="mt-5 border-l-2 border-marigold pl-5 leading-relaxed text-night/60 italic">{w.english}</p>
                     <p className="mt-8 font-deva text-xl text-fire-deep">{w.closing}</p>
                     <p className="mt-1 font-display text-lg text-night">— {w.name}</p>
+                    {puja?.seasonal && (
+                        <div className="mt-9 flex flex-col gap-3 border-t border-night/10 pt-7 sm:flex-row sm:items-center sm:gap-5">
+                            <button onClick={() => { track("acharya_cta_click", { puja: puja.id }); onChoose(puja.id); }} className={`${FIRE_BTN} h-12 w-full px-6 sm:w-auto`}>
+                                Reserve the {puja.seasonal.label} muhurat <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                            </button>
+                            <p className="text-sm text-night/55">{longDate(puja.seasonal.date)} · dakshina from {money(puja.dakshina, currency)}</p>
+                        </div>
+                    )}
                 </Reveal>
             </div>
         </section>
+    );
+}
+
+type AcharyaClip = NonNullable<typeof ACHARYA_WORD.video>;
+
+// Plays muted (the Hindi subtitles are burned in) only while on screen; one tap restarts it from the top with sound.
+function AcharyaVideo({ video, name }: { video: AcharyaClip; name: string }) {
+    const ref = useRef<HTMLVideoElement>(null);
+    const [sound, setSound] = useState(false);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const io = new IntersectionObserver(([e]) => { if (!e.isIntersecting) el.pause(); else if (el.muted) el.play().catch(() => { }); }, { threshold: 0.5 });
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
+    const listen = () => {
+        const el = ref.current;
+        if (!el) return;
+        el.muted = false; el.loop = false; el.currentTime = 0;
+        setSound(true);
+        el.play().catch(() => { });
+        track("acharya_video_sound_on", { video: video.src });
+    };
+    return (
+        <>
+            <video ref={ref} poster={video.poster} muted loop={!sound} playsInline preload="none" controls={sound}
+                onEnded={() => sound && track("acharya_video_complete", { video: video.src })}
+                aria-label={`${name} speaks about the Deepavali Lakshmi puja, in Hindi with subtitles`}
+                className="absolute inset-0 h-full w-full bg-black object-cover">
+                <source src={video.src} type="video/mp4" />
+                <track kind="captions" src={video.captions} srcLang="en" label="English" />
+            </video>
+            {!sound && (
+                <button onClick={listen} className="group absolute inset-x-4 bottom-4 flex items-center justify-center gap-2 rounded-full bg-night/80 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-night">
+                    <Volume2 size={17} className="text-marigold" /> Listen to the Acharya
+                    <span className="font-normal text-white/55">· 0:{String(video.duration).padStart(2, "0")}</span>
+                </button>
+            )}
+        </>
     );
 }
 

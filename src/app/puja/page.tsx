@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
-import { PUJAS } from "@/lib/pujas";
+import { ACHARYA_WORD, PUJAS } from "@/lib/pujas";
 import PujaClient from "./PujaClient";
 
 export const metadata: Metadata = {
@@ -37,6 +37,19 @@ export default function PujaPage() {
           },
         })),
       }} />
+      {ACHARYA_WORD.video && (
+        <JsonLd data={{
+          "@context": "https://schema.org",
+          "@type": "VideoObject",
+          "name": `${ACHARYA_WORD.name} on the Deepavali Lakshmi puja`,
+          "description": "The senior acharya of KashiGo Anushthan on why the rite is done, and Maa Lakshmi's grace on Deepavali, 8 November. In Hindi, with Hindi subtitles and English captions.",
+          "thumbnailUrl": `https://kashigo.in${ACHARYA_WORD.video.poster}`,
+          "contentUrl": `https://kashigo.in${ACHARYA_WORD.video.src}`,
+          "uploadDate": ACHARYA_WORD.video.uploaded,
+          "duration": `PT${ACHARYA_WORD.video.duration}S`,
+          "inLanguage": "hi",
+        }} />
+      )}
       <PujaClient />
     </>
   );
