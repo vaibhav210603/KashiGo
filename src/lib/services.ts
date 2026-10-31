@@ -15,6 +15,16 @@ export type Service = {
 
 export const SERVICES: Service[] = [
     {
+        id: "trip-planner",
+        name: "Trip Planning",
+        deva: "यात्रा योजना",
+        tagline: "Your whole Varanasi, planned by a local — and a call away, day and night.",
+        detail: "Tell us your dates and who's travelling. We plan each day around the right hours on the river and at the temples, send you only to genuine shops, warn you about every scam on the way, and stay on call 24/7 while you're in Kashi.",
+        includes: ["Genuine, authentic shops to visit", "24/7 call assistance — buy only the real thing, from Banarasi sarees up", "Top places to visit", "Top scams to avoid", "VIP privileges, so you never walk in the crowds"],
+        image: "/custom_bg.png",
+        badge: "Flagship",
+    },
+    {
         id: "vip-darshan",
         name: "VIP Darshan",
         deva: "दर्शन",

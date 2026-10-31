@@ -38,11 +38,19 @@ const SECTIONS: { id: string; title: string; body: ReactNode[] }[] = [
     ],
   },
   {
+    id: "guarantee",
+    title: "100% money-back guarantee",
+    body: [
+      "If we can't provide the ride or service you booked, or it isn't what we promised — a private boat at the fixed price, the ride, date and time you booked — tell us within 7 days and we'll refund 100% of what you paid.",
+      <>Call or WhatsApp <a href="tel:+918175966910" className="underline underline-offset-2">+91 81759 66910</a> or email <a href="mailto:support@kashigo.in" className="underline underline-offset-2">support@kashigo.in</a> with your ride or order number and what went wrong.</>,
+    ],
+  },
+  {
     id: "refunds",
     title: "Refunds",
     body: [
-      "Where a refund is due, it is issued as KashiGo coins worth the same amount you paid, added to the KashiGo account for the email on your booking. 1 coin is worth ₹1. Refunds are not paid back as money to your card, UPI or PayPal account.",
-      "Coins can be used on any KashiGo boat ride or guide: log in with the same email at checkout and they are applied to your total. Your balance is shown on your account page.",
+      "Refunds are paid back as money to the way you paid: your UPI or Indian card through Razorpay, or your PayPal account or international card through PayPal. Your bank or PayPal usually shows it within 5–7 working days.",
+      "If you'd rather keep the value for your next ride, you can ask for KashiGo coins instead (1 coin is worth ₹1). Coins can be used on any KashiGo boat ride or guide: log in with the same email at checkout and they are applied to your total. Your balance is shown on your account page.",
       "The refund is based on the amount you actually paid to KashiGo, after any discount code.",
     ],
   },
@@ -50,7 +58,7 @@ const SECTIONS: { id: string; title: string; body: ReactNode[] }[] = [
     id: "digital",
     title: "Guides, ebooks and audio tours",
     body: [
-      "Digital products are delivered instantly by download link and email. If a file doesn't work or you were charged twice, contact us and we'll fix it or refund it as KashiGo coins, as above.",
+      "Digital products are delivered instantly by download link and email. If a file doesn't work or you were charged twice, contact us and we'll fix it or refund it in full, as above.",
     ],
   },
   {
@@ -66,7 +74,7 @@ export default function PoliciesPage() {
   return (
     <div className="w-full flex flex-col bg-parchment">
       <PageHero eyebrow="Policies" title="Booking &" highlight="refund policy" compact
-        intro={<p>How bookings, passengers, payments, changes and refunds work at KashiGo. Last updated 27 October 2026.</p>} />
+        intro={<p>How bookings, passengers, payments, changes and refunds work at KashiGo. Last updated 31 October 2026.</p>} />
 
       <div className="max-w-3xl w-full mx-auto px-4 sm:px-6 py-12 sm:py-16">
         <nav aria-label="On this page" className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-night/60">

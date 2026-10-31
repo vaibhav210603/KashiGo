@@ -30,6 +30,60 @@ function useNextDeparture() {
     return state;
 }
 
+// A green rubber stamp that slams onto the hero once the headline is in, with an ink ripple on impact.
+function GuaranteeStamp({ reduce }: { reduce: boolean }) {
+    const at = 1.35;
+    return (
+        <Link href="/policies#guarantee" aria-label="100% money-back guarantee — read the policy"
+            className="relative order-first h-24 w-24 shrink-0 lg:absolute lg:right-[6%] lg:top-[-2.5rem] lg:h-40 lg:w-40">
+            {!reduce && (
+                <motion.span aria-hidden className="absolute inset-0 rounded-full border-2 border-emerald-400"
+                    initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: [0.9, 1.7], opacity: [0.8, 0] }}
+                    transition={{ duration: 0.7, ease: "easeOut", delay: at + 0.12 }} />
+            )}
+            <motion.svg viewBox="0 0 200 200" className="h-full w-full drop-shadow-[0_6px_24px_rgba(16,185,129,0.45)]"
+                initial={reduce ? false : { scale: 3.2, opacity: 0, rotate: -40 }}
+                animate={{ scale: 1, opacity: 1, rotate: -12 }}
+                transition={{ type: "spring", stiffness: 520, damping: 20, mass: 1.1, delay: at }}>
+                <defs>
+                    {/* Uneven ink: a little noise eats into the strokes, like a real rubber stamp. */}
+                    <filter id="stamp-ink" x="-10%" y="-10%" width="120%" height="120%">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n" />
+                        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.55" result="m" />
+                        <feComposite in="SourceGraphic" in2="m" operator="in" />
+                    </filter>
+                    {/* Lighter wear on the lettering so "100%" always reads cleanly. */}
+                    <filter id="stamp-ink-light" x="-10%" y="-10%" width="120%" height="120%">
+                        <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="1" seed="3" result="n" />
+                        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.9 1.35" result="m" />
+                        <feComposite in="SourceGraphic" in2="m" operator="in" />
+                    </filter>
+                    <path id="stamp-top" d="M 34,100 A 66,66 0 0 1 166,100" />
+                    <path id="stamp-bottom" d="M 30,100 A 70,70 0 0 0 170,100" />
+                </defs>
+                <circle cx="100" cy="100" r="94" fill="rgba(4,32,18,0.62)" />
+                <g filter="url(#stamp-ink)" fill="none" stroke="#34d399">
+                    <circle cx="100" cy="100" r="92" strokeWidth="6" />
+                    <circle cx="100" cy="100" r="80" strokeWidth="2" />
+                    <circle cx="100" cy="100" r="52" strokeWidth="2" />
+                </g>
+                <g filter="url(#stamp-ink-light)" fill="#4ade80" stroke="#4ade80">
+                    <text fontSize="17" fontWeight="800" letterSpacing="2.4" stroke="none" textAnchor="middle" fontFamily="var(--font-geist-sans), system-ui, sans-serif">
+                        <textPath href="#stamp-top" startOffset="50%">MONEY-BACK</textPath>
+                    </text>
+                    <text fontSize="16" fontWeight="800" letterSpacing="2.6" stroke="none" textAnchor="middle" fontFamily="var(--font-geist-sans), system-ui, sans-serif">
+                        <textPath href="#stamp-bottom" startOffset="50%">GUARANTEE</textPath>
+                    </text>
+                    <text x="100" y="112" fontSize="36" fontWeight="900" letterSpacing="-0.5" stroke="none" textAnchor="middle" fontFamily="var(--font-geist-sans), system-ui, sans-serif">100%</text>
+                    <path d="M 84,124 l 10,9 l 22,-20" fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="27" cy="100" r="3.5" stroke="none" />
+                    <circle cx="173" cy="100" r="3.5" stroke="none" />
+                </g>
+            </motion.svg>
+        </Link>
+    );
+}
+
 export default function Hero() {
     const ref = useRef<HTMLElement>(null);
     const reduce = useReducedMotion();
@@ -67,17 +121,20 @@ export default function Hero() {
             </motion.p>
 
             <motion.div style={{ y: textY, opacity: textOpacity }} className="relative w-full max-w-7xl mx-auto px-4 sm:px-6">
-                <motion.div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/5 py-1.5 pl-2 pr-4 text-xs text-white/80 backdrop-blur-md"
+                <motion.div className="relative flex flex-wrap items-center gap-x-4 gap-y-3"
                     initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}>
-                    <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-fire/20">
-                        <span className="absolute h-full w-full animate-ping rounded-full bg-fire/40" />
-                        <span className="h-2 w-2 rounded-full bg-marigold" />
-                    </span>
-                    {next ? (
-                        <span><span className="text-white/50">Varanasi {next.clock} ·</span> Next departure <b className="font-semibold text-white">{next.ride}, {next.time}</b></span>
-                    ) : (
-                        <span>Booking now · Varanasi</span>
-                    )}
+                    <GuaranteeStamp reduce={!!reduce} />
+                    <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/5 py-1.5 pl-2 pr-4 text-xs text-white/80 backdrop-blur-md">
+                        <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-fire/20">
+                            <span className="absolute h-full w-full animate-ping rounded-full bg-fire/40" />
+                            <span className="h-2 w-2 rounded-full bg-marigold" />
+                        </span>
+                        {next ? (
+                            <span><span className="text-white/50">Varanasi {next.clock} ·</span> Next departure <b className="font-semibold text-white">{next.ride}, {next.time}</b></span>
+                        ) : (
+                            <span>Booking now · Varanasi</span>
+                        )}
+                    </div>
                 </motion.div>
 
                 <h1 className="mt-6 max-w-5xl font-display font-light text-white text-[3.1rem] leading-[0.95] sm:text-7xl lg:text-[7.25rem] tracking-[-0.03em] [font-variation-settings:'SOFT'_100,'opsz'_144]">

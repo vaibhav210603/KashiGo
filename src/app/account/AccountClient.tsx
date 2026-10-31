@@ -25,7 +25,7 @@ export default function AccountClient() {
                     ) : !auth.loggedIn ? (
                         <>
                             <h1 className="mt-4 font-display font-light text-5xl sm:text-6xl leading-[0.95] tracking-[-0.03em]">Your <em className="text-fire">KashiGo.</em></h1>
-                            <p className="mt-4 max-w-lg text-white/65">See your KashiGo coins, your rides and your guides. Refunds come back here as coins you can spend on anything.</p>
+                            <p className="mt-4 max-w-lg text-white/65">See your KashiGo coins, your rides and your guides. Coins you take instead of a refund land here, to spend on anything.</p>
                             <div className="mt-8 max-w-lg rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
                                 <EmailLogin tone="dark" title="Log in" subtitle="Continue with Google, or get a one-time code by email. No password." />
                             </div>
@@ -66,7 +66,7 @@ export default function AccountClient() {
                             <Row key={p.order_ref} left={<b>{productName(p.product)}</b>} sub={`${date(p.created_at)}${p.credits_used ? ` · ${p.credits_used} coins used` : ""}`}
                                 right={<>₹{(p.amount_inr + p.credits_used).toLocaleString("en-IN")}{p.refunded_inr > 0 && <span className="block text-xs text-ganga">Refunded {p.refunded_inr} coins</span>}</>} />
                         )} />
-                    <Block title="Coin history" empty="No coins yet — refunds land here." items={account?.ledger ?? []}
+                    <Block title="Coin history" empty="No coins yet." items={account?.ledger ?? []}
                         render={(l, i) => (
                             <Row key={i} left={<b>{KIND_LABEL[l.kind] ?? l.kind}</b>} sub={`${date(l.created_at)}${l.note ? ` · ${l.note}` : ""}${l.ref ? ` · ${l.ref}` : ""}`}
                                 right={<><span className={l.delta_inr > 0 ? "text-ganga" : "text-ember"}>{l.delta_inr > 0 ? "+" : ""}{l.delta_inr.toLocaleString("en-IN")}</span><span className="block text-xs text-night/45">balance {l.balance_after.toLocaleString("en-IN")}</span></>} />
