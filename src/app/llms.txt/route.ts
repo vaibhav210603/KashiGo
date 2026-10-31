@@ -18,7 +18,7 @@ export function GET() {
 ## Varanasi boat rides — book online
 Book at https://kashigo.in/book. Bookings are open now, for today or up to a week ahead. Pay online (UPI, cards via Razorpay, international cards/PayPal) or pay at the ghat with a 50% advance online. Instant ride number and email confirmation. Phone: ${BOOKING_PHONE}.
 Starting ghats: Dashashwamedh, Assi, Namo, Manikarnika, Panchganga.
-Prices are for the whole private boat, not per person, and include 2 passengers; each extra passenger is ₹250 (${inr(BOAT_PRICE_RANGE.low)}–${inr(BOAT_PRICE_RANGE.high)}):
+Prices are for the whole private boat, not per person, and include 2 passengers; each extra passenger is ₹350 (${inr(BOAT_PRICE_RANGE.low)}–${inr(BOAT_PRICE_RANGE.high)}):
 ${rides}
 - ${CUSTOM_RIDE.name}: ${inr(BOAT_PRICES_INR.custom)} — ${CUSTOM_RIDE.summary}
 

@@ -95,7 +95,7 @@ export default function BlogPage() {
             <p aria-hidden className="pointer-events-none absolute -right-6 -top-10 select-none font-deva text-[11rem] md:text-[16rem] leading-none text-white/[0.04]">गंगा</p>
             <h2 className="relative font-display font-light text-4xl sm:text-6xl leading-[0.98] tracking-[-0.03em]">Ready to experience <em className="text-fire pr-1">Varanasi?</em></h2>
             <p className="relative mt-4 text-[15px] sm:text-lg text-white/65 max-w-2xl mx-auto">
-              Book a boat ride on the Ganges — from ₹1,190 per private boat — or get the complete local&apos;s guide before you arrive.
+              Book a boat ride on the Ganges — from ₹2,599 per private boat — or get the complete local&apos;s guide before you arrive.
             </p>
             <div className="relative mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
               <Link href="/book" className={`${FIRE_BTN} w-full sm:w-auto h-14 px-8`}>

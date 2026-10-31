@@ -17,7 +17,7 @@ import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 export const metadata: Metadata = {
   title: "KashiGo — Book Varanasi Boat Rides Online | Sunrise, Ganga Aarti & Sunset",
   description:
-    "Book a private Varanasi boat ride online — sunrise, Ganga Aarti and sunset on the Ganges with trusted local boatmen. Fixed prices from ₹1,190 per boat, no haggling. Plus scam-free guides by a local.",
+    "Book a private Varanasi boat ride online — sunrise, Ganga Aarti and sunset on the Ganges with trusted local boatmen. Fixed prices from ₹2,599 per boat, no haggling. Plus scam-free guides by a local.",
   keywords: [
     "Varanasi boat ride booking",
     "Ganga Aarti boat ride Varanasi",

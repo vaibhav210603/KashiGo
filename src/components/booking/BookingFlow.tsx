@@ -113,7 +113,7 @@ export default function BookingFlow() {
 
     const selected = RIDES_BY_POPULARITY.find((r) => r.id === ride);
     const ridePrice = ride === "custom" ? BOAT_PRICES_INR.custom : selected ? BOAT_PRICES_INR[selected.id] : 0;
-    // 2 passengers are included; each one after that adds ₹250 (lib/boatPrices.ts). The server charges the same total.
+    // 2 passengers are included; each one after that adds ₹350 (lib/boatPrices.ts). The server charges the same total.
     const extraGuests = Math.max(0, guests - FREE_PASSENGERS);
     const guestFee = ride ? passengerFeeInr(guests) : 0;
     const listPrice = ridePrice + guestFee;

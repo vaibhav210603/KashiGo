@@ -101,7 +101,7 @@ export default async function RidePageView({ params }: PageProps) {
           "priceCurrency": "INR",
           "availability": "https://schema.org/InStock",
           "url": `${BASE}${bookHref.replace("#booking", "")}`,
-          "description": "Price per private boat, 2 passengers included; ₹250 per extra passenger",
+          "description": "Price per private boat, 2 passengers included; ₹350 per extra passenger",
         },
       }} />
       <JsonLd data={{
@@ -198,7 +198,7 @@ export default async function RidePageView({ params }: PageProps) {
         <section className="grain relative mt-14 overflow-hidden rounded-[2rem] bg-night p-6 sm:p-10 text-white">
           <div aria-hidden className="flicker absolute -right-16 -top-20 h-60 w-60 rounded-full bg-fire/35 blur-[80px]" />
           <h2 className="relative font-display font-light text-3xl sm:text-5xl tracking-[-0.02em] leading-[1.02]">Book your <em className="text-fire pr-1">{ride.short.toLowerCase()}</em></h2>
-          <p className="relative mt-3 text-white/65">One fixed price for the whole private boat — {inr(ride.price)}, 2 passengers included (₹250 per extra passenger). No haggling on the ghat. Book today or up to a week ahead.</p>
+          <p className="relative mt-3 text-white/65">One fixed price for the whole private boat — {inr(ride.price)}, 2 passengers included (₹350 per extra passenger). No haggling on the ghat. Book today or up to a week ahead.</p>
           <Link href={bookHref} className={`${FIRE_BTN} relative mt-6 h-12 px-8`}>Book now<ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></Link>
         </section>
 

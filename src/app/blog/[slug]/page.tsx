@@ -219,7 +219,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 Planning your Varanasi trip?
               </p>
               <h2 className="relative mt-4 font-display font-light text-3xl sm:text-4xl tracking-[-0.02em] leading-[1.05]">
-                Book a boat ride — <em className="text-fire pr-1">from ₹1,190 per private boat</em>
+                Book a boat ride — <em className="text-fire pr-1">from ₹2,599 per private boat</em>
               </h2>
               <p className="relative mt-3 text-[15px] sm:text-[17px] text-white/65 leading-relaxed">
                 Fair, fixed prices on the Ganges — no haggling at the ghats. Want everything else covered too? The local&apos;s guide has 9 scam shields, all 84 ghats and a 2-day itinerary.

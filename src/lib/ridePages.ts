@@ -91,7 +91,7 @@ export const RIDE_PAGES: RidePage[] = [
             },
             {
                 q: "Is the price per person or per boat?",
-                a: "Per boat. The price covers a private boat with 2 passengers; each extra passenger in your group is ₹250.",
+                a: "Per boat. The price covers a private boat with 2 passengers; each extra passenger in your group is ₹350.",
             },
         ],
         related: ["p2", "p5", "p6"],
@@ -294,7 +294,7 @@ export const RIDE_PAGES: RidePage[] = [
         rideId: "p3",
         title: "Varanasi Ghat Boat Tour — Daytime Ride Past the Major Ghats",
         description:
-            "A daytime private boat ride past Varanasi's major ghats with the stories behind each one. Our lowest-priced ride — fixed price per boat, local boatman.",
+            "A daytime private boat ride past Varanasi's major ghats with the stories behind each one. Fixed price per boat, local boatman.",
         h1: "Day Ghat Boat Tour in Varanasi",
         keywords: [
             "varanasi ghat tour by boat",
@@ -309,7 +309,7 @@ export const RIDE_PAGES: RidePage[] = [
         bestFor: ["Budget travellers", "History and architecture", "Flexible schedules"],
         intro: [
             "Not every great boat ride happens at dawn or dusk. The day ghat tour is a relaxed daylight ride past the major ghats, with the stories of who built them and why they matter.",
-            "It's our lowest-priced ride, and the easiest to fit into a busy day.",
+            "It's the easiest ride to fit into a busy day.",
         ],
         sections: [
             {
@@ -332,7 +332,7 @@ export const RIDE_PAGES: RidePage[] = [
         faqs: [
             {
                 q: "How much is a daytime boat ride in Varanasi?",
-                a: "KashiGo's day ghat tour is {price} for the whole private boat, not per person — our lowest-priced ride.",
+                a: "KashiGo's day ghat tour is {price} for the whole private boat, not per person.",
             },
             {
                 q: "Is a daytime boat ride worth it?",

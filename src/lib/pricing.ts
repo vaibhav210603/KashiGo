@@ -108,7 +108,7 @@ export function priceOf(product: string, rule?: CouponRule | null): Price | null
     return { inr: Math.max(1, Math.min(inr, baseInr)), usd: Math.max(0.01, Math.min(usd, baseUsd)) };
 }
 
-// Boat rides add ₹250 for each passenger after the first 2 (lib/boatPrices.ts). Added after any coupon,
+// Boat rides add ₹350 for each passenger after the first 2 (lib/boatPrices.ts). Added after any coupon,
 // so a code discounts the boat, not the passenger charge.
 export function withPassengers(price: Price, product: string, guests?: number): Price {
     const fee = isBoatProduct(product) && guests ? passengerFeeInr(guests) : 0;
