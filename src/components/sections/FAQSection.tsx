@@ -34,11 +34,11 @@ const faqs = [
 ];
 
 export default function FAQSection() {
-  const [open, setOpen] = useState<number | null>(0);
+  const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="relative bg-parchment py-20 md:py-28 scroll-mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+    <section id="faq" className="relative bg-parchment py-14 md:py-28 scroll-mt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="lg:sticky lg:top-32 self-start">
           <p className="ornament text-[11px] font-semibold uppercase tracking-[0.28em] text-fire">FAQ</p>
           <h2 className="mt-4 font-display font-light text-5xl sm:text-6xl leading-[0.95] tracking-[-0.03em] text-night">
@@ -56,7 +56,7 @@ export default function FAQSection() {
               <div key={faq.q} className="border-b border-night/15">
                 <button
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="group w-full flex items-start justify-between gap-6 py-6 text-left"
+                  className="group w-full flex items-start justify-between gap-6 py-4 text-left sm:py-6"
                   aria-expanded={isOpen}
                 >
                   <span className="flex gap-5">

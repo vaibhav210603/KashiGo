@@ -31,16 +31,16 @@ function Clip({ src, poster, alt }: { src: string; poster: string; alt: string }
 
 export default function Gallery() {
     return (
-        <section aria-labelledby="gallery-title" className="relative overflow-hidden bg-night py-20 md:py-28 text-parchment">
+        <section aria-labelledby="gallery-title" className="relative overflow-hidden bg-night py-14 md:py-28 text-parchment">
             <div className="max-w-7xl mx-auto px-4 sm:px-6">
                 <Eyebrow className="text-marigold">From our boats</Eyebrow>
                 <h2 id="gallery-title" className="mt-4 font-display font-light text-5xl sm:text-6xl leading-[0.95] tracking-[-0.03em]">
                     <SplitWords text="Real rides," /> <SplitWords text="real guests." delay={0.15} className="italic" wordClass="text-marigold pr-[0.05em]" />
                 </h2>
 
-                <div className="mt-12 grid gap-5 lg:grid-cols-[minmax(0,22rem)_1fr]">
+                <div className="-mx-4 mt-8 flex snap-x snap-mandatory items-start gap-3 overflow-x-auto scroll-px-4 px-4 [scrollbar-width:none] sm:mx-0 sm:mt-12 sm:grid sm:gap-5 sm:overflow-visible sm:px-0 lg:grid-cols-[minmax(0,22rem)_1fr]">
                     {/* The guests' own words, on camera — with sound, so it only plays when they press play. */}
-                    <Reveal>
+                    <Reveal className="w-[62vw] shrink-0 snap-start sm:w-auto">
                         <figure className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5">
                             <div className="relative aspect-[9/16]">
                                 <video src="/gallery/guest-testimonial.mp4" poster="/gallery/guest-testimonial.jpg" controls playsInline preload="none"
@@ -53,9 +53,9 @@ export default function Gallery() {
                         </figure>
                     </Reveal>
 
-                    <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 sm:auto-rows-[minmax(0,1fr)]">
+                    <div className="contents sm:grid sm:grid-cols-3 sm:gap-5 sm:auto-rows-[minmax(0,1fr)]">
                         {ITEMS.map((it, i) => (
-                            <Reveal key={it.src} delay={0.05 * i} className={`group relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 ${it.className}`}>
+                            <Reveal key={it.src} delay={0.05 * i} className={`group relative w-[62vw] shrink-0 snap-start overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 max-sm:aspect-[9/16] sm:w-auto ${it.className}`}>
                                 {it.kind === "photo" ? (
                                     // eslint-disable-next-line @next/next/no-img-element -- already compressed JPEGs in /public
                                     <img src={it.src} alt={it.alt} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
@@ -65,7 +65,7 @@ export default function Gallery() {
                                 <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-5 pb-4 pt-10 text-sm text-white/90">{it.caption}</span>
                             </Reveal>
                         ))}
-                        <Reveal delay={0.25} className="group relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 col-span-2 aspect-[4/3] sm:col-span-3 sm:aspect-[21/9]">
+                        <Reveal delay={0.25} className="group relative w-[62vw] shrink-0 snap-start overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 max-sm:aspect-[9/16] sm:w-auto sm:col-span-3 sm:aspect-[21/9]">
                             {/* eslint-disable-next-line @next/next/no-img-element -- already compressed JPEG in /public */}
                             <img src="/gallery/sunset-couple.jpg" alt="Two guests in life jackets on the boat at sunset over the Ganga" loading="lazy" decoding="async"
                                 className="absolute inset-0 h-full w-full object-cover object-[50%_30%] transition-transform duration-700 group-hover:scale-[1.03]" />

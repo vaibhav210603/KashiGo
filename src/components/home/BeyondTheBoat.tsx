@@ -93,11 +93,11 @@ function Carousel() {
 // The services beyond the boat, presented as a premium, curated Kashi — with trip planning as the flagship.
 export default function BeyondTheBoat() {
     return (
-        <section id="services" className="grain relative scroll-mt-16 overflow-hidden bg-night py-20 text-white md:py-28">
+        <section id="services" className="grain relative scroll-mt-16 overflow-hidden bg-night py-14 text-white md:py-28">
             <div aria-hidden className="aurora absolute -left-40 top-10 h-[28rem] w-[28rem] rounded-full bg-fire/25 blur-[130px]" />
             <div aria-hidden className="aurora aurora-slow absolute -right-32 bottom-0 h-[26rem] w-[26rem] rounded-full bg-marigold/15 blur-[130px]" />
             <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
-                <div className="glow-frame rounded-[2.5rem] bg-gradient-to-b from-night-2/90 to-night/90 px-4 py-12 sm:px-10 md:py-16">
+                <div className="glow-frame rounded-[2rem] bg-gradient-to-b from-night-2/90 to-night/90 px-4 py-10 sm:rounded-[2.5rem] sm:px-10 md:py-16">
                     <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-end">
                         <div>
                             <Eyebrow className="text-marigold">Premium experiences</Eyebrow>
@@ -107,20 +107,20 @@ export default function BeyondTheBoat() {
                             </h2>
                         </div>
                         <Reveal delay={0.15}>
-                            <p className="text-lg leading-relaxed text-white/65">Rites by learned acharyas, darshan without the queue, and a trip planned end to end by a local who answers the phone at any hour. One honest price, in writing, before anything is paid.</p>
-                            <a href="#trip-planner" className={`${FIRE_BTN} mt-6 h-13`}>
+                            <p className="leading-relaxed text-white/65 sm:text-lg">Rites by learned acharyas, darshan without the queue, and a trip planned end to end by a local who answers the phone at any hour. One honest price, in writing, before anything is paid.</p>
+                            <a href="#trip-planner" className={`${FIRE_BTN} mt-6 h-13 max-sm:hidden`}>
                                 Plan my trip <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                             </a>
                         </Reveal>
                     </div>
 
-                    <Reveal delay={0.1} className="mt-10">
+                    <Reveal delay={0.1} className="mt-6 sm:mt-10">
                         <Carousel />
                     </Reveal>
 
                     {/* The flagship, spelled out. */}
-                    <div id="trip-planner" className="mt-10 grid scroll-mt-28 gap-8 rounded-[2rem] border border-marigold/30 bg-white/[0.03] p-5 sm:p-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-                        <Reveal className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] lg:aspect-auto lg:h-full lg:min-h-[24rem]">
+                    <div id="trip-planner" className="mt-6 grid scroll-mt-28 gap-8 rounded-[2rem] border border-marigold/30 bg-white/[0.03] p-5 sm:mt-10 sm:p-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+                        <Reveal className="relative hidden aspect-[4/3] overflow-hidden rounded-[1.5rem] sm:block lg:aspect-auto lg:h-full lg:min-h-[24rem]">
                             <Image src={TRIP.image} alt="A traveller looking out at the ghats from a private boat" fill sizes="(max-width:1024px) 100vw, 40vw" className="object-cover" />
                             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-night/70 to-transparent" />
                             <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-marigold to-fire px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-night">
@@ -128,23 +128,23 @@ export default function BeyondTheBoat() {
                             </span>
                             <p className="absolute bottom-5 left-5 font-deva text-4xl text-marigold">{TRIP.deva}</p>
                         </Reveal>
-                        <div>
+                        <div className="min-w-0">
                             <Reveal>
                                 <Eyebrow className="text-marigold">Flagship · Trip Planning</Eyebrow>
-                                <h3 className="mt-3 font-display text-3xl font-light leading-tight sm:text-4xl">Your whole Varanasi, <em className="text-fire">planned by a local.</em></h3>
+                                <h3 className="mt-3 font-display text-2xl font-light leading-tight sm:text-4xl">Your whole Varanasi, <em className="text-fire">planned by a local.</em></h3>
                             </Reveal>
-                            <ul className="mt-7 grid gap-3">
+                            <ul className="-mx-5 mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 [scrollbar-width:none] sm:mx-0 sm:mt-7 sm:grid sm:overflow-visible sm:px-0">
                                 {TRIP.includes.map((t, i) => {
                                     const Icon = TRIP_ICONS[i] ?? Star;
                                     return (
-                                        <Reveal as="li" key={t} delay={0.08 * i} className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-marigold/40 hover:bg-white/[0.06]">
+                                        <Reveal as="li" key={t} delay={0.08 * i} className="flex w-[62%] shrink-0 snap-start flex-col items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-marigold/40 hover:bg-white/[0.06] sm:w-auto sm:flex-row sm:gap-4">
                                             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-marigold to-ember text-night"><Icon size={18} /></span>
-                                            <span className="pt-2 text-[15px] leading-snug text-white/85">{t}</span>
+                                            <span className="text-sm leading-snug text-white/85 sm:pt-2 sm:text-[15px]">{t}</span>
                                         </Reveal>
                                     );
                                 })}
                             </ul>
-                            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <div className="mt-6 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:items-center">
                                 <Link href="/services#plan" className={`${FIRE_BTN} h-13 w-full px-7 sm:w-auto`}>
                                     Plan my trip <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                                 </Link>

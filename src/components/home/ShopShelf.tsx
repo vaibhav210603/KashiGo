@@ -20,7 +20,7 @@ export default function ShopShelf() {
     const reduce = useReducedMotion();
 
     return (
-        <section className="grain relative bg-night py-20 md:py-28 overflow-hidden">
+        <section className="grain relative bg-night py-14 md:py-28 overflow-hidden">
             <div aria-hidden className="absolute left-1/2 top-0 h-[480px] w-[900px] -translate-x-1/2 rounded-full bg-fire/15 blur-[140px]" />
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
                 <Eyebrow className="text-marigold">Before you land</Eyebrow>
@@ -29,22 +29,22 @@ export default function ShopShelf() {
                 </h2>
 
                 {/* Highest-value product first */}
-                <Reveal y={60} className="mt-12">
+                <Reveal y={60} className="mt-8 sm:mt-12">
                     <TiltCard>
-                        <div className="relative grid md:grid-cols-[1.1fr_1fr] gap-6 md:gap-10 items-center rounded-[2rem] border border-white/10 bg-gradient-to-br from-night-3 to-night-2 p-6 md:p-10 overflow-hidden">
+                        <div className="relative grid md:grid-cols-[1.1fr_1fr] gap-4 md:gap-10 items-center rounded-[2rem] border border-white/10 bg-gradient-to-br from-night-3 to-night-2 p-5 md:p-10 overflow-hidden">
                             <div aria-hidden className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-marigold/20 blur-[90px]" />
-                            <div className="relative aspect-[3/2] w-full [transform:translateZ(40px)]">
+                            <div className="relative aspect-[2/1] w-full sm:aspect-[3/2] [transform:translateZ(40px)]">
                                 <Image src={bundle.cover} alt={bundle.name} fill className="object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.6)]" sizes="(max-width:768px) 90vw, 45vw" />
                             </div>
                             <div className="relative [transform:translateZ(25px)]">
                                 <span className="inline-flex rounded-full border border-marigold/40 bg-marigold/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-marigold">{bundle.badge} · save over 50%</span>
-                                <h3 className="mt-4 font-display text-3xl sm:text-4xl leading-tight text-white">{bundle.name}</h3>
+                                <h3 className="mt-3 font-display text-2xl sm:mt-4 sm:text-4xl leading-tight text-white">{bundle.name}</h3>
                                 <p className="mt-2 text-white/55 text-[15px]">{bundle.format}</p>
-                                <ul className="mt-5 space-y-2">
+                                <ul className="mt-5 hidden space-y-2 sm:block">
                                     {bundle.bullets.slice(0, 4).map((b) => <li key={b} className="flex gap-2.5 text-sm text-white/80"><Check size={16} className="text-ganga shrink-0 mt-0.5" />{b}</li>)}
                                 </ul>
-                                <div className="mt-7 flex flex-col xl:flex-row xl:items-center gap-4">
-                                    <p className="font-display text-4xl text-white">
+                                <div className="mt-5 flex flex-col xl:flex-row xl:items-center gap-3 sm:mt-7 sm:gap-4">
+                                    <p className="font-display text-3xl sm:text-4xl text-white">
                                         {fmt(bundle.inr, bundle.usd)}
                                         {region === "usd" && bundle.compareUsd && <span className="ml-2 text-lg text-white/35 line-through">${bundle.compareUsd.toFixed(2)}</span>}
                                     </p>
@@ -57,7 +57,7 @@ export default function ShopShelf() {
                     </TiltCard>
                 </Reveal>
 
-                <div className="mt-16 flex items-end justify-between">
+                <div className="mt-10 flex items-end justify-between sm:mt-16">
                     <h3 className="font-display italic text-2xl text-white/90">Or pick one</h3>
                     <Link href="/shop" className="group inline-flex items-center gap-1.5 text-sm font-medium text-white/70 hover:text-marigold">See all <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" /></Link>
                 </div>
