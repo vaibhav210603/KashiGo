@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 import { AlertTriangle, ArrowDown, Minus, Play, Plus, TrendingUp } from "lucide-react";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { DEV_DEEPAWALI_LABEL, LIGHTING_AT, seatPrices, whatsappLink } from "@/lib/devDeepawali";
+import { DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, seatPrices, whatsappLink } from "@/lib/devDeepawali";
 
 // Dev Deepawali on the home page: the invitation card in the hero and the section right after it.
 // Every animation here is a CSS transform / opacity loop (see globals.css), so phones run them on the GPU,
@@ -100,9 +100,11 @@ export function InviteCard() {
                     </div>
 
                     <p className="font-display text-4xl leading-none text-white">
+                        <s className="mr-2 align-middle font-sans text-lg font-medium text-white/50 decoration-[#ff6b6b] decoration-2">{inr(GHAT_PRICE_INR)}</s>
                         {now ? inr(now.inr) : " "}
                         <span className="ml-1.5 font-sans text-sm font-medium text-white/70">/ person{now ? usdHint(now.inr, currency) : ""}</span>
                     </p>
+                    <p className="mt-1.5 text-[11px] text-white/55">{inr(GHAT_PRICE_INR)} is what local boatmen charge on the ghat</p>
                     {next && (
                         <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#d7191f]/25 px-3 py-1 text-xs font-semibold text-[#ffc2c2] ring-1 ring-[#ff4d4d]/40">
                             <TrendingUp size={13} /> {inr(next.inr)} from tomorrow · rises daily
@@ -330,7 +332,11 @@ export function DevDeepawaliSection() {
                 <div ref={card} className="shine-once relative lg:order-3 rounded-2xl border-2 border-[#e8c158] bg-gradient-to-b from-[#12348f] to-[#0a1c52] p-4 sm:p-5 text-white">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Today&apos;s price</p>
                     <p className="mt-1 font-display text-4xl leading-none" style={{ color: GOLD }}>
+                        <s className="mr-2 align-middle font-sans text-xl font-medium text-white/50 decoration-[#ff6b6b] decoration-2">{inr(GHAT_PRICE_INR)}</s>
                         {price ? inr(price) : " "}<span className="ml-1 whitespace-nowrap font-sans text-sm font-medium text-white/70">per person{price ? usdHint(price, currency) : ""}</span>
+                    </p>
+                    <p className="mt-1.5 text-xs text-white/60">
+                        Local boatmen on the ghat charge {inr(GHAT_PRICE_INR)} per person{price ? <> — you save <b className="text-[#7ee0c9]">{inr(GHAT_PRICE_INR - price)}</b> each</> : null}.
                     </p>
 
                     {/* The price goes up every day — show the next few days so it's plain. */}
