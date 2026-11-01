@@ -26,6 +26,8 @@ export default function AcharyaConsult({ id = "consult", knowMore = false }: { i
                         A solution to all your problems — <em className="text-fire">mental, physical and financial.</em>
                     </h2>
                     <p className="mt-4 text-lg text-white/75">Know more about yourself — with Kashi&apos;s Vedic gurus and a numerologist.</p>
+                    {/* Phones: after the heading, before the buttons */}
+                    <Portraits className="mt-7 grid lg:hidden" />
 
                     <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                         <Link href={consultHref(null, "call")} className={`${FIRE_BTN} h-14 w-full px-7 text-lg sm:w-auto`}>
@@ -49,23 +51,30 @@ export default function AcharyaConsult({ id = "consult", knowMore = false }: { i
                     )}
                 </div>
 
-                {/* The gurus and experts, as portraits — each opens their profile */}
-                <ul className="order-first grid grid-cols-3 gap-2 sm:gap-6 lg:order-none">
-                    {EXPERTS.map((a) => (
-                        <li key={a.slug}>
-                            <Link href={expertPath(a)} className="group flex flex-col items-center text-center">
-                                <span className="relative block rounded-full bg-gradient-to-b from-[#f7dc8c] via-marigold to-[#b8862a] p-[3px] shadow-[0_0_40px_-6px_rgba(255,182,39,0.55)] transition-transform duration-500 group-hover:-translate-y-1">
-                                    {/* eslint-disable-next-line @next/next/no-img-element -- small square portrait in /public */}
-                                    <img src={a.icon} alt={a.name} width={144} height={144} loading="lazy" className="h-[5.5rem] w-[5.5rem] rounded-full border-2 border-night object-cover sm:h-32 sm:w-32" />
-                                </span>
-                                <span className="mt-2.5 rounded-full bg-marigold/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-marigold">{a.title}</span>
-                                <span className="mt-1.5 font-deva text-[15px] leading-tight text-white sm:text-lg">{a.nameDeva.replace(/^रामानुज दास /, "")}</span>
-                                <span className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-semibold text-marigold/90 group-hover:underline">View profile <ArrowRight size={11} /></span>
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
+                {/* Large screens: the portraits beside the text */}
+                <Portraits className="hidden lg:grid" />
             </div>
         </section>
+    );
+}
+
+// The gurus and experts, as portraits — each opens their profile.
+function Portraits({ className }: { className: string }) {
+    return (
+        <ul className={`grid-cols-3 gap-2 sm:gap-6 ${className}`}>
+            {EXPERTS.map((a) => (
+                <li key={a.slug}>
+                    <Link href={expertPath(a)} className="group flex flex-col items-center text-center">
+                        <span className="relative block rounded-full bg-gradient-to-b from-[#f7dc8c] via-marigold to-[#b8862a] p-[3px] shadow-[0_0_40px_-6px_rgba(255,182,39,0.55)] transition-transform duration-500 group-hover:-translate-y-1">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- small square portrait in /public */}
+                            <img src={a.icon} alt={a.name} width={144} height={144} loading="lazy" className="h-[5.5rem] w-[5.5rem] rounded-full border-2 border-night object-cover sm:h-32 sm:w-32" />
+                        </span>
+                        <span className="mt-2.5 rounded-full bg-marigold/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-marigold">{a.title}</span>
+                        <span className="mt-1.5 font-deva text-[15px] leading-tight text-white sm:text-lg">{a.nameDeva.replace(/^रामानुज दास /, "")}</span>
+                        <span className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-semibold text-marigold/90 group-hover:underline">View profile <ArrowRight size={11} /></span>
+                    </Link>
+                </li>
+            ))}
+        </ul>
     );
 }

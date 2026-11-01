@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ArrowUpRight, Award, BookOpen, CalendarCheck, Check, Clock, Phone, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Award, BookOpen, Briefcase, CalendarCheck, Check, Clock, Gem, Hash, Heart, HeartPulse, House, Orbit, Phone, ScrollText, ShieldCheck, Sparkles, Users } from "lucide-react";
 import { FIRE_BTN } from "@/components/ui/styles";
 import { JsonLd } from "@/components/JsonLd";
-import { EXPERTS, consultHref, expertBySlug, expertPath, type Expert } from "@/lib/experts";
+import { EXPERTS, consultHref, expertBySlug, expertPath, type Expert, type ExpertiseIcon } from "@/lib/experts";
 import { CONSULT_PER_MINUTE_INR } from "@/lib/pujas";
 
 const BASE = "https://kashigo.in";
@@ -24,6 +24,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         openGraph: { title: `${e.name} · ${e.title} | KashiGo`, description, url: `${BASE}${expertPath(e)}`, images: [{ url: e.portrait }] },
     };
 }
+
+const EXPERTISE_ICONS: Record<ExpertiseIcon, typeof Heart> = {
+    vastu: House, kundli: Orbit, dharma: ScrollText, relationships: Heart, marriage: Gem,
+    career: Briefcase, health: HeartPulse, family: Users, numerology: Hash,
+};
 
 const TERMS = [
     { Icon: Clock, text: `Calls are charged ₹${CONSULT_PER_MINUTE_INR} per minute` },
@@ -98,11 +103,14 @@ export default async function ExpertPage({ params }: { params: Promise<{ slug: s
                         <p className="mt-3 text-sm font-semibold uppercase tracking-[0.2em] text-white/55">{e.role}</p>
                         {e.quote && <p className="mx-auto mt-6 max-w-xl border-l-2 border-marigold pl-5 text-left font-display text-xl italic leading-snug text-white/85 lg:mx-0">“{e.quote}”</p>}
                         <ul className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start">
-                            {e.expertise.map((x) => (
-                                <li key={x.title} className="rounded-full border border-marigold/40 bg-white/5 px-4 py-1.5 text-sm text-white/90">
-                                    {x.deva ? <><span className="font-deva text-marigold">{x.deva}</span> · {x.title}</> : x.title}
-                                </li>
-                            ))}
+                            {e.expertise.map((x) => {
+                                const Icon = EXPERTISE_ICONS[x.icon];
+                                return (
+                                    <li key={x.title} className="inline-flex items-center gap-1.5 rounded-full border border-marigold/40 bg-white/5 px-3.5 py-1.5 text-sm text-white/90">
+                                        <Icon size={14} className="text-marigold" />{x.title}
+                                    </li>
+                                );
+                            })}
                         </ul>
                         {e.stats && (
                             <dl className="mx-auto mt-8 grid max-w-md grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-white/[0.03] lg:mx-0">
@@ -159,17 +167,40 @@ export default async function ExpertPage({ params }: { params: Promise<{ slug: s
             {/* ── Expertise ── */}
             <section className="grain relative bg-night py-16 text-white md:py-24">
                 <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                    <Heading label="Expertise" dark>What to <em className="text-fire">ask about.</em></Heading>
-                    <ol className="mt-10 grid gap-4 md:grid-cols-3">
-                        {e.expertise.map((x, i) => (
-                            <li key={x.title} className="relative overflow-hidden rounded-[1.75rem] border border-marigold/25 bg-gradient-to-b from-white/[0.06] to-transparent p-6">
-                                <span aria-hidden className="absolute -right-2 -top-4 font-display text-8xl italic text-marigold/10">0{i + 1}</span>
-                                {x.deva && <p className="font-deva text-2xl text-marigold">{x.deva}</p>}
-                                <h3 className={`font-display text-2xl ${x.deva ? "mt-1 text-white/90" : "text-marigold"}`}>{x.title}</h3>
-                                <p className="mt-3 text-white/70">{x.detail}</p>
-                            </li>
-                        ))}
-                    </ol>
+                    {e.expertiseHeading
+                        ? <Heading label="Expertise" dark>{e.expertiseHeading.replace(/ with$/, "")} <em className="text-fire">with</em></Heading>
+                        : <Heading label="Expertise" dark>What to <em className="text-fire">ask about.</em></Heading>}
+                    {e.expertise.every((x) => x.detail) ? (
+                        <ol className="mt-10 grid gap-4 md:grid-cols-3">
+                            {e.expertise.map((x, i) => {
+                                const Icon = EXPERTISE_ICONS[x.icon];
+                                return (
+                                    <li key={x.title} className="relative overflow-hidden rounded-[1.75rem] border border-marigold/25 bg-gradient-to-b from-white/[0.06] to-transparent p-6">
+                                        <span aria-hidden className="absolute -right-2 -top-4 font-display text-8xl italic text-marigold/10">0{i + 1}</span>
+                                        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-marigold to-ember text-night"><Icon size={20} /></span>
+                                        {x.deva && <p className="mt-4 font-deva text-2xl text-marigold">{x.deva}</p>}
+                                        <h3 className={`font-display text-2xl ${x.deva ? "mt-1 text-white/90" : "mt-4 text-marigold"}`}>{x.title}</h3>
+                                        <p className="mt-3 text-white/70">{x.detail}</p>
+                                    </li>
+                                );
+                            })}
+                        </ol>
+                    ) : (
+                        <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            {e.expertise.map((x) => {
+                                const Icon = EXPERTISE_ICONS[x.icon];
+                                return (
+                                    <li key={x.title} className="flex items-center gap-2.5 rounded-2xl border border-marigold/30 bg-gradient-to-b from-white/[0.07] to-transparent px-3 py-3 sm:gap-3 sm:px-3.5">
+                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-marigold to-ember text-night shadow-[0_8px_24px_-10px_rgba(255,122,26,0.9)] sm:h-10 sm:w-10"><Icon size={18} /></span>
+                                        <span className="min-w-0 leading-tight">
+                                            <span className="block text-[15px] font-semibold text-white sm:text-base">{x.title}</span>
+                                            {x.deva && <span className="block font-deva text-sm text-marigold/90">{x.deva}</span>}
+                                        </span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
                     {e.services && (
                         <div className="mt-10">
                             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/55">All readings</p>

@@ -1,6 +1,8 @@
 // The gurus and experts people can consult through KashiGo: shown as portraits on the home page and /puja,
 // each with a profile page at /experts/[slug]. Safe to import from client and server code.
 
+export type ExpertiseIcon = "vastu" | "kundli" | "dharma" | "relationships" | "marriage" | "career" | "health" | "family" | "numerology";
+
 export type Expert = {
     slug: string;
     name: string;
@@ -13,7 +15,9 @@ export type Expert = {
     video?: { src: string; poster: string; captions?: string } | null;
     stats?: { value: string; label: string }[];
     about: string[];
-    expertise: { title: string; deva?: string; detail: string }[];
+    // With a `detail`, each is a card; without, a badge. `icon` is drawn by the profile page (EXPERTISE_ICONS).
+    expertise: { title: string; deva?: string; detail?: string; icon: ExpertiseIcon }[];
+    expertiseHeading?: string;
     services?: string[]; // everything else they offer
     credentials?: { title: string; detail: string }[];
     book?: { title: string; subtitle: string; cover: string };
@@ -25,9 +29,9 @@ export type Expert = {
 export const consultHref = (e: Pick<Expert, "slug"> | null, kind: "call" | "appointment") => `/consult?${e ? `expert=${e.slug}&` : ""}type=${kind}`;
 
 const VEDIC_EXPERTISE: Expert["expertise"] = [
-    { title: "Vastu", deva: "वास्तु", detail: "Guidance on the layout of your home or workplace, and the remedies when its energy is out of balance." },
-    { title: "Kundli", deva: "कुंडली", detail: "Your birth chart read in full — the planets, the timing of what lies ahead, and the remedies it calls for." },
-    { title: "Dharma Gyan", deva: "धर्म ज्ञान", detail: "Answers from the scriptures for questions of life, duty and ritual — and which rite suits your need." },
+    { title: "Vastu", deva: "वास्तु", icon: "vastu", detail: "Guidance on the layout of your home or workplace, and the remedies when its energy is out of balance." },
+    { title: "Kundli", deva: "कुंडली", icon: "kundli", detail: "Your birth chart read in full — the planets, the timing of what lies ahead, and the remedies it calls for." },
+    { title: "Dharma Gyan", deva: "धर्म ज्ञान", icon: "dharma", detail: "Answers from the scriptures for questions of life, duty and ritual — and which rite suits your need." },
 ];
 
 export const EXPERTS: Expert[] = [
@@ -76,10 +80,16 @@ export const EXPERTS: Expert[] = [
             "Vibha Upadhyay is a numerologist with over 8 years of practice and more than 200 people guided. She reads charts from the date of birth and the full birth name, and helps people use what they find when they choose a career, a partner, a business name, a phone number or a date.",
             "Her readings are calm and practical. She explains every number she finds, so you leave understanding your own chart — not just a list of predictions.",
         ],
+        expertiseHeading: "She can help you with",
         expertise: [
-            { title: "Number correction", detail: "Your mobile number brought in line with your chart, so it supports your money and work instead of draining them." },
-            { title: "Name correction", detail: "When the numbers in your name pull against your date of birth, a small change in spelling brings the two back together." },
-            { title: "Relationship patterns & prediction", detail: "How two charts meet and where they clash, why the same patterns repeat, and the timing ahead for love and marriage." },
+            { title: "Relationships", deva: "रिश्ते", icon: "relationships" },
+            { title: "Marriage", deva: "विवाह", icon: "marriage" },
+            { title: "Kundli", deva: "कुंडली", icon: "kundli" },
+            { title: "Career", deva: "करियर", icon: "career" },
+            { title: "Health", deva: "स्वास्थ्य", icon: "health" },
+            { title: "Family", deva: "परिवार", icon: "family" },
+            { title: "Numerology", deva: "अंक ज्योतिष", icon: "numerology" },
+            { title: "Vastu", deva: "वास्तु", icon: "vastu" },
         ],
         services: [
             "Full birth chart reading", "Mobile number correction", "Name correction", "Signature analysis", "House & vehicle numbers",
