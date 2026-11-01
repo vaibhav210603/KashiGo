@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { cleanSelection, describeSelection, priceQuote, quoteReceipt, quoteSplit, siteCouponOff, type Quote } from "@/lib/quotes";
-import { checkSiteCoupon, releaseUnpaidQuoteHolds, reserveSiteCoupon, siteCouponPaid } from "@/lib/quoteCoupons";
+import { checkSiteCoupon, previewSiteCoupon, releaseUnpaidQuoteHolds, reserveSiteCoupon, siteCouponPaid } from "@/lib/quoteCoupons";
 import { getQuote, markQuotePaid } from "@/lib/quoteStore";
 import { isQuotePaid, quoteOrderRecord, razorpay as rz } from "@/lib/quotePayments";
 import { orderMailParts, syncOrdersToDb, type OrderRecord } from "@/lib/orderMail";
@@ -74,9 +74,7 @@ export async function POST(req: Request) {
         if (body.action === "coupon") {
             // Preview a site-wide discount code (the page shows the saving; "order" checks it again before charging).
             if (rateLimited(req, "quote-coupon", 20, 10 * 60 * 1000)) return NextResponse.json({ success: false, message: "Too many attempts. Try again later." }, { status: 429 });
-            if (await isQuotePaid(q)) return NextResponse.json({ success: false, message: "This quotation is already paid." }, { status: 409 });
-            await releaseUnpaidQuoteHolds(q);
-            const c = await checkSiteCoupon(q, body.code);
+            const c = await previewSiteCoupon(q, body.code);
             return NextResponse.json(c.ok ? { success: true, coupon: c.coupon } : { success: false, message: c.message });
         }
 

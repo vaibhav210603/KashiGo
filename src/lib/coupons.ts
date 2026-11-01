@@ -40,20 +40,21 @@ export type Quote = { ok: true; price: Price; base: Price; rule: CouponRule | nu
 
 // What this customer would pay for the product with this code, after checking the code can be used by them.
 // `guests` adds the extra-passenger charge for boat rides, `noticePct` the short-notice surcharge.
-export async function quote(product: string, code: string | null | undefined, email: string | null, guests?: number, noticePct?: number): Promise<Quote> {
+// `rule`: the code's rule, if the caller already started looking it up (e.g. alongside the login check).
+export async function quote(product: string, code: string | null | undefined, email: string | null, guests?: number, noticePct?: number, rule?: Promise<CouponRule | null>): Promise<Quote> {
     const ride = priceOf(product);
     if (!ride) return { ok: false, message: "Unknown product." };
     const base = withNotice(withPassengers(ride, product, guests), product, noticePct);
     if (!normalize(code)) return { ok: true, price: base, base, rule: null };
     if (!email) return { ok: false, message: "Log in to use a code." };
 
-    const rule = await getRule(code);
-    if (!rule || !ruleApplies(rule, product)) return { ok: false, message: "That code doesn't apply to this." };
-    const status = await couponStatus(rule.code, email);
+    // Rule and usage are looked up together (one round trip, not two); the rule still decides first.
+    const [r, status] = await Promise.all([rule ?? getRule(code), couponStatus(normalize(code), email)]);
+    if (!r || !ruleApplies(r, product)) return { ok: false, message: "That code doesn't apply to this." };
     if (status !== "ok") return { ok: false, message: couponMessage(status) };
-    const price = withNotice(withPassengers(priceOf(product, rule)!, product, guests), product, noticePct);
+    const price = withNotice(withPassengers(priceOf(product, r)!, product, guests), product, noticePct);
     if (price.inr >= base.inr) return { ok: false, message: "That code doesn't change the price of this." };
-    return { ok: true, price, base, rule };
+    return { ok: true, price, base, rule: r };
 }
 
 export async function couponStatus(code: string, email: string): Promise<string> {

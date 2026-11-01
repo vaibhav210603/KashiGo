@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import { Check, Minus, Plus, Wallet, Smartphone, Globe, Tag, Coins, LogOut, CalendarCheck, Clock } from "lucide-react";
+import { Check, Loader2, Minus, Plus, Wallet, Smartphone, Globe, Tag, Coins, LogOut, CalendarCheck, Clock } from "lucide-react";
 import { BOAT_PRICES_INR, EXTRA_PASSENGER_INR, FREE_PASSENGERS, SHORT_NOTICE_HOURS, SURGE_PCT, noticeFeeInr, passengerFeeInr } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, bookingTimeWarning, rideStartMinutes, noticeFor, BOOKING_WINDOW_DAYS, type Notice } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
@@ -133,6 +133,7 @@ export default function BookingFlow() {
     const [code, setCode] = useState("");
     const [applied, setApplied] = useState<{ product: string; inr: number } | null>(null);
     const [codeMsg, setCodeMsg] = useState("");
+    const [checkingCode, setCheckingCode] = useState(false);
     // Phone login unlocks discount codes and KashiGo coins (refunds come back as coins).
     const auth = useAuth();
     const { account, refresh: refreshAccount } = useAccount();
@@ -218,11 +219,14 @@ export default function BookingFlow() {
 
     const applyCode = async () => {
         const c = code.trim().toUpperCase();
-        if (!c) return;
+        if (!c || checkingCode) return;
         if (!product) { setCodeMsg("Choose a ride first."); return; }
+        if (!auth.loggedIn) { setShowLogin(true); setCodeMsg("Log in to use a code."); return; }
+        // Feedback the moment Apply is pressed; the price itself only ever comes from the server.
+        setCodeMsg("");
+        setCheckingCode(true);
         try {
-            if (!auth.loggedIn) { setShowLogin(true); setCodeMsg("Log in to use a code."); return; }
-            const { data } = await apiPost("/api/coupon", { product, code: c });
+            const { data } = await apiPost("/api/coupon", { product, code: c }).finally(() => setCheckingCode(false));
             if (data.needsLogin) { setShowLogin(true); setCodeMsg(data.message); return; }
             if (data.valid && typeof data.inr === "number") { setApplied({ product, inr: data.inr }); setCodeMsg(`Code applied — boat price now ${money(data.inr, currency)}`); return; }
             if (data.message) { setApplied(null); setCodeMsg(data.message); return; }
@@ -505,10 +509,12 @@ export default function BookingFlow() {
                     <div className="mt-4">
                         <label htmlFor="booking-code" className="flex items-center gap-2 text-sm font-semibold text-night/75"><Tag size={16} className="text-fire" /> Discount code</label>
                         <div className="mt-2 flex gap-2">
-                            <input id="booking-code" value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setApplied(null); setCodeMsg(""); }}
+                            <input id="booking-code" value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setApplied(null); setCodeMsg(""); }} readOnly={checkingCode}
                                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCode(); } }}
                                 placeholder="Have a code?" autoComplete="off" className={`${input} uppercase`} />
-                            <button type="button" onClick={applyCode} className="h-12 px-5 rounded-2xl border border-night/20 bg-transparent font-semibold text-night transition-colors hover:bg-night hover:text-marigold whitespace-nowrap">Apply</button>
+                            <button type="button" onClick={applyCode} disabled={checkingCode} className="h-12 min-w-[7rem] px-5 rounded-2xl border border-night/20 bg-transparent font-semibold text-night transition-colors hover:bg-night hover:text-marigold disabled:bg-night/5 disabled:text-night/60 whitespace-nowrap flex items-center justify-center gap-1.5">
+                                {checkingCode ? <><Loader2 size={16} className="animate-spin" /> Checking</> : "Apply"}
+                            </button>
                         </div>
                         {codeMsg && (codePrice !== null || !applied) && <p className={`mt-2 text-sm font-medium ${codePrice !== null ? "text-[#1d7f76]" : "text-ember"}`}>{codeMsg}</p>}
                     </div>

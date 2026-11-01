@@ -36,6 +36,7 @@ export default function QuotePay({ id, name, total: totalLabel, paid: initiallyP
     const [code, setCode] = useState("");
     const [codeMsg, setCodeMsg] = useState("");
     const [codeOpen, setCodeOpen] = useState(false);
+    const [checking, setChecking] = useState(false);
     const coupon = siteCoupon ?? ownCoupon;
     let total = totalLabel, due = dueLabel, off = 0;
     if (codeBox && ownCoupon) {
@@ -47,9 +48,11 @@ export default function QuotePay({ id, name, total: totalLabel, paid: initiallyP
     }
     const applyCode = async () => {
         const c = code.trim().toUpperCase();
-        if (!c) return;
+        if (!c || checking) return;
         setCodeMsg("");
+        setChecking(true); // feedback the moment Apply is pressed, while the server checks the code
         const r = await post({ action: "coupon", id, code: c }).catch(() => ({ success: false, message: "Couldn't check the code — try again." }));
+        setChecking(false);
         if (r.success) setOwnCoupon(r.coupon);
         else { setOwnCoupon(null); setCodeMsg(r.message || "That code isn't valid."); }
     };
@@ -126,9 +129,11 @@ export default function QuotePay({ id, name, total: totalLabel, paid: initiallyP
                         </div>
                     ) : codeOpen ? (
                         <form onSubmit={(e) => { e.preventDefault(); applyCode(); }} className="flex gap-2">
-                            <input value={code} onChange={(e) => { setCode(e.target.value.toUpperCase().slice(0, 30)); setCodeMsg(""); }} placeholder="Discount code" aria-label="Discount code" autoFocus
+                            <input value={code} onChange={(e) => { setCode(e.target.value.toUpperCase().slice(0, 30)); setCodeMsg(""); }} readOnly={checking} placeholder="Discount code" aria-label="Discount code" autoFocus
                                 className="flex-1 min-w-0 h-11 rounded-xl bg-white px-3 text-base ring-1 ring-sandstone/60 outline-none focus:ring-2 focus:ring-fire uppercase tracking-wider font-semibold" />
-                            <button type="submit" className="h-11 px-5 rounded-xl bg-night text-white text-sm font-bold hover:bg-fire transition-colors">Apply</button>
+                            <button type="submit" disabled={checking} className="h-11 min-w-[6rem] px-5 rounded-xl bg-night text-white text-sm font-bold hover:bg-fire transition-colors disabled:bg-night/70 flex items-center justify-center gap-1.5">
+                                {checking ? <><Loader2 size={15} className="animate-spin" /> Checking</> : "Apply"}
+                            </button>
                         </form>
                     ) : (
                         <button type="button" onClick={() => setCodeOpen(true)} className="mx-auto flex items-center gap-1.5 text-sm font-semibold text-night/70 hover:text-fire">

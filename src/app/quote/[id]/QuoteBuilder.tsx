@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, LifeBuoy, Minus, Plus, Tag, Trash2, UserPlus, X } from "lucide-react";
+import { Check, LifeBuoy, Loader2, Minus, Plus, Tag, Trash2, UserPlus, X } from "lucide-react";
 import { CHILD_FREE_UNDER, CHILD_JACKET_INR, cleanSelection, priceQuote, quoteSplit, siteCouponOff, startSelection, type Quote, type QuoteSelection, type SiteCoupon } from "@/lib/quotes";
 import QuotePay from "./QuotePay";
 
@@ -26,6 +26,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
     const locked = readOnly || Boolean(paid);
     const [code, setCode] = useState("");
     const [codeMsg, setCodeMsg] = useState("");
+    const [checking, setChecking] = useState(false);
     const [payInView, setPayInView] = useState(false);
     useEffect(() => {
         const el = document.getElementById("quote-pay");
@@ -39,12 +40,16 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
     // The quote's own codes first; anything else is checked as a site-wide code.
     const applyCode = async () => {
         const c = code.trim().toUpperCase();
-        if (!c) return;
+        if (!c || checking) return;
         const hit = b.coupons?.find((x) => x.code === c);
         if (hit) { setSiteCoupon(null); setSel((s) => ({ ...s, coupon: hit.code })); setCodeMsg(`${hit.percentOff}% off applied`); return; }
+        // The site-wide check needs the server: show it's working the moment Apply is pressed.
         setSel((s) => ({ ...s, coupon: "" }));
+        setCodeMsg("");
+        setChecking(true);
         const r = await fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "coupon", id: quote.id, code: c }) })
             .then((x) => x.json()).catch(() => ({ success: false, message: "Couldn't check the code — try again." }));
+        setChecking(false);
         if (r.success) { setSiteCoupon(r.coupon); setCodeMsg("applied"); }
         else { setSiteCoupon(null); setCodeMsg(r.message || "That code isn't valid."); }
     };
@@ -197,11 +202,14 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                                     <input
                                         value={code}
                                         onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 30))}
+                                        readOnly={checking}
                                         placeholder="Enter code"
                                         aria-label="Coupon code"
                                         className="flex-1 min-w-0 h-10 rounded-lg bg-white px-3 text-base ring-1 ring-sandstone/60 outline-none focus:ring-2 focus:ring-fire uppercase tracking-wider font-semibold"
                                     />
-                                    <button type="submit" className="h-10 px-4 rounded-lg bg-night text-white text-sm font-bold hover:bg-fire transition-colors">Apply</button>
+                                    <button type="submit" disabled={checking} className="h-10 min-w-[5.5rem] px-4 rounded-lg bg-night text-white text-sm font-bold hover:bg-fire transition-colors disabled:bg-night/70 flex items-center justify-center gap-1.5">
+                                        {checking ? <><Loader2 size={15} className="animate-spin" /> Checking</> : "Apply"}
+                                    </button>
                                 </form>
                             )}
                             {codeMsg && !appliedCode && <p className="mt-1.5 text-xs font-semibold text-red-600">{codeMsg}</p>}
