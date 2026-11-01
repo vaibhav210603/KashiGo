@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowDown, ArrowRight, BadgeIndianRupee, Check, Eye, LifeBuoy, Loader2, Lock, Minus, Play, Plus, ShieldCheck, Ticket, TrendingUp, UserCheck } from "lucide-react";
 import DiyaRiver from "@/components/motion/DiyaRiver";
-import { Countdown, Diya, FestivalFilm, FillingFast, InvitationSeal, RiverScene } from "@/components/home/DevDeepawali";
+import { Countdown, FestivalFilm, FillingFast, InvitationSeal, RiverScene } from "@/components/home/DevDeepawali";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
 import { AMENITIES, DD_MAX_PEOPLE, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, ddSplit, seatPrices, type DdPay } from "@/lib/devDeepawali";
@@ -123,11 +123,6 @@ export default function DevDeepawaliClient() {
                     <div>
                         <Label>Diwali of the gods</Label>
                         <h2 className="mt-4 font-display text-4xl font-light leading-[1.05] tracking-[-0.02em] sm:text-5xl">The night Kashi <em className="text-fire">lights the way.</em></h2>
-                        <div className="mt-5 space-y-4 text-[17px] leading-relaxed text-white/75">
-                            <p>On Kartik Purnima, the full moon of Kartik, the devtas are said to come down to Kashi to bathe in the Ganga — and the city lights the way for them.</p>
-                            <p>At dusk, lakhs of diyas are lit along the ghats, from Ravidas Ghat in the south to Rajghat in the north. The whole crescent of the river glows. There are grand aartis, fireworks over the water and decorated buildings on every ghat.</p>
-                            <p>The best seat for all of it is on the river itself — and that&apos;s where we&apos;ll take you.</p>
-                        </div>
                     </div>
                 </div>
             </section>
@@ -156,8 +151,8 @@ export default function DevDeepawaliClient() {
                             </div>
                             <p className="mt-3 font-display text-6xl" style={{ color: GOLD }}>{price ? inr(price) : " "}</p>
                             <p className="mt-1 text-sm text-white/70">per person · {tomorrow ? `${inr(tomorrow)} from tomorrow` : "rises daily"}</p>
-                            <ul className="mt-6 space-y-2.5 text-sm text-white/90">
-                                {AMENITIES.slice(0, 5).map((a) => <li key={a.title} className="flex items-start gap-2"><Check size={16} className="mt-0.5 shrink-0 text-[#7ee0c9]" />{a.title}</li>)}
+                            <ul className="mt-5 flex flex-wrap gap-1.5 text-xs text-white/90">
+                                {AMENITIES.map((a) => <li key={a.title} className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1"><Check size={12} className="text-[#7ee0c9]" />{a.short}</li>)}
                             </ul>
                             <button onClick={() => { track("dd_cta", { from: "compare" }); goBook(); }} className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] font-bold text-[#0a1c52]">
                                 Book now <ArrowRight size={16} />
@@ -167,25 +162,29 @@ export default function DevDeepawaliClient() {
                 </div>
             </section>
 
-            {/* ── Amenities ── */}
-            <section className="relative overflow-hidden bg-gradient-to-b from-night via-[#22100c] to-night py-16 md:py-24">
-                <div aria-hidden className="pointer-events-none absolute -left-20 top-10 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(255,122,26,0.18),transparent_70%)]" />
-                <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+            {/* ── Included: the guarantee up front, the rest as a swipeable row of badges ── */}
+            <section className="relative isolate overflow-hidden py-14 md:py-20">
+                <div aria-hidden className="absolute inset-0 -z-20"><Image src="/e_aarti_bg.png" alt="" fill sizes="100vw" className="object-cover" /></div>
+                <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-b from-night via-night/45 to-night" />
+                <div className="mx-auto max-w-5xl px-4 sm:px-6">
                     <Label center>Included with every seat</Label>
-                    <h2 className="mt-4 text-center font-display text-4xl font-light leading-[1.05] tracking-[-0.02em] sm:text-5xl">Everything you get <em className="text-fire">with us.</em></h2>
-                    <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {AMENITIES.map((a, i) => {
+                    <div className="mx-auto mt-6 flex max-w-2xl items-center gap-4 rounded-[1.75rem] border-2 bg-[#0a1c52]/80 p-5 text-left shadow-[0_24px_70px_-25px_rgba(126,224,201,0.45)] backdrop-blur-sm sm:gap-5 sm:p-6" style={{ borderColor: GOLD }}>
+                        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#7ee0c9] to-[#2bb3a7] text-night shadow-[0_10px_30px_-10px_rgba(126,224,201,0.9)]"><ShieldCheck size={32} /></span>
+                        <div>
+                            <h2 className="font-display text-3xl leading-tight sm:text-4xl">100% money-back guarantee</h2>
+                            <p className="mt-1 text-sm text-white/75">If we can&apos;t give you the ride you booked, you get every rupee back. <Link href="/policies#guarantee" className="text-marigold underline underline-offset-4">The policy</Link></p>
+                        </div>
+                    </div>
+                    <ul className="rail -mx-4 mt-5 px-4 sm:mx-0 sm:flex-wrap sm:justify-center sm:px-0" aria-label="Also included">
+                        {AMENITIES.filter((a) => !/money-back/i.test(a.title)).map((a, i) => {
                             const Icon = AMENITY_ICONS[i % AMENITY_ICONS.length];
                             return (
-                                <li key={a.title} className="group relative overflow-hidden rounded-[1.5rem] border border-marigold/25 bg-gradient-to-b from-white/[0.06] to-transparent p-6 transition-colors hover:border-marigold/60">
-                                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-marigold to-ember text-night shadow-[0_10px_30px_-10px_rgba(255,122,26,0.8)]"><Icon size={22} /></span>
-                                    <h3 className="mt-4 font-display text-2xl">{a.title}</h3>
-                                    <p className="mt-2 text-white/65">{a.detail}</p>
+                                <li key={a.title} className="inline-flex shrink-0 items-center gap-2 rounded-full border border-marigold/40 bg-night/70 px-3.5 py-2 text-sm text-white/90 backdrop-blur-sm">
+                                    <Icon size={15} className="text-marigold" />{a.short}
                                 </li>
                             );
                         })}
                     </ul>
-                    <div className="mt-10 flex items-end justify-center gap-5" aria-hidden>{Array.from({ length: 9 }, (_, i) => <Diya key={i} size={26} delay={(i * 0.37) % 1.7} />)}</div>
                 </div>
             </section>
 
@@ -322,11 +321,13 @@ function BookingForm({ price, tomorrow }: { price: number; tomorrow?: number }) 
             <div className="relative mx-auto max-w-2xl px-4 sm:px-6">
                 <div className="text-center">
                     <InvitationSeal />
-                    <h2 className="mt-4 font-display text-4xl font-light leading-[1.05] tracking-[-0.02em] sm:text-5xl">Book your seats</h2>
-                    <p className="mt-2 text-white/70">{DEV_DEEPAWALI_LABEL} 2026 · Dev Deepawali · KashiGo shared boat</p>
+                    <p className="mt-4 text-sm font-semibold uppercase tracking-[0.25em] text-white/60">Book your seats for</p>
+                    <h2 className="mt-1 font-display text-5xl font-light leading-none tracking-[-0.02em] sm:text-6xl" style={{ color: GOLD }}>24 November 2026</h2>
+                    <p className="mt-2 text-white/75">Tuesday · Dev Deepawali evening · KashiGo shared boat</p>
                 </div>
 
                 <form ref={formRef} onSubmit={submit} className="shine-once go relative mt-8 rounded-[2rem] border-2 bg-gradient-to-b from-[#12348f] to-[#0a1c52] p-5 shadow-[0_40px_100px_-30px_rgba(40,100,255,0.7)] sm:p-8" style={{ borderColor: GOLD }}>
+                    <p className="mb-5 flex items-center justify-center gap-2 rounded-full bg-[#e8c158] px-4 py-2 text-center text-sm font-bold text-[#0a1c52]">You&apos;re booking for Tuesday, 24 November 2026</p>
                     {/* 1 — who's coming */}
                     <p className="flex items-center gap-2.5 text-sm font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}><span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#e8c158] text-xs text-[#0a1c52]">1</span> Passenger details</p>
                     <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border-2 border-[#e8c158] bg-[#e8c158]/10 p-3">

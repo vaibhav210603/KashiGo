@@ -12,7 +12,7 @@ export const LIGHTING_AT = Date.parse("2026-11-24T17:15:00+05:30");
 export const SEAT_PRICE_START_INR = 5499;
 // What local boatmen ask per person on the ghat that night — shown struck through next to our price.
 // Keep it above the last day's price (₹5,499 + 23 days × ₹100 = ₹7,799).
-export const GHAT_PRICE_INR = 7999;
+export const GHAT_PRICE_INR = 8999;
 export const SEAT_PRICE_FROM = "2026-11-01";
 export const DAILY_HIKE_INR = 100;
 
@@ -32,13 +32,13 @@ export function seatPrices(todayIso: string, days = 3) {
 }
 
 // What every Dev Deepawali seat includes. Boarding ghat and time are confirmed on a call after booking.
-export const AMENITIES: { title: string; detail: string }[] = [
-    { title: "Your seat on a KashiGo boat", detail: "A reserved seat on our shared boat for Dev Deepawali night, in your name." },
-    { title: "Front-row river view", detail: "The lit ghats, the grand aarti and the fireworks over the water — from the Ganga itself." },
-    { title: "Life jackets for everyone", detail: "On board for every passenger, the whole evening." },
-    { title: "A trusted local boatman", detail: "A boatman we work with all year, not a stranger found in the crowd." },
-    { title: "Price fixed, paid online", detail: "Nothing to bargain on the night, and no surprise charges at the ghat." },
-    { title: "100% money-back guarantee", detail: "If we can't give you the ride you booked, you get every rupee back." },
+export const AMENITIES: { title: string; short: string; detail: string }[] = [
+    { title: "Your seat on a KashiGo boat", short: "Your seat", detail: "A reserved seat on our shared boat for Dev Deepawali night, in your name." },
+    { title: "Front-row river view", short: "Front-row view", detail: "The lit ghats, the grand aarti and the fireworks over the water — from the Ganga itself." },
+    { title: "Life jackets for everyone", short: "Life jackets", detail: "On board for every passenger, the whole evening." },
+    { title: "A trusted local boatman", short: "Trusted boatman", detail: "A boatman we work with all year, not a stranger found in the crowd." },
+    { title: "Price fixed, paid online", short: "Fixed price", detail: "Nothing to bargain on the night, and no surprise charges at the ghat." },
+    { title: "100% money-back guarantee", short: "Money-back guarantee", detail: "If we can't give you the ride you booked, you get every rupee back." },
 ];
 
 // Pay in full now, or 50% now and the rest to the boatman at the ghat.
