@@ -7,9 +7,9 @@ export const DEV_DEEPAWALI_LABEL = "Tue 24 Nov";
 // The ghats are lit from dusk.
 export const LIGHTING_AT = Date.parse("2026-11-24T17:15:00+05:30");
 
-// Per-passenger price on a shared boat. It starts at ₹3,599 and rises ₹100 every day until the festival,
+// Per-passenger price on a shared boat. It starts at ₹4,599 and rises ₹100 every day until the festival,
 // so booking early is always cheapest.
-export const SEAT_PRICE_START_INR = 3599;
+export const SEAT_PRICE_START_INR = 4599;
 export const SEAT_PRICE_FROM = "2026-11-01";
 export const DAILY_HIKE_INR = 100;
 
