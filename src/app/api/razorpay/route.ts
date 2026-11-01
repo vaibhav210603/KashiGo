@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { prepareCheckout } from "@/lib/checkout";
+import { noticeFor, rideStartMinutes } from "@/lib/boatRides";
 
 const razorpay = new Razorpay({
     key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
@@ -9,12 +10,14 @@ const razorpay = new Razorpay({
 
 export async function POST(req: Request) {
     try {
-        const { product, coupon, useCredits, advance, guests } = await req.json();
+        const { product, coupon, useCredits, advance, guests, rideDate, customTime } = await req.json();
+        // Boat rides booked for today or tomorrow carry the short-notice surcharge (ignored for everything else).
+        const notice = noticeFor(String(rideDate ?? ""), rideStartMinutes(String(product), String(customTime ?? "")));
         // Pay-at-the-ghat bookings pay a 50% advance online; codes and coins don't apply to them.
         const isAdvance = advance === true;
 
         // Price is resolved server-side from the product id, the coupon and the buyer's coins. Client-sent amounts are ignored.
-        const prep = await prepareCheckout(req, { product: String(product), coupon: isAdvance ? null : coupon, useCredits: isAdvance ? false : Boolean(useCredits), provider: "razorpay", guests: Number(guests) || undefined });
+        const prep = await prepareCheckout(req, { product: String(product), coupon: isAdvance ? null : coupon, useCredits: isAdvance ? false : Boolean(useCredits), provider: "razorpay", guests: Number(guests) || undefined, noticePct: notice.pct });
         const payInr = isAdvance ? Math.ceil(prep.ok ? prep.payInr / 2 : 0) : prep.ok ? prep.payInr : 0;
         if (!prep.ok) return NextResponse.json({ success: false, message: prep.message }, { status: prep.status });
 
@@ -24,7 +27,7 @@ export async function POST(req: Request) {
             currency: "INR",
             receipt: `kashigo_${Date.now()}`,
             // Stamped server-side so payment checks can confirm what this order was for.
-            notes: { product: String(product), coupon: prep.rule?.code ?? "", credits: String(prep.creditsInr), email: prep.email ?? "", guests: String(Number(guests) || ""), ...(isAdvance ? { advance: "50", full: String(prep.payInr) } : {}) },
+            notes: { product: String(product), coupon: prep.rule?.code ?? "", credits: String(prep.creditsInr), email: prep.email ?? "", guests: String(Number(guests) || ""), ride_date: String(rideDate ?? "").slice(0, 10), notice: String(notice.pct), ...(isAdvance ? { advance: "50", full: String(prep.payInr) } : {}) },
         });
 
         const problem = await prep.commit(`razorpay:${order.id}`);

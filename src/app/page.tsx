@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
-import Hero from "@/components/home/Hero";
+import DevDeepawaliHero from "@/components/home/DevDeepawaliHero";
 import RideRail from "@/components/home/RideRail";
 import WhyKashiGo from "@/components/home/WhyKashiGo";
 import GhatMarquee from "@/components/home/GhatMarquee";
@@ -148,7 +148,7 @@ export default function Home() {
         ]
       }} />
       {/* Order: the boat (our USP) → proof it's good → why us → everything else we do in Kashi → how booking works → guides */}
-      <Hero />
+      <DevDeepawaliHero />
       <RideRail />
       <GhatMarquee />
       <GoogleReviews />

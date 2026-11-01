@@ -31,7 +31,7 @@ function useNextDeparture() {
 }
 
 // A green rubber stamp that slams onto the hero once the headline is in, with an ink ripple on impact.
-function GuaranteeStamp({ reduce }: { reduce: boolean }) {
+export function GuaranteeStamp({ reduce }: { reduce: boolean }) {
     const at = 1.35;
     return (
         <Link href="/policies#guarantee" aria-label="100% money-back guarantee — read the policy"

@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import { Check, Minus, Plus, Wallet, Smartphone, Globe, Tag, Coins, LogOut } from "lucide-react";
-import { BOAT_PRICES_INR, EXTRA_PASSENGER_INR, FREE_PASSENGERS, passengerFeeInr } from "@/lib/boatPrices";
-import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, BOOKING_WINDOW_DAYS } from "@/lib/boatRides";
+import { Check, Minus, Plus, Wallet, Smartphone, Globe, Tag, Coins, LogOut, CalendarCheck, Clock } from "lucide-react";
+import { BOAT_PRICES_INR, EXTRA_PASSENGER_INR, FREE_PASSENGERS, SHORT_NOTICE_HOURS, SURGE_PCT, noticeFeeInr, passengerFeeInr } from "@/lib/boatPrices";
+import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, noticeFor, BOOKING_WINDOW_DAYS, type Notice } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
 import { goToThankYou } from "@/lib/thankYou";
-import { money, useCurrency } from "@/lib/currency";
+import { money, useCurrency, type Currency } from "@/lib/currency";
 import { normalizeEmail } from "@/lib/email";
 import { apiPost, authHeaders, useAuth } from "@/components/auth/useAuth";
 import { useAccount } from "@/components/auth/useAccount";
@@ -57,6 +57,40 @@ const chip = (on: boolean) =>
     `shrink-0 min-h-11 px-4 rounded-full border text-sm font-semibold transition-colors ${on ? "bg-night border-night text-marigold" : "bg-white/60 border-night/15 text-night/75 hover:border-night/40"}`;
 
 const input = "w-full h-12 rounded-2xl border border-night/15 bg-white/70 px-4 text-[16px] text-night placeholder:text-night/35 outline-none transition focus:border-fire focus:bg-white focus:ring-4 focus:ring-marigold/20";
+
+// Under the date picker: why today / tomorrow cost more, said plainly, with a one-tap switch to the plan-ahead price.
+function NoticeNote({ notice, fee, ridePrice, currency, planAhead, onPlanAhead }: {
+    notice: Notice; fee: number; ridePrice: number; currency: Currency;
+    planAhead?: { top: string; bottom: string }; onPlanAhead: () => void;
+}) {
+    if (notice.tier === "planned") {
+        return (
+            <p className="mt-4 flex items-start gap-2.5 rounded-2xl bg-[#effaf6] px-4 py-3 text-sm text-night/75">
+                <CalendarCheck size={18} className="mt-0.5 shrink-0 text-[#1d7f76]" />
+                <span><b className="text-night">You&apos;re getting our plan-ahead price</b> — the lowest we offer. Thank you for booking early; it lets us give your boatman a properly planned day.</span>
+            </p>
+        );
+    }
+    return (
+        <div className="mt-4 rounded-2xl border border-marigold/40 bg-gradient-to-br from-marigold/15 to-transparent p-4">
+            <p className="flex items-center gap-2 font-semibold text-night">
+                <Clock size={18} className="shrink-0 text-fire" />
+                {notice.tier === "urgent" ? "Short-notice ride" : "Booking for tomorrow"} · +{money(fee, currency)}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-night/70">
+                Our boatmen plan their week in advance. To get you a private boat {notice.tier === "urgent" ? `today or within ${SHORT_NOTICE_HOURS} hours` : "by tomorrow"}, we call one in at short notice — often rearranging his day or an early start — and we pay him fairly for it.
+                That&apos;s all this is: no hidden fees, and the same boat, boatman and guarantee.
+            </p>
+            <p className="mt-2 text-xs text-night/50">Today or within {SHORT_NOTICE_HOURS} hours +{SURGE_PCT.urgent}% · tomorrow +{SURGE_PCT.nextDay}% · 2 or more days ahead: the price on our website.</p>
+            {planAhead && (
+                <button type="button" onClick={onPlanAhead}
+                    className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-night px-4 text-sm font-semibold text-marigold transition-colors hover:bg-night/85">
+                    <CalendarCheck size={16} /> Flexible? Ride {planAhead.top}, {planAhead.bottom} for {money(ridePrice, currency)}
+                </button>
+            )}
+        </div>
+    );
+}
 
 export default function BookingFlow() {
     const [ride, setRide] = useState<RideChoice>("");
@@ -113,15 +147,21 @@ export default function BookingFlow() {
 
     const selected = RIDES_BY_POPULARITY.find((r) => r.id === ride);
     const ridePrice = ride === "custom" ? BOAT_PRICES_INR.custom : selected ? BOAT_PRICES_INR[selected.id] : 0;
+    // Short notice (today / tomorrow) adds a surcharge on the boat — see lib/boatPrices.ts. The server prices it the same way.
+    const now = { iso: todayIso, minutes: nowMinutes };
+    const noticeOf = (iso: string, rideId: RideChoice = ride): Notice => (todayIso && rideId ? noticeFor(iso, rideStartMinutes(rideId, customTime), now) : { tier: "planned", pct: 0 });
+    const rideNotice = noticeOf(selectedDate);
+    const noticeFee = ride ? noticeFeeInr(ridePrice, rideNotice.pct) : 0;
+    const planAheadIso = todayIso ? addDaysIso(todayIso, 2) : "";
     // 2 passengers are included; each one after that adds ₹350 (lib/boatPrices.ts). The server charges the same total.
     const extraGuests = Math.max(0, guests - FREE_PASSENGERS);
     const guestFee = ride ? passengerFeeInr(guests) : 0;
-    const listPrice = ridePrice + guestFee;
+    const listPrice = ridePrice + guestFee + noticeFee;
     const product = ride === "custom" ? "custom-boat" : ride;
     // A code is priced for one ride (the boat only) and only applies to online payment.
     const codePrice = applied && applied.product === product ? applied.inr : null;
     const coupon = codePrice !== null && pay !== "cod" ? code.trim().toUpperCase() : undefined;
-    const afterCode = coupon ? codePrice! + guestFee : listPrice;
+    const afterCode = coupon ? codePrice! + guestFee + noticeFee : listPrice;
     // Coins only apply to online payment. If they cover the whole ride, there's nothing to pay (mode "credits");
     // otherwise at least ₹1 is left for Razorpay / PayPal. The server recomputes all of this.
     const balance = account?.credits ?? 0;
@@ -224,7 +264,9 @@ export default function BookingFlow() {
                 ["When", `${dateLabel?.top}, ${dateLabel?.bottom} · ${ride === "custom" ? customTime : selected?.time}`],
                 ["From", ghat],
                 ["Guests", String(guests)],
-                ...(guestFee ? [["Boat ride", money(ridePrice, currency)], [`${extraGuests} extra passenger${extraGuests > 1 ? "s" : ""}`, money(guestFee, currency)]] as [string, string][] : []),
+                ...(guestFee || noticeFee ? [["Boat ride", money(ridePrice, currency)]] as [string, string][] : []),
+                ...(noticeFee ? [["Short-notice booking", money(noticeFee, currency)]] as [string, string][] : []),
+                ...(guestFee ? [[`${extraGuests} extra passenger${extraGuests > 1 ? "s" : ""}`, money(guestFee, currency)]] as [string, string][] : []),
                 ["Total", `${money(price, currency)}${currency === "usd" ? ` (${inr(price)})` : ""} · ${pay === "cod" ? `${inr(advance)} paid · ${inr(price - advance)} at the ghat` : paid ? "paid" : "pay at the ghat"}`],
             ],
         });
@@ -238,7 +280,7 @@ export default function BookingFlow() {
     const payRazorpay = async () => {
         const isAdvance = payMode === "cod";
         track("begin_checkout", { currency: "INR", value: isAdvance ? advance : price, item_id: product, payment_type: isAdvance ? "razorpay_advance" : "razorpay" });
-        const order = await apiPost("/api/razorpay", { product, coupon, useCredits: coinsOn, advance: isAdvance, guests }).then((r) => r.data).catch(() => ({ success: false }));
+        const order = await apiPost("/api/razorpay", { product, coupon, useCredits: coinsOn, advance: isAdvance, guests, rideDate: selectedDate, customTime }).then((r) => r.data).catch(() => ({ success: false }));
         if (!order.success && order.message) { setNotice(order.message); return; }
         if (!order.success) { setNotice("Online payment isn't available right now — please try again or call +91 81759 66910."); return; }
         await new Promise<void>((resolve, reject) => {
@@ -327,14 +369,25 @@ export default function BookingFlow() {
 
             <Section id="s-date" n={2} title="Pick a date" error={timeProblem || errors.date}>
                 <div className="rail -mx-4 sm:-mx-6 px-4 sm:px-6">
-                    {dates.map((d) => (
-                        <button key={d.iso} type="button" onClick={() => { setDate(d.iso); setErrors((e) => ({ ...e, date: undefined })); }} aria-pressed={selectedDate === d.iso}
-                            className={`w-[4.6rem] py-2.5 rounded-2xl border text-center transition-colors ${selectedDate === d.iso ? "bg-night border-night text-white" : "bg-white/60 border-night/15 text-night/75 hover:border-night/40"}`}>
-                            <span className={`block text-xs font-semibold ${selectedDate === d.iso ? "text-marigold" : ""}`}>{d.top}</span>
-                            <span className="block font-display text-lg leading-tight">{d.bottom}</span>
-                        </button>
-                    ))}
+                    {dates.map((d) => {
+                        const on = selectedDate === d.iso;
+                        const n = noticeOf(d.iso);
+                        const best = n.tier === "planned";
+                        return (
+                            <button key={d.iso} type="button" onClick={() => { setDate(d.iso); setErrors((e) => ({ ...e, date: undefined })); }} aria-pressed={on}
+                                className={`relative w-[5.1rem] pt-2.5 pb-2 rounded-2xl border text-center transition-colors ${on ? "bg-night border-night text-white" : best ? "bg-[#effaf6] border-[#1d7f76]/25 text-night/75 hover:border-[#1d7f76]/60" : "bg-white/60 border-night/15 text-night/75 hover:border-night/40"}`}>
+                                <span className={`block text-xs font-semibold ${on ? "text-marigold" : ""}`}>{d.top}</span>
+                                <span className="block font-display text-lg leading-tight">{d.bottom}</span>
+                                {/* With a ride chosen: that day's price. Before that: how the day is priced. */}
+                                <span className={`mt-1 block text-[11px] font-semibold leading-tight ${best ? (on ? "text-[#7ee0c9]" : "text-[#1d7f76]") : on ? "text-white/60" : "text-night/45"}`}>
+                                    {ride ? money(ridePrice + noticeFeeInr(ridePrice, n.pct), currency) : best ? "Best price" : `+${n.pct}%`}
+                                </span>
+                            </button>
+                        );
+                    })}
                 </div>
+                {ride && todayIso && <NoticeNote notice={rideNotice} fee={noticeFee} ridePrice={ridePrice} currency={currency}
+                    planAhead={dates.find((d) => d.iso === planAheadIso)} onPlanAhead={() => { setDate(planAheadIso); setErrors((e) => ({ ...e, date: undefined })); }} />}
             </Section>
 
             <Section id="s-ghat" n={3} title="Start from" error={errors.ghat}>
@@ -441,10 +494,10 @@ export default function BookingFlow() {
                         {isValid ? (
                             <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "ATMGtSsoMxvX5hrhLzFYYuN1yNCAonxN-vV1xAtNKBRvL7cbgpMQ_EG1Nf7j-43XGcyyUlN6Eb4Our_0", currency: "USD" }}>
                                 <PayPalButtons
-                                    forceReRender={[product, coupon, coinsOn, guests]}
+                                    forceReRender={[product, coupon, coinsOn, guests, selectedDate, customTime, rideNotice.pct]}
                                     style={{ layout: "vertical", color: "gold", shape: "pill", label: "pay", height: 48 }}
                                     createOrder={async () => {
-                                        const { data: o } = await apiPost("/api/paypal/create-order", { product, coupon, useCredits: coinsOn, guests });
+                                        const { data: o } = await apiPost("/api/paypal/create-order", { product, coupon, useCredits: coinsOn, guests, rideDate: selectedDate, customTime });
                                         if (!o.success) { if (o.message) setNotice(o.message); throw new Error("Could not create PayPal order"); }
                                         return o.orderId;
                                     }}
@@ -478,8 +531,12 @@ export default function BookingFlow() {
                             {(coupon || coinsUsed > 0) && <s className="mr-2 text-sm font-medium text-white/40">{money(listPrice, currency)}</s>}
                             {price || coversAll ? money(price, currency) : "—"}
                         </p>
-                        {guestFee > 0 && (
-                            <p className="text-[11px] text-white/60 truncate">Ride {money(ridePrice, currency)} + {extraGuests} extra passenger{extraGuests > 1 ? "s" : ""} {money(guestFee, currency)}</p>
+                        {(guestFee > 0 || noticeFee > 0) && (
+                            <p className="text-[11px] text-white/60 truncate">
+                                Ride {money(ridePrice, currency)}
+                                {noticeFee > 0 && <> + short notice {money(noticeFee, currency)}</>}
+                                {guestFee > 0 && <> + {extraGuests} extra passenger{extraGuests > 1 ? "s" : ""} {money(guestFee, currency)}</>}
+                            </p>
                         )}
                         {/* The payment method decides the currency actually charged — say so when it differs from the display. */}
                         {price > 0 && payMode !== "credits" && (pay === "cod" || (pay === "online_international" ? currency === "inr" : currency === "usd")) && (

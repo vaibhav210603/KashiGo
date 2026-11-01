@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prepareCheckout } from "@/lib/checkout";
+import { noticeFor, rideStartMinutes } from "@/lib/boatRides";
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET!;
@@ -22,10 +23,12 @@ async function generateAccessToken() {
 
 export async function POST(req: Request) {
     try {
-        const { product, coupon, useCredits, guests } = await req.json();
+        const { product, coupon, useCredits, guests, rideDate, customTime } = await req.json();
+        // Boat rides booked for today or tomorrow carry the short-notice surcharge (ignored for everything else).
+        const notice = noticeFor(String(rideDate ?? ""), rideStartMinutes(String(product), String(customTime ?? "")));
 
         // Price is resolved server-side from the product id, the coupon and the buyer's coins. Client-sent amounts are ignored.
-        const prep = await prepareCheckout(req, { product: String(product), coupon, useCredits: Boolean(useCredits), provider: "paypal", guests: Number(guests) || undefined });
+        const prep = await prepareCheckout(req, { product: String(product), coupon, useCredits: Boolean(useCredits), provider: "paypal", guests: Number(guests) || undefined, noticePct: notice.pct });
         if (!prep.ok) return NextResponse.json({ success: false, message: prep.message }, { status: prep.status });
 
         const amountInUSD = prep.payUsd.toFixed(2);

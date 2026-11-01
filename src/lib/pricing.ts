@@ -1,6 +1,6 @@
 // Server-side price catalog. Payment routes must NEVER trust a client-sent amount —
 // all prices are resolved here from the product id (and a coupon rule from lib/coupons).
-import { BOAT_PRICES_INR, INR_PER_USD, passengerFeeInr } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, INR_PER_USD, noticeFeeInr, passengerFeeInr } from "@/lib/boatPrices";
 
 export type ProductId =
     | "guide"
@@ -112,6 +112,13 @@ export function priceOf(product: string, rule?: CouponRule | null): Price | null
 // so a code discounts the boat, not the passenger charge.
 export function withPassengers(price: Price, product: string, guests?: number): Price {
     const fee = isBoatProduct(product) && guests ? passengerFeeInr(guests) : 0;
+    return fee ? { inr: price.inr + fee, usd: Number((price.usd + fee / INR_PER_USD).toFixed(2)) } : price;
+}
+
+// Short-notice rides add a surcharge on the boat's list price (lib/boatPrices.ts), also after any coupon —
+// a code discounts the boat, the short-notice charge stays as quoted.
+export function withNotice(price: Price, product: string, pct?: number): Price {
+    const fee = isBoatProduct(product) && pct ? noticeFeeInr(INR_PRICES[product as ProductId], pct) : 0;
     return fee ? { inr: price.inr + fee, usd: Number((price.usd + fee / INR_PER_USD).toFixed(2)) } : price;
 }
 

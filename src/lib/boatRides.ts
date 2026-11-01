@@ -1,6 +1,6 @@
 // Public description of KashiGo's boat rides, shared by the homepage, /book,
 // structured data and /llms.txt so every surface (and AI crawler) sees the same facts.
-import { BOAT_PRICES_INR } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, SHORT_NOTICE_HOURS, SURGE_PCT } from "@/lib/boatPrices";
 
 export type BoatRideId = "p1" | "p2" | "p3" | "p4" | "p5" | "p6";
 export type BoatRide = { id: BoatRideId; name: string; short: string; time: string; summary: string; image: string; badge?: string; slot: "Morning" | "Afternoon" | "Evening" };
@@ -78,3 +78,19 @@ export function bookingTimeProblem(dateIso: string, startMinutes: number, now = 
     }
     return null;
 }
+
+// How much notice a ride has, and the short-notice surcharge that goes with it (lib/boatPrices.ts).
+// "urgent" = the ride is today or starts within 12 hours; "nextDay" = tomorrow; "planned" = 2+ days ahead.
+export type Notice = { tier: "urgent" | "nextDay" | "planned"; pct: number };
+export function noticeFor(dateIso: string, startMinutes: number, now = istNow()): Notice {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso) || dateIso <= now.iso) return { tier: "urgent", pct: SURGE_PCT.urgent };
+    const tomorrow = addDaysIso(now.iso, 1);
+    if (dateIso === tomorrow) {
+        const minutesAway = 24 * 60 + (Number.isNaN(startMinutes) ? 0 : startMinutes) - now.minutes;
+        return minutesAway < SHORT_NOTICE_HOURS * 60 ? { tier: "urgent", pct: SURGE_PCT.urgent } : { tier: "nextDay", pct: SURGE_PCT.nextDay };
+    }
+    return { tier: "planned", pct: 0 };
+}
+
+// India time at a given moment (a payment order's creation time), for pricing a payment as it was quoted.
+export const istAt = (unixSeconds: number) => istNow(new Date(unixSeconds * 1000));

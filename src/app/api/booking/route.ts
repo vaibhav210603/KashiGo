@@ -4,14 +4,14 @@ import crypto from "crypto";
 import Razorpay from "razorpay";
 import { createTransporter } from "@/lib/mailer";
 import { getBookingEmailTemplate } from "@/lib/emailTemplate";
-import { priceOf, withPassengers } from "@/lib/pricing";
+import { priceOf, withNotice, withPassengers } from "@/lib/pricing";
 import { INR_PER_USD } from "@/lib/boatPrices";
 import { getRule } from "@/lib/coupons";
 import { getSession } from "@/lib/auth";
 import { finalize, prepareCheckout, refInfo, saveProfile } from "@/lib/checkout";
 import { normalizeEmail } from "@/lib/email";
 import { orderMailParts, type OrderRecord } from "@/lib/orderMail";
-import { BOAT_RIDES, CUSTOM_RIDE, GHATS, bookingTimeProblem, rideStartMinutes, toMinutes, inr } from "@/lib/boatRides";
+import { BOAT_RIDES, CUSTOM_RIDE, GHATS, bookingTimeProblem, istAt, istNow, noticeFor, rideStartMinutes, toMinutes, inr } from "@/lib/boatRides";
 import { rateLimited } from "@/lib/rateLimit";
 
 // Initialize Supabase Client
@@ -112,8 +112,12 @@ function parseBooking(data: any): { booking: Booking; problems: string[] } {
 // Confirms an online payment with the provider — that it went through, that it was for this
 // ride, and that the full price was paid (after any coupon and coins) — so we never trust the client's word for it.
 async function verifyPayment(b: Booking): Promise<Verified> {
-    // Every price here includes the extra-passenger charge for the guests on this booking.
-    const priced = (coupon?: string | null) => getRule(coupon).then((rule) => { const p = priceOf(b.product, rule); return p && withPassengers(p, b.product, b.guests); });
+    // Every price here includes the extra-passenger charge for the guests on this booking, and the short-notice
+    // surcharge as it stood when the payment order was created (`at`, India time) — not when this request arrives.
+    const priced = (coupon?: string | null, at = istNow()) => getRule(coupon).then((rule) => {
+        const p = priceOf(b.product, rule);
+        return p && withNotice(withPassengers(p, b.product, b.guests), b.product, noticeFor(b.rideDate, toMinutes(b.startTime), at).pct);
+    });
     const list = (await priced())?.inr ?? 0;
     if (!b.paymentRef) return { status: "pending", amount: list, credits: 0, ref: "" };
 
@@ -122,14 +126,15 @@ async function verifyPayment(b: Booking): Promise<Verified> {
             // Pay at the ghat: a 50% advance through Razorpay, the rest in cash to the boatman.
             const rz = new Razorpay({ key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!, key_secret: process.env.RAZORPAY_KEY_SECRET! });
             const p: any = await rz.payments.fetch(b.paymentRef);
-            const advance = Math.ceil(list / 2);
             if (p?.status !== "captured" && p?.status !== "authorized") return { status: "unverified", amount: 0, credits: 0, ref: "", due: list, note: `Razorpay advance status is "${p?.status}".` };
             const paid = Number(p.amount) / 100;
             const order: any = p.order_id ? await rz.orders.fetch(p.order_id) : null;
             const ref = p.order_id ? `razorpay:${p.order_id}` : "";
-            if (order?.notes?.product !== b.product) return { status: "unverified", amount: paid, credits: 0, ref, due: Math.max(0, list - paid), note: `This advance was for "${order?.notes?.product || "unknown"}", not ${b.product}.` };
-            if (paid + 0.5 < advance) return { status: "unverified", amount: paid, credits: 0, ref, due: Math.max(0, list - paid), note: `Advance paid ${inr(paid)} but 50% is ${inr(advance)}.` };
-            return { status: "advance", amount: paid, credits: 0, ref, due: Math.max(0, list - paid) };
+            const full = order?.created_at ? (await priced(null, istAt(Number(order.created_at))))?.inr ?? list : list;
+            const advance = Math.ceil(full / 2);
+            if (order?.notes?.product !== b.product) return { status: "unverified", amount: paid, credits: 0, ref, due: Math.max(0, full - paid), note: `This advance was for "${order?.notes?.product || "unknown"}", not ${b.product}.` };
+            if (paid + 0.5 < advance) return { status: "unverified", amount: paid, credits: 0, ref, due: Math.max(0, full - paid), note: `Advance paid ${inr(paid)} but 50% is ${inr(advance)}.` };
+            return { status: "advance", amount: paid, credits: 0, ref, due: Math.max(0, full - paid) };
         }
         if (b.paymentMode === "online_domestic") {
             const rz = new Razorpay({ key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!, key_secret: process.env.RAZORPAY_KEY_SECRET! });
@@ -141,15 +146,14 @@ async function verifyPayment(b: Booking): Promise<Verified> {
             const credits = Number(order?.notes?.credits || 0);
             const orderProduct = order?.notes?.product;
             if (orderProduct !== b.product) return { status: "unverified", amount: paid, credits, ref, note: `This payment was for "${orderProduct || "unknown"}", not ${b.product}.` };
-            const expected = ((await priced(order?.notes?.coupon))?.inr ?? Infinity) - credits;
+            const at = order?.created_at ? istAt(Number(order.created_at)) : undefined;
+            const expected = ((await priced(order?.notes?.coupon, at))?.inr ?? Infinity) - credits;
             if (paid + 0.5 < expected) return { status: "unverified", amount: paid, credits, ref, note: `Paid ${inr(paid)} but the ride costs ${inr(expected)}.` };
             return { status: "paid", amount: paid, credits, ref };
         }
         if (b.paymentMode === "online_international") {
             const ref = `paypal:${b.paymentRef}`;
             const held = await refInfo(ref);
-            const price = await priced(held.coupon ?? b.coupon);
-            const listed = (price?.inr ?? list) - held.creditsInr;
             const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString("base64");
             const tok = await fetch(`${paypalBase}/v1/oauth2/token`, {
                 method: "POST",
@@ -160,6 +164,9 @@ async function verifyPayment(b: Booking): Promise<Verified> {
             const order = await fetch(`${paypalBase}/v2/checkout/orders/${encodeURIComponent(b.paymentRef)}`, {
                 headers: { Authorization: `Bearer ${tok.access_token}` },
             }).then((r) => r.json());
+            const created = Date.parse(order?.create_time ?? "");
+            const price = await priced(held.coupon ?? b.coupon, Number.isNaN(created) ? undefined : istNow(new Date(created)));
+            const listed = (price?.inr ?? list) - held.creditsInr;
             if (order?.status !== "COMPLETED") return { status: "unverified", amount: listed, credits: held.creditsInr, ref, note: `PayPal order status is "${order?.status}".` };
             const unit = order.purchase_units?.[0];
             if (unit?.custom_id !== b.product) return { status: "unverified", amount: listed, credits: held.creditsInr, ref, note: `This PayPal payment was for "${unit?.custom_id || "unknown"}", not ${b.product}.` };
@@ -276,7 +283,7 @@ export async function POST(req: Request) {
     let verified: Verified;
     if (b.paymentMode === "credits") {
         // Paid entirely in KashiGo coins: reserve them now (nothing has been charged yet, so problems can still refuse).
-        const prep = await prepareCheckout(req, { product: b.product, coupon: b.coupon, provider: "credits", guests: b.guests });
+        const prep = await prepareCheckout(req, { product: b.product, coupon: b.coupon, provider: "credits", guests: b.guests, noticePct: noticeFor(b.rideDate, toMinutes(b.startTime)).pct });
         if (!prep.ok) return NextResponse.json({ success: false, message: prep.message }, { status: prep.status });
         const ref = `credits:${rideId}`;
         const problem = await prep.commit(ref);
