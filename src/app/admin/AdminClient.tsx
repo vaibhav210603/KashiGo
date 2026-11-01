@@ -1,15 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Coins, Database, FileText, Flame, KeyRound, Loader2, LogOut, Mail, Plus, RefreshCw, Search, Tag, Ticket, Trash2, Undo2, X } from "lucide-react";
+import { Coins, Database, FileText, Flame, Hand, KeyRound, Loader2, LogOut, Mail, Plus, RefreshCw, Search, Tag, Ticket, Trash2, Undo2, X } from "lucide-react";
 import { apiGet, apiPost, authHeaders, setAdminToken } from "@/components/auth/useAuth";
 import { formatPhone } from "@/lib/phone";
 import { normalizeEmail } from "@/lib/email";
 import { productName } from "@/lib/productNames";
 import Quotes from "./Quotes";
 import DevDeepawaliBookings from "./DevDeepawaliBookings";
+import Consultancy from "./Consultancy";
 
-type Tab = "orders" | "devdeepawali" | "quotes" | "coupons" | "coins";
+type Tab = "orders" | "devdeepawali" | "consultancy" | "quotes" | "coupons" | "coins";
 const rupees = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "—");
 
@@ -53,7 +54,7 @@ export default function AdminClient() {
                 ) : (
                     <>
                         <nav className="mt-10 inline-flex flex-wrap rounded-full border border-white/15 p-1">
-                            {([["orders", "Orders", Ticket], ["devdeepawali", "Dev Deepawali", Flame], ["quotes", "Quotes", FileText], ["coupons", "Coupons", Tag], ["coins", "Coins", Coins]] as const).map(([id, label, Icon]) => (
+                            {([["orders", "Orders", Ticket], ["devdeepawali", "Dev Deepawali", Flame], ["consultancy", "Consultancy", Hand], ["quotes", "Quotes", FileText], ["coupons", "Coupons", Tag], ["coins", "Coins", Coins]] as const).map(([id, label, Icon]) => (
                                 <button key={id} onClick={() => setTab(id)} className={`h-10 px-5 inline-flex items-center gap-2 rounded-full text-sm font-medium transition-colors ${tab === id ? "bg-white text-night" : "text-white/70 hover:text-white"}`}>
                                     <Icon size={16} /> {label}
                                 </button>
@@ -62,6 +63,7 @@ export default function AdminClient() {
                         <div className="mt-8">
                             {tab === "orders" && <Orders />}
                             {tab === "devdeepawali" && <DevDeepawaliBookings />}
+                            {tab === "consultancy" && <Consultancy />}
                             {tab === "quotes" && <Quotes />}
                             {tab === "coupons" && <Coupons />}
                             {tab === "coins" && <CoinsTool />}

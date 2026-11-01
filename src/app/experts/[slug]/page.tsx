@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Award, BookOpen, CalendarCheck, Check, Clock, Phone, ShieldCheck, Sparkles } from "lucide-react";
 import { FIRE_BTN } from "@/components/ui/styles";
 import { JsonLd } from "@/components/JsonLd";
-import { EXPERTS, callHref, expertBySlug, expertPath, type Expert } from "@/lib/experts";
+import { EXPERTS, consultHref, expertBySlug, expertPath, type Expert } from "@/lib/experts";
 import { CONSULT_PER_MINUTE_INR } from "@/lib/pujas";
 
 const BASE = "https://kashigo.in";
@@ -46,11 +46,11 @@ function Heading({ label, children, dark = false }: { label: string; children: R
 function Ctas({ e, center = false }: { e: Expert; center?: boolean }) {
     return (
         <div className={`flex flex-col gap-3 sm:flex-row ${center ? "sm:justify-center" : ""}`}>
-            <a href={callHref(e)} target="_blank" rel="noopener" className={`${FIRE_BTN} h-14 w-full px-8 text-lg sm:w-auto`}><Phone size={18} /> Book a call</a>
-            <a href={e.appointmentHref} {...(e.appointmentHref.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}
+            <Link href={consultHref(e, "call")} className={`${FIRE_BTN} h-14 w-full px-8 text-lg sm:w-auto`}><Phone size={18} /> Book a call</Link>
+            <Link href={consultHref(e, "appointment")}
                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-marigold/60 px-8 font-semibold text-white transition-colors hover:bg-marigold hover:text-night sm:w-auto">
                 <CalendarCheck size={18} className="text-marigold" /> Book an appointment
-            </a>
+            </Link>
         </div>
     );
 }

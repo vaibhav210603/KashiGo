@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, CalendarCheck, Clock, Phone, ShieldCheck, Sparkles } from "lucide-react";
 import { FIRE_BTN } from "@/components/ui/styles";
-import { CONSULT_PER_MINUTE_INR, CONSULT_WHATSAPP } from "@/lib/pujas";
-import { EXPERTS, expertPath } from "@/lib/experts";
+import { CONSULT_PER_MINUTE_INR } from "@/lib/pujas";
+import { EXPERTS, consultHref, expertPath } from "@/lib/experts";
 import { inr } from "@/lib/boatRides";
 
 const NOTES = [
@@ -28,10 +28,10 @@ export default function AcharyaConsult({ id = "consult", knowMore = false }: { i
                     <p className="mt-4 text-lg text-white/75">Know more about yourself — with Kashi&apos;s Vedic gurus and a numerologist.</p>
 
                     <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                        <a href={CONSULT_WHATSAPP} target="_blank" rel="noopener" className={`${FIRE_BTN} h-14 w-full px-7 text-lg sm:w-auto`}>
+                        <Link href={consultHref(null, "call")} className={`${FIRE_BTN} h-14 w-full px-7 text-lg sm:w-auto`}>
                             <Phone size={18} /> Book a call
-                        </a>
-                        <Link href="/puja#sankalp" className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-marigold/50 px-7 font-semibold text-white transition-colors hover:bg-marigold hover:text-night sm:w-auto">
+                        </Link>
+                        <Link href={consultHref(null, "appointment")} className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-marigold/50 px-7 font-semibold text-white transition-colors hover:bg-marigold hover:text-night sm:w-auto">
                             <CalendarCheck size={18} className="text-marigold" /> Book an appointment
                         </Link>
                     </div>

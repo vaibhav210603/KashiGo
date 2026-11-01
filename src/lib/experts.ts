@@ -1,6 +1,5 @@
 // The gurus and experts people can consult through KashiGo: shown as portraits on the home page and /puja,
 // each with a profile page at /experts/[slug]. Safe to import from client and server code.
-import { CONSULT_PER_MINUTE_INR } from "@/lib/pujas";
 
 export type Expert = {
     slug: string;
@@ -20,12 +19,10 @@ export type Expert = {
     book?: { title: string; subtitle: string; cover: string };
     gallery?: { src: string; caption: string }[];
     website?: string;
-    // Booking goes through KashiGo on WhatsApp, with the expert named in the message.
-    appointmentHref: string;
 };
 
-const WA = (text: string) => `https://wa.me/918175966910?text=${encodeURIComponent(text)}`;
-export const callHref = (e: Pick<Expert, "name">) => WA(`Namaste! I'd like to book a call with ${e.name} (₹${CONSULT_PER_MINUTE_INR} per minute).`);
+// Booking a call or an appointment opens the consultation form (/consult) with the expert already chosen.
+export const consultHref = (e: Pick<Expert, "slug"> | null, kind: "call" | "appointment") => `/consult?${e ? `expert=${e.slug}&` : ""}type=${kind}`;
 
 const VEDIC_EXPERTISE: Expert["expertise"] = [
     { title: "Vastu", deva: "वास्तु", detail: "Guidance on the layout of your home or workplace, and the remedies when its energy is out of balance." },
@@ -48,7 +45,6 @@ export const EXPERTS: Expert[] = [
             "Sit with Guruji to look at your Vastu, have your kundli read, or ask the questions of dharma that have stayed with you. When a remedy is needed, the rite is performed by learned acharyas in Kashi.",
         ],
         expertise: VEDIC_EXPERTISE,
-        appointmentHref: "/puja#sankalp",
     },
     {
         slug: "maruti-kinkar-maharaj",
@@ -64,7 +60,6 @@ export const EXPERTS: Expert[] = [
             "Guidance on Vastu, kundli readings and the knowledge of dharma — listen to Maharaj-ji in the video below.",
         ],
         expertise: VEDIC_EXPERTISE,
-        appointmentHref: "/puja#sankalp",
     },
     {
         slug: "vibha-upadhyay",
@@ -108,7 +103,6 @@ export const EXPERTS: Expert[] = [
             { src: "/experts/vibha-upadhyay/gallery-06.jpg", caption: "Celebrating with the 2025 cohort" },
         ],
         website: "https://vibha-numerology.vercel.app/",
-        appointmentHref: WA("Namaste! I'd like to book a numerology appointment with Vibha Upadhyay."),
     },
 ];
 

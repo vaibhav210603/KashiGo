@@ -181,4 +181,3 @@ export const ACHARYA_BYTES: { name: string; role: string; video: string; poster?
 
 // Talking to an acharya: a call is charged by the minute, paid only if the caller is satisfied.
 export const CONSULT_PER_MINUTE_INR = 101;
-export const CONSULT_WHATSAPP = `https://wa.me/918175966910?text=${encodeURIComponent(`Namaste! I'd like to book a call with a KashiGo acharya (₹${CONSULT_PER_MINUTE_INR} per minute).`)}`;
