@@ -73,12 +73,16 @@ export default function DevDeepawaliClient() {
         <div className="w-full bg-night text-white">
             {/* ── Hero ── */}
             <section className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden pb-14 pt-28 md:pt-32">
+                {/* Ghat steps lined with diyas (Pexels, free licence): a tall crop for phones, the full width above that. */}
                 <div aria-hidden className="absolute inset-0 -z-30 overflow-hidden">
                     <div className="slow-zoom relative h-full w-full">
-                        <Image src="/dev-deepawali/ghats-full-moon.jpg" alt="" fill priority sizes="100vw" className="object-cover object-[35%_60%]" />
+                        <picture>
+                            <source media="(min-width: 640px)" srcSet="/dev-deepawali/diya-steps-wide.jpg" />
+                            <img src="/dev-deepawali/diya-steps-tall.jpg" alt="" fetchPriority="high" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+                        </picture>
                     </div>
                 </div>
-                <div aria-hidden className="absolute inset-0 -z-20 bg-gradient-to-t from-night via-night/55 to-night/35" />
+                <div aria-hidden className="absolute inset-0 -z-20 bg-gradient-to-t from-night via-night/50 to-night/60" />
                 <div aria-hidden className="absolute inset-0 -z-20 bg-[radial-gradient(90%_60%_at_50%_100%,rgba(255,122,26,0.25),transparent_70%)]" />
                 <Fireworks />
                 <DiyaRiver className="-z-10" />

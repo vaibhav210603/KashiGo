@@ -12,7 +12,7 @@ export const metadata: Metadata = {
         title: "Dev Deepawali on the Ganga — book your seat | KashiGo",
         description: "Tue 24 Nov 2026. The lit ghats, the grand aarti and fireworks over the river, from a KashiGo boat.",
         url: "https://kashigo.in/dev-deepawali",
-        images: [{ url: "/dev-deepawali/ghats-full-moon.jpg", width: 1800, height: 1170 }],
+        images: [{ url: "/dev-deepawali/diya-steps-wide.jpg", width: 2400, height: 1600 }],
     },
 };
 
@@ -28,7 +28,7 @@ export default function DevDeepawaliPage() {
                 eventStatus: "https://schema.org/EventScheduled",
                 eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
                 location: { "@type": "Place", name: "Ghats of Varanasi, on the Ganga", address: { "@type": "PostalAddress", addressLocality: "Varanasi", addressRegion: "Uttar Pradesh", addressCountry: "IN" } },
-                image: "https://kashigo.in/dev-deepawali/ghats-full-moon.jpg",
+                image: "https://kashigo.in/dev-deepawali/diya-steps-wide.jpg",
                 organizer: { "@type": "Organization", name: "KashiGo", url: "https://kashigo.in" },
                 offers: { "@type": "Offer", price: String(SEAT_PRICE_START_INR), priceCurrency: "INR", availability: "https://schema.org/LimitedAvailability", url: "https://kashigo.in/dev-deepawali", description: `Per person. Local boatmen on the ghat charge ₹${GHAT_PRICE_INR.toLocaleString("en-IN")}.` },
             }} />
