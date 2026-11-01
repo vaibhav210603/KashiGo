@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
 import DevDeepawaliHero from "@/components/home/DevDeepawaliHero";
 import { DevDeepawaliSection } from "@/components/home/DevDeepawali";
+import AcharyaConsult from "@/components/home/AcharyaConsult";
 import RideRail from "@/components/home/RideRail";
 import WhyKashiGo from "@/components/home/WhyKashiGo";
 import GhatMarquee from "@/components/home/GhatMarquee";
@@ -151,6 +152,7 @@ export default function Home() {
       <DevDeepawaliHero />
       <DevDeepawaliSection />
       <RideRail />
+      <AcharyaConsult knowMore />
       <GhatMarquee />
       <GoogleReviews />
       <WhyKashiGo />

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { ArrowRight, Check, Clock, Flame, MapPin, MessageCircle, Phone, Plus, ScrollText, ShieldCheck, Users, Video, Volume2 } from "lucide-react";
 import PageHero from "@/components/layout/PageHero";
+import AcharyaConsult from "@/components/home/AcharyaConsult";
 import { Eyebrow, Reveal } from "@/components/motion/primitives";
 import { FIRE_BTN, GHOST_BTN_DARK, H2_LIGHT, PAPER_CARD } from "@/components/ui/styles";
 import { track } from "@/lib/analytics";
@@ -35,10 +36,11 @@ export default function PujaClient() {
         <div className="w-full bg-parchment">
             <Hero onChoose={choose} />
             <AcharyaWord onChoose={choose} />
+            <AcharyaConsult />
+            {ACHARYA_BYTES.length > 0 && <Bytes />}
             <Modes />
             <Rites onChoose={choose} />
             <Unfolds />
-            {ACHARYA_BYTES.length > 0 && <Bytes />}
             <Sankalp chosen={chosen} setChosen={setChosen} />
             <Faq />
         </div>
@@ -334,7 +336,7 @@ function Unfolds() {
 
 function Bytes() {
     return (
-        <section className="grain relative bg-night py-20 text-white md:py-28">
+        <section id="acharyas" className="grain relative scroll-mt-20 bg-night py-20 text-white md:py-28">
             <div className="mx-auto max-w-7xl px-4 sm:px-6">
                 <Reveal>
                     <Eyebrow className="text-marigold">Meet the acharyas</Eyebrow>
