@@ -284,6 +284,12 @@ export const quoteTotal = (q: Pick<Quote, "lines">) => q.lines.reduce((s, l) => 
 
 // "advance50": half (rounded up) online through Razorpay to confirm the boat, the rest to the boatman at the ghat.
 export type QuotePaymentMethod = "online" | "advance50";
+// A site-wide discount code (managed in /admin → Coupons) applied to a quotation's total. The server checks the
+// code and works out the same amount; the page only previews it. Fixed-price codes don't apply to quotations.
+export type SiteCoupon = { code: string; kind: "percent" | "amount_off"; value: number };
+export const siteCouponOff = (total: number, c?: SiteCoupon | null) =>
+    !c ? 0 : Math.max(0, Math.min(total - 1, c.kind === "percent" ? Math.round((total * Math.min(c.value, 100)) / 100) : Math.round(c.value)));
+
 export function quoteSplit(q: Pick<Quote, "payment">, total: number): { online: number; atGhat: number } {
     if (q.payment !== "advance50") return { online: total, atGhat: 0 };
     const online = Math.ceil(total / 2);

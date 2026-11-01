@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, LifeBuoy, Minus, Plus, Tag, Trash2, UserPlus, X } from "lucide-react";
-import { CHILD_FREE_UNDER, CHILD_JACKET_INR, cleanSelection, priceQuote, quoteSplit, startSelection, type Quote, type QuoteSelection } from "@/lib/quotes";
+import { CHILD_FREE_UNDER, CHILD_JACKET_INR, cleanSelection, priceQuote, quoteSplit, siteCouponOff, startSelection, type Quote, type QuoteSelection, type SiteCoupon } from "@/lib/quotes";
 import QuotePay from "./QuotePay";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
@@ -14,7 +14,12 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
     const b = quote.builder!;
     const [sel, setSel] = useState<QuoteSelection>(() => startSelection(quote));
     const clean = useMemo(() => cleanSelection(quote, sel), [quote, sel]);
-    const { lines, total } = priceQuote(quote, clean);
+    // A site-wide code (from /admin → Coupons) comes off the whole total; the quote's own codes are priced in its lines.
+    const [siteCoupon, setSiteCoupon] = useState<SiteCoupon | null>(null);
+    const priced = priceQuote(quote, clean);
+    const siteOff = siteCouponOff(priced.total, siteCoupon);
+    const lines = siteCoupon ? [...priced.lines, { label: `Coupon ${siteCoupon.code}`, detail: "", amountInr: -siteOff }] : priced.lines;
+    const total = priced.total - siteOff;
     // 50%-advance quotes: half online now, the rest to the boatman at the ghat.
     const split = quoteSplit(quote, total);
     const missingName = sel.passengers.some((p) => !p.name.trim());
@@ -31,13 +36,20 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
     }, []);
     const freebies = [b.kidsUnder6 ? "Life jackets for adults" : `Life jackets × ${1 + sel.passengers.length}`, ...(quote.inclusions ?? []).map((f) => f.label)];
 
-    const applyCode = () => {
+    // The quote's own codes first; anything else is checked as a site-wide code.
+    const applyCode = async () => {
         const c = code.trim().toUpperCase();
+        if (!c) return;
         const hit = b.coupons?.find((x) => x.code === c);
-        setSel((s) => ({ ...s, coupon: hit ? hit.code : "" }));
-        setCodeMsg(!c ? "" : hit ? `${hit.percentOff}% off applied` : "That code isn't valid.");
+        if (hit) { setSiteCoupon(null); setSel((s) => ({ ...s, coupon: hit.code })); setCodeMsg(`${hit.percentOff}% off applied`); return; }
+        setSel((s) => ({ ...s, coupon: "" }));
+        const r = await fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "coupon", id: quote.id, code: c }) })
+            .then((x) => x.json()).catch(() => ({ success: false, message: "Couldn't check the code — try again." }));
+        if (r.success) { setSiteCoupon(r.coupon); setCodeMsg("applied"); }
+        else { setSiteCoupon(null); setCodeMsg(r.message || "That code isn't valid."); }
     };
-    const removeCode = () => { setSel((s) => ({ ...s, coupon: "" })); setCode(""); setCodeMsg(""); };
+    const removeCode = () => { setSel((s) => ({ ...s, coupon: "" })); setSiteCoupon(null); setCode(""); setCodeMsg(""); };
+    const appliedCode = clean.coupon || siteCoupon?.code || "";
     const setPassenger = (i: number, key: "name" | "age", v: string) =>
         setSel((s) => ({ ...s, passengers: s.passengers.map((p, j) => (j === i ? { ...p, [key]: key === "age" ? v.replace(/\D/g, "").slice(0, 3) : v.slice(0, 60) } : p)) }));
     const bump = (id: string, d: number, max: number) =>
@@ -173,12 +185,11 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                     </Card>
 
                     {/* Coupon */}
-                    {b.coupons && b.coupons.length > 0 && (
-                        <Card title="Coupon code">
-                            {clean.coupon ? (
+                    <Card title="Coupon code">
+                            {appliedCode ? (
                                 <div className="flex items-center gap-2 rounded-lg bg-emerald-50 ring-1 ring-emerald-200 px-3 h-10">
                                     <Tag size={15} className="text-emerald-700" />
-                                    <span className="flex-1 text-sm font-bold text-emerald-800">{clean.coupon} · {codeMsg || "applied"}</span>
+                                    <span className="flex-1 text-sm font-bold text-emerald-800">{appliedCode} · {siteCoupon ? `${inr(siteOff)} off` : codeMsg || "applied"}</span>
                                     <button onClick={removeCode} aria-label="Remove coupon" className="text-emerald-800/60 hover:text-red-600"><X size={16} /></button>
                                 </div>
                             ) : (
@@ -193,9 +204,8 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                                     <button type="submit" className="h-10 px-4 rounded-lg bg-night text-white text-sm font-bold hover:bg-fire transition-colors">Apply</button>
                                 </form>
                             )}
-                            {codeMsg && !clean.coupon && <p className="mt-1.5 text-xs font-semibold text-red-600">{codeMsg}</p>}
-                        </Card>
-                    )}
+                            {codeMsg && !appliedCode && <p className="mt-1.5 text-xs font-semibold text-red-600">{codeMsg}</p>}
+                    </Card>
                 </>
             )}
 
@@ -237,6 +247,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                             total={inr(split.online)}
                             paid={false}
                             selection={clean}
+                            siteCoupon={siteCoupon}
                             due={split.atGhat ? inr(split.atGhat) : undefined}
                             blocked={missingName ? "Enter a name for every passenger you added (or remove the empty row)." : undefined}
                         />

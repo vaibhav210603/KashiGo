@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Loader2, Lock, Printer } from "lucide-react";
-import type { QuoteSelection } from "@/lib/quotes";
+import { CheckCircle2, Loader2, Lock, Printer, Tag, X } from "lucide-react";
+import { siteCouponOff, type QuoteSelection, type SiteCoupon } from "@/lib/quotes";
 import { goToThankYou } from "@/lib/thankYou";
 
 // `due`: on a 50%-advance quote, what's left to pay at the ghat (then `total` is the advance charged now).
-type Props = { id: string; name: string; total: string; paid: boolean; selection?: QuoteSelection; blocked?: string; due?: string };
+// `siteCoupon`: a site-wide code already applied by the page around it (QuoteBuilder).
+// `codeBox`: fixed-price quotes — show a discount-code box here and re-split the full total when a code applies.
+type Props = {
+    id: string; name: string; total: string; paid: boolean; selection?: QuoteSelection; blocked?: string; due?: string;
+    siteCoupon?: SiteCoupon | null; codeBox?: { fullInr: number; advance: boolean };
+};
+const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
 const loadRazorpay = () =>
     new Promise<void>((resolve, reject) => {
@@ -21,17 +27,39 @@ const loadRazorpay = () =>
 const post = (body: object) =>
     fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());
 
-export default function QuotePay({ id, name, total, paid: initiallyPaid, selection, blocked, due }: Props) {
+export default function QuotePay({ id, name, total: totalLabel, paid: initiallyPaid, selection, blocked, due: dueLabel, siteCoupon, codeBox }: Props) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [paymentId] = useState(initiallyPaid ? "received" : "");
+    // Fixed-price quotes: the code box lives here.
+    const [ownCoupon, setOwnCoupon] = useState<SiteCoupon | null>(null);
+    const [code, setCode] = useState("");
+    const [codeMsg, setCodeMsg] = useState("");
+    const [codeOpen, setCodeOpen] = useState(false);
+    const coupon = siteCoupon ?? ownCoupon;
+    let total = totalLabel, due = dueLabel, off = 0;
+    if (codeBox && ownCoupon) {
+        off = siteCouponOff(codeBox.fullInr, ownCoupon);
+        const after = codeBox.fullInr - off;
+        const online = codeBox.advance ? Math.ceil(after / 2) : after;
+        total = inr(online);
+        due = codeBox.advance ? inr(after - online) : undefined;
+    }
+    const applyCode = async () => {
+        const c = code.trim().toUpperCase();
+        if (!c) return;
+        setCodeMsg("");
+        const r = await post({ action: "coupon", id, code: c }).catch(() => ({ success: false, message: "Couldn't check the code — try again." }));
+        if (r.success) setOwnCoupon(r.coupon);
+        else { setOwnCoupon(null); setCodeMsg(r.message || "That code isn't valid."); }
+    };
 
     const pay = async () => {
         if (blocked) return setError(blocked);
         setBusy(true);
         setError("");
         try {
-            const o = await post({ action: "order", id, selection });
+            const o = await post({ action: "order", id, selection, siteCoupon: coupon?.code });
             if (!o.success) throw new Error(o.message);
             await loadRazorpay();
             const rzp = new (window as any).Razorpay({
@@ -88,6 +116,28 @@ export default function QuotePay({ id, name, total, paid: initiallyPaid, selecti
 
     return (
         <div className="print:hidden">
+            {codeBox && (
+                <div className="mb-3">
+                    {ownCoupon ? (
+                        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 ring-1 ring-emerald-200 px-3 h-11">
+                            <Tag size={15} className="text-emerald-700" />
+                            <span className="flex-1 text-sm font-bold text-emerald-800">{ownCoupon.code} applied · {inr(off)} off</span>
+                            <button onClick={() => { setOwnCoupon(null); setCode(""); }} aria-label="Remove code" className="text-emerald-800/60 hover:text-red-600"><X size={16} /></button>
+                        </div>
+                    ) : codeOpen ? (
+                        <form onSubmit={(e) => { e.preventDefault(); applyCode(); }} className="flex gap-2">
+                            <input value={code} onChange={(e) => { setCode(e.target.value.toUpperCase().slice(0, 30)); setCodeMsg(""); }} placeholder="Discount code" aria-label="Discount code" autoFocus
+                                className="flex-1 min-w-0 h-11 rounded-xl bg-white px-3 text-base ring-1 ring-sandstone/60 outline-none focus:ring-2 focus:ring-fire uppercase tracking-wider font-semibold" />
+                            <button type="submit" className="h-11 px-5 rounded-xl bg-night text-white text-sm font-bold hover:bg-fire transition-colors">Apply</button>
+                        </form>
+                    ) : (
+                        <button type="button" onClick={() => setCodeOpen(true)} className="mx-auto flex items-center gap-1.5 text-sm font-semibold text-night/70 hover:text-fire">
+                            <Tag size={15} className="text-fire" /> Have a discount code?
+                        </button>
+                    )}
+                    {codeMsg && <p className="mt-1.5 text-center text-xs font-semibold text-red-600">{codeMsg}</p>}
+                </div>
+            )}
             <button
                 onClick={pay}
                 disabled={busy}

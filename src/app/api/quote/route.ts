@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { cleanSelection, describeSelection, priceQuote, quoteReceipt, quoteSplit, type Quote } from "@/lib/quotes";
+import { cleanSelection, describeSelection, priceQuote, quoteReceipt, quoteSplit, siteCouponOff, type Quote } from "@/lib/quotes";
+import { checkSiteCoupon, releaseUnpaidQuoteHolds, reserveSiteCoupon, siteCouponPaid } from "@/lib/quoteCoupons";
 import { getQuote, markQuotePaid } from "@/lib/quoteStore";
 import { isQuotePaid, quoteOrderRecord, razorpay as rz } from "@/lib/quotePayments";
 import { orderMailParts, syncOrdersToDb, type OrderRecord } from "@/lib/orderMail";
@@ -70,11 +71,30 @@ export async function POST(req: Request) {
         const body = await req.json();
         const q = await getQuote(String(body?.id ?? ""));
         if (!q) return NextResponse.json({ success: false, message: "Quotation not found." }, { status: 404 });
+        if (body.action === "coupon") {
+            // Preview a site-wide discount code (the page shows the saving; "order" checks it again before charging).
+            if (rateLimited(req, "quote-coupon", 20, 10 * 60 * 1000)) return NextResponse.json({ success: false, message: "Too many attempts. Try again later." }, { status: 429 });
+            if (await isQuotePaid(q)) return NextResponse.json({ success: false, message: "This quotation is already paid." }, { status: 409 });
+            await releaseUnpaidQuoteHolds(q);
+            const c = await checkSiteCoupon(q, body.code);
+            return NextResponse.json(c.ok ? { success: true, coupon: c.coupon } : { success: false, message: c.message });
+        }
+
         if (body.action === "order") {
             // Priced here from the quote and the customer's choices — the amount the browser shows is never used.
             const sel = cleanSelection(q, body.selection);
             if (sel.passengers.some((p) => !p.name)) return NextResponse.json({ success: false, message: "Please enter a name for every passenger you added." }, { status: 400 });
-            const { total } = priceQuote(q, sel);
+            let { total } = priceQuote(q, sel);
+            // A site-wide code comes off the whole total (one code per booking: not with the quote's own code).
+            let siteCode = "";
+            if (body.siteCoupon) {
+                if (sel.coupon) return NextResponse.json({ success: false, message: "Only one code can be used per booking." }, { status: 400 });
+                await releaseUnpaidQuoteHolds(q);
+                const c = await checkSiteCoupon(q, body.siteCoupon);
+                if (!c.ok) return NextResponse.json({ success: false, message: c.message }, { status: 409 });
+                total -= siteCouponOff(total, c.coupon);
+                siteCode = c.coupon.code;
+            }
             // A 50%-advance quote charges half online; the rest is collected at the ghat.
             const { online, atGhat } = quoteSplit(q, total);
             if (await isQuotePaid(q)) return NextResponse.json({ success: false, message: "This quotation is already paid." }, { status: 409 });
@@ -82,8 +102,16 @@ export async function POST(req: Request) {
                 amount: online * 100,
                 currency: "INR",
                 receipt: quoteReceipt(q),
-                notes: { quote: q.id, customer: q.customer.name, ride: `${q.ride.title} · ${q.ride.date}`, choices: describeSelection(q, sel).slice(0, 250), pax: String(1 + sel.passengers.filter((p) => p.name).length), total: String(total), due: String(atGhat) },
+                notes: {
+                    quote: q.id, customer: q.customer.name, ride: `${q.ride.title} · ${q.ride.date}`,
+                    choices: [describeSelection(q, sel), siteCode ? `Coupon: ${siteCode}` : ""].filter(Boolean).join(" | ").slice(0, 250),
+                    pax: String(1 + sel.passengers.filter((p) => p.name).length), total: String(total), due: String(atGhat), site_coupon: siteCode,
+                },
             });
+            if (siteCode) {
+                const problem = await reserveSiteCoupon(q, siteCode, order.id);
+                if (problem) return NextResponse.json({ success: false, message: problem }, { status: 409 });
+            }
             return NextResponse.json({ success: true, orderId: order.id, amount: order.amount, keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID });
         }
 
@@ -102,6 +130,7 @@ export async function POST(req: Request) {
             }
             const record = quoteOrderRecord(q, order, payment);
             await Promise.all([
+                order?.notes?.site_coupon ? siteCouponPaid(orderId) : null,
                 notify(q, payment, String(order?.notes?.choices ?? ""), record, Number(order?.notes?.due) || 0),
                 markQuotePaid(q.id, paymentId),
                 syncOrdersToDb([record]).then((r) => r.error && console.error("Quote order not saved to the database:", r.error)),

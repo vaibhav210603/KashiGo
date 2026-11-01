@@ -270,7 +270,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
 
                             <div className="mt-6 max-w-xl mx-auto">
                                 {paid && <PaidStamp />}
-                                {!pdfMode && <QuotePay id={q.id} name={q.customer.name} total={inr(split.online)} paid={paid} due={advance ? inr(split.atGhat) : undefined} />}
+                                {!pdfMode && <QuotePay id={q.id} name={q.customer.name} total={inr(split.online)} paid={paid} due={advance ? inr(split.atGhat) : undefined} codeBox={paid ? undefined : { fullInr: total, advance }} />}
                                 {!paid && (
                                     <div className={`${pdfMode ? "" : "hidden print:block"} rounded-2xl bg-white ring-2 ring-marigold/60 p-5 text-center`}>
                                         <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-night/50">{advance ? `Pay the ${inr(split.online)} advance online · UPI, cards, net banking` : "Pay securely online · UPI, cards, net banking"}</p>
