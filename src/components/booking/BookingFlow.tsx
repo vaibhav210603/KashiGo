@@ -65,30 +65,45 @@ function NoticeNote({ notice, fee, ridePrice, currency, planAhead, onPlanAhead }
 }) {
     if (notice.tier === "planned") {
         return (
-            <p className="mt-4 flex items-start gap-2.5 rounded-2xl bg-[#effaf6] px-4 py-3 text-sm text-night/75">
+            <p className="mb-4 flex items-start gap-2.5 rounded-2xl bg-[#effaf6] px-4 py-3 text-sm text-night/75">
                 <CalendarCheck size={18} className="mt-0.5 shrink-0 text-[#1d7f76]" />
                 <span><b className="text-night">You&apos;re getting our plan-ahead price</b> — the lowest we offer. Thank you for booking early; it lets us give your boatman a properly planned day.</span>
             </p>
         );
     }
     return (
-        <div className="mt-4 rounded-2xl border border-marigold/40 bg-gradient-to-br from-marigold/15 to-transparent p-4">
+        <div className="mb-4 overflow-hidden rounded-2xl border border-marigold/40 bg-gradient-to-br from-marigold/15 to-transparent">
+            <FillingFast />
+            <div className="p-4">
             <p className="flex items-center gap-2 font-semibold text-night">
                 <Clock size={18} className="shrink-0 text-fire" />
-                {notice.tier === "urgent" ? "Short-notice ride" : "Booking for tomorrow"} · +{money(fee, currency)}
+                {notice.tier === "urgent" ? "Short-notice ride" : "Booking for tomorrow"} · +{fee ? money(fee, currency) : `${notice.pct}%`}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-night/70">
-                Our boatmen plan their week in advance. To get you a private boat {notice.tier === "urgent" ? `today or within ${SHORT_NOTICE_HOURS} hours` : "by tomorrow"}, we call one in at short notice — often rearranging his day or an early start — and we pay him fairly for it.
-                That&apos;s all this is: no hidden fees, and the same boat, boatman and guarantee.
+            <p className="mt-1.5 text-sm leading-snug text-night/70">
+                We call a boatman in at short notice and pay him fairly for it — same boat, boatman and guarantee, no hidden fees.
             </p>
-            <p className="mt-2 text-xs text-night/50">Today or within {SHORT_NOTICE_HOURS} hours +{SURGE_PCT.urgent}% · tomorrow +{SURGE_PCT.nextDay}% · 2 or more days ahead: the price on our website.</p>
+            <details className="mt-1 text-xs text-night/55">
+                <summary className="cursor-pointer font-semibold text-night/70">How short-notice pricing works</summary>
+                <p className="mt-1">Our boatmen plan their week ahead. Today or within {SHORT_NOTICE_HOURS} hours +{SURGE_PCT.urgent}% · tomorrow +{SURGE_PCT.nextDay}% · 2 or more days ahead: the regular price on our website.</p>
+            </details>
             {planAhead && (
                 <button type="button" onClick={onPlanAhead}
                     className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-night px-4 text-sm font-semibold text-marigold transition-colors hover:bg-night/85">
-                    <CalendarCheck size={16} /> Flexible? Ride {planAhead.top}, {planAhead.bottom} for {money(ridePrice, currency)}
+                    <CalendarCheck size={16} /> Flexible? Ride {planAhead.top}, {planAhead.bottom}{ridePrice ? ` for ${money(ridePrice, currency)}` : " at the regular price"}
                 </button>
             )}
+            </div>
         </div>
+    );
+}
+
+// Yellow banner for today and tomorrow, the dates that sell out first.
+function FillingFast({ compact = false }: { compact?: boolean }) {
+    return (
+        <span className={`flex items-center justify-center gap-1.5 bg-[#ffd21f] font-bold text-night ${compact ? "rounded-full px-2 py-0.5 text-[9px] uppercase tracking-wide whitespace-nowrap" : "px-4 py-2 text-sm"}`}>
+            <span className="relative flex h-2 w-2"><span className="absolute h-full w-full animate-ping rounded-full bg-ember/70" /><span className="relative h-2 w-2 rounded-full bg-ember" /></span>
+            {compact ? "Filling fast" : "Seats filling up fast"}
+        </span>
     );
 }
 
@@ -142,14 +157,16 @@ export default function BookingFlow() {
     const clock = useSyncExternalStore(subscribeClock, readClock, serverClock);
     const [todayIso, nowMinutes] = clock ? [clock.split("|")[0], Number(clock.split("|")[1])] : ["", 0];
     const dates = useMemo(() => (todayIso ? Array.from({ length: BOOKING_WINDOW_DAYS }, (_, i) => dayLabel(addDaysIso(todayIso, i), i)) : []), [todayIso]);
-    // A date left selected past midnight falls back to the new "today".
-    const selectedDate = date && date >= todayIso ? date : todayIso;
+    // The visitor picks the date first; a date left selected past midnight is cleared, so they pick again.
+    const selectedDate = date && todayIso && date >= todayIso ? date : "";
 
     const selected = RIDES_BY_POPULARITY.find((r) => r.id === ride);
     const ridePrice = ride === "custom" ? BOAT_PRICES_INR.custom : selected ? BOAT_PRICES_INR[selected.id] : 0;
     // Short notice (today / tomorrow) adds a surcharge on the boat — see lib/boatPrices.ts. The server prices it the same way.
     const now = { iso: todayIso, minutes: nowMinutes };
-    const noticeOf = (iso: string, rideId: RideChoice = ride): Notice => (todayIso && rideId ? noticeFor(iso, rideStartMinutes(rideId, customTime), now) : { tier: "planned", pct: 0 });
+    // Before a ride is chosen, a date is priced as for the latest start of the day (today +80%, tomorrow +50%).
+    const noticeOf = (iso: string, rideId: RideChoice = ride): Notice =>
+        !todayIso || !iso ? { tier: "planned", pct: 0 } : noticeFor(iso, rideId ? rideStartMinutes(rideId, customTime) : 23 * 60 + 59, now);
     const rideNotice = noticeOf(selectedDate);
     const noticeFee = ride ? noticeFeeInr(ridePrice, rideNotice.pct) : 0;
     const planAheadIso = todayIso ? addDaysIso(todayIso, 2) : "";
@@ -173,11 +190,26 @@ export default function BookingFlow() {
     const advance = Math.ceil(price / 2);
     const payMode = coversAll ? "credits" : pay;
     const rideLabel = ride === "custom" ? CUSTOM_RIDE.short : selected?.short || "";
+    const priced = Boolean(selectedDate && ride);
     const dateLabel = dates.find((d) => d.iso === selectedDate);
     // Shown live under the date picker as soon as a ride (and custom start time) is chosen.
-    const timeProblem = todayIso && ride && (ride !== "custom" || customTime)
+    const timeProblem = todayIso && selectedDate && ride && (ride !== "custom" || customTime)
         ? bookingTimeProblem(selectedDate, rideStartMinutes(ride, customTime), { iso: todayIso, minutes: nowMinutes })
         : null;
+
+    // Each pick scrolls on to the next step that still needs an answer.
+    const goTo = (id: string) => setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+    const pickDate = (iso: string) => {
+        setDate(iso);
+        setErrors((e) => ({ ...e, date: undefined }));
+        goTo(!ride || (ride === "custom" && !customTime) ? "s-ride" : !ghat ? "s-ghat" : "s-details");
+    };
+    const pickRide = (id: RideChoice) => {
+        setRide(id);
+        setErrors((e) => ({ ...e, ride: undefined }));
+        if (id === "custom") return; // stays here for the start time
+        goTo(!selectedDate ? "s-date" : !ghat ? "s-ghat" : "s-details");
+    };
 
     const applyCode = async () => {
         const c = code.trim().toUpperCase();
@@ -195,12 +227,13 @@ export default function BookingFlow() {
 
     const validate = () => {
         const e: Partial<Record<Field, string>> = {};
+        if (!todayIso) e.date = "Loading dates — one moment.";
+        else if (!selectedDate) e.date = "Pick the date of your ride.";
+        else if (timeProblem) e.date = timeProblem;
         if (!ride) e.ride = "Choose a ride to continue.";
         if (ride === "custom" && !customTime) e.customTime = "Pick a start time for your custom ride.";
         if (ride === "custom" && tripType === "single" && !dest) e.customDest = "Choose where the boat should drop you.";
         if (ride === "custom" && tripType === "single" && dest && dest === ghat) e.customDest = "Pick a drop-off ghat different from where you start.";
-        if (!todayIso) e.date = "Loading dates — one moment.";
-        else if (timeProblem) e.date = timeProblem;
         if (!ghat) e.ghat = "Choose the ghat you'll start from.";
         if (!name.trim()) e.name = "Add the lead passenger's name.";
         if (phone.replace(/\D/g, "").length < 8) e.phone = "Add a phone number so your boatman can reach you.";
@@ -322,13 +355,42 @@ export default function BookingFlow() {
 
     return (
         <div ref={topRef} className="space-y-4">
-            <Section id="s-ride" n={1} title="Choose your ride" error={errors.ride || errors.customTime || errors.customDest}>
+            <Section id="s-date" n={1} title="Pick the date of your ride" error={timeProblem || errors.date}>
+                <div className="rail -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2.5">
+                    {dates.map((d, i) => {
+                        const on = selectedDate === d.iso;
+                        const n = noticeOf(d.iso);
+                        const best = n.tier === "planned";
+                        return (
+                            <button key={d.iso} type="button" onClick={() => pickDate(d.iso)} aria-pressed={on}
+                                className={`relative w-[5.1rem] pt-3 pb-2 rounded-2xl border text-center transition-colors ${on ? "bg-night border-night text-white" : best ? "bg-[#effaf6] border-[#1d7f76]/25 text-night/75 hover:border-[#1d7f76]/60" : "bg-white/60 border-night/15 text-night/75 hover:border-night/40"}`}>
+                                {i < 2 && <span className="absolute -top-2.5 left-1/2 -translate-x-1/2"><FillingFast compact /></span>}
+                                <span className={`block text-xs font-semibold ${on ? "text-marigold" : ""}`}>{d.top}</span>
+                                <span className="block font-display text-lg leading-tight">{d.bottom}</span>
+                                {/* With a ride chosen: that day's price. Before that: how the day is priced. */}
+                                <span className={`mt-1 block text-[11px] font-semibold leading-tight ${best ? (on ? "text-[#7ee0c9]" : "text-[#1d7f76]") : on ? "text-white/60" : "text-night/45"}`}>
+                                    {ride ? money(ridePrice + noticeFeeInr(ridePrice, n.pct), currency) : best ? "Best price" : `+${n.pct}%`}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+                <p className="mt-2 text-xs text-night/50">Prices depend on how far ahead you book — 2 or more days ahead gets the regular price.</p>
+            </Section>
+
+            <Section id="s-ride" n={2} title="Choose your ride" error={errors.ride || errors.customTime || errors.customDest}>
+                {selectedDate && todayIso ? (
+                    <NoticeNote notice={rideNotice} fee={noticeFee} ridePrice={ridePrice} currency={currency}
+                        planAhead={rideNotice.tier === "planned" ? undefined : dates.find((d) => d.iso === planAheadIso)} onPlanAhead={() => setDate(planAheadIso)} />
+                ) : (
+                    <p className="mb-4 rounded-2xl bg-parchment-2/70 px-4 py-3 text-sm text-night/70">Pick your date above to see the price of each ride for that day.</p>
+                )}
                 <div className="grid grid-cols-2 gap-3">
                     {[...RIDES_BY_POPULARITY.map((r) => ({ id: r.id as RideChoice, short: r.short, time: r.time, image: r.image, badge: r.badge, price: BOAT_PRICES_INR[r.id] })),
                     { id: "custom" as RideChoice, short: CUSTOM_RIDE.short, time: "Your time", image: CUSTOM_RIDE.image, badge: undefined, price: BOAT_PRICES_INR.custom }].map((r) => {
                         const on = ride === r.id;
                         return (
-                            <button key={r.id} type="button" onClick={() => { setRide(r.id); setErrors((e) => ({ ...e, ride: undefined })); }}
+                            <button key={r.id} type="button" onClick={() => pickRide(r.id)}
                                 aria-pressed={on}
                                 className={`group relative text-left rounded-2xl overflow-hidden ring-2 transition-all duration-500 ${on ? "ring-fire shadow-[0_16px_40px_-16px_rgba(255,122,26,0.8)]" : "ring-transparent hover:-translate-y-0.5"}`}>
                                 <div className="relative aspect-[4/3]">
@@ -338,7 +400,7 @@ export default function BookingFlow() {
                                     {on && <span className="absolute top-2 right-2 w-7 h-7 rounded-full bg-gradient-to-br from-marigold to-ember text-night inline-flex items-center justify-center"><Check size={16} strokeWidth={3} /></span>}
                                     <div className="absolute bottom-0 inset-x-0 p-3 text-white">
                                         <p className="font-display text-lg leading-tight">{r.short}</p>
-                                        <p className="text-xs text-white/75">{r.time} · <b className="text-marigold">{money(r.price, currency)}</b></p>
+                                        <p className="text-xs text-white/75">{r.time} · <b className="text-marigold">{money(r.price + (selectedDate ? noticeFeeInr(r.price, noticeOf(selectedDate, r.id).pct) : 0), currency)}</b></p>
                                     </div>
                                 </div>
                             </button>
@@ -377,34 +439,11 @@ export default function BookingFlow() {
                 )}
             </Section>
 
-            <Section id="s-date" n={2} title="Pick a date" error={timeProblem || errors.date}>
-                <div className="rail -mx-4 sm:-mx-6 px-4 sm:px-6">
-                    {dates.map((d) => {
-                        const on = selectedDate === d.iso;
-                        const n = noticeOf(d.iso);
-                        const best = n.tier === "planned";
-                        return (
-                            <button key={d.iso} type="button" onClick={() => { setDate(d.iso); setErrors((e) => ({ ...e, date: undefined })); }} aria-pressed={on}
-                                className={`relative w-[5.1rem] pt-2.5 pb-2 rounded-2xl border text-center transition-colors ${on ? "bg-night border-night text-white" : best ? "bg-[#effaf6] border-[#1d7f76]/25 text-night/75 hover:border-[#1d7f76]/60" : "bg-white/60 border-night/15 text-night/75 hover:border-night/40"}`}>
-                                <span className={`block text-xs font-semibold ${on ? "text-marigold" : ""}`}>{d.top}</span>
-                                <span className="block font-display text-lg leading-tight">{d.bottom}</span>
-                                {/* With a ride chosen: that day's price. Before that: how the day is priced. */}
-                                <span className={`mt-1 block text-[11px] font-semibold leading-tight ${best ? (on ? "text-[#7ee0c9]" : "text-[#1d7f76]") : on ? "text-white/60" : "text-night/45"}`}>
-                                    {ride ? money(ridePrice + noticeFeeInr(ridePrice, n.pct), currency) : best ? "Best price" : `+${n.pct}%`}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
-                {ride && todayIso && <NoticeNote notice={rideNotice} fee={noticeFee} ridePrice={ridePrice} currency={currency}
-                    planAhead={dates.find((d) => d.iso === planAheadIso)} onPlanAhead={() => { setDate(planAheadIso); setErrors((e) => ({ ...e, date: undefined })); }} />}
-            </Section>
-
             <Section id="s-ghat" n={3} title="Start from" error={errors.ghat}>
                 <div className="flex flex-wrap gap-2">
                     {GHATS.map((g) => (
                         <button key={g} type="button" className={chip(ghat === g)} aria-pressed={ghat === g}
-                            onClick={() => { setGhat(g); setErrors((e) => ({ ...e, ghat: undefined })); }}>{g.replace(" Ghat", "")}</button>
+                            onClick={() => { setGhat(g); setErrors((e) => ({ ...e, ghat: undefined })); goTo("s-details"); }}>{g.replace(" Ghat", "")}</button>
                     ))}
                 </div>
                 <p className="mt-3 text-xs text-night/50">Not sure? Dashashwamedh is closest to the evening Aarti.</p>
@@ -536,12 +575,12 @@ export default function BookingFlow() {
             <div className="fixed bottom-0 inset-x-0 z-40 bg-night/90 backdrop-blur-xl border-t border-white/10 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
                 <div className="max-w-3xl mx-auto flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs text-white/50 truncate">{rideLabel ? `${rideLabel} · ${dateLabel?.top}` : "Choose a ride"}</p>
+                        <p className="text-xs text-white/50 truncate">{!selectedDate ? "Step 1 · pick a date" : !ride ? `${dateLabel?.top}, ${dateLabel?.bottom} · choose a ride` : `${rideLabel} · ${dateLabel?.top}, ${dateLabel?.bottom}`}</p>
                         <p className="font-display text-2xl text-white">
-                            {(coupon || coinsUsed > 0) && <s className="mr-2 text-sm font-medium text-white/40">{money(listPrice, currency)}</s>}
-                            {price || coversAll ? money(price, currency) : "—"}
+                            {priced && (coupon || coinsUsed > 0) && <s className="mr-2 text-sm font-medium text-white/40">{money(listPrice, currency)}</s>}
+                            {!priced ? <span className="text-base text-white/60">{!selectedDate ? "Pick a date first" : "Choose a ride"}</span> : price || coversAll ? money(price, currency) : "—"}
                         </p>
-                        {(guestFee > 0 || noticeFee > 0) && (
+                        {priced && (guestFee > 0 || noticeFee > 0) && (
                             <p className="text-[11px] text-white/60 truncate">
                                 Ride {money(ridePrice, currency)}
                                 {noticeFee > 0 && <> + short notice {money(noticeFee, currency)}</>}
@@ -549,7 +588,7 @@ export default function BookingFlow() {
                             </p>
                         )}
                         {/* The payment method decides the currency actually charged — say so when it differs from the display. */}
-                        {price > 0 && payMode !== "credits" && (pay === "cod" || (pay === "online_international" ? currency === "inr" : currency === "usd")) && (
+                        {priced && price > 0 && payMode !== "credits" && (pay === "cod" || (pay === "online_international" ? currency === "inr" : currency === "usd")) && (
                             <p className="text-[11px] text-white/50 truncate">
                                 {pay === "online_international" ? `Charged ${money(price, "usd")} via PayPal` : pay === "cod" ? `${inr(advance)} now · ${inr(price - advance)} at the ghat` : `Charged ${inr(price)} via Razorpay`}
                             </p>

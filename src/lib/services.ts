@@ -25,16 +25,6 @@ export const SERVICES: Service[] = [
         badge: "Flagship",
     },
     {
-        id: "vip-darshan",
-        name: "VIP Darshan",
-        deva: "दर्शन",
-        tagline: "Kashi Vishwanath and the great temples, without the four-hour queue.",
-        detail: "We book the temple's own Sugam Darshan slot before you arrive, then walk you in: shoes, phone and bag lockers handled, the right gate, the right hour. If a slot closes, you don't pay.",
-        includes: ["Kashi Vishwanath Sugam Darshan", "Kaal Bhairav, Annapurna & Sankat Mochan", "A local escort from your hotel", "Timed to miss the rush"],
-        image: "/temple_boat_bg.png",
-        badge: "Assured",
-    },
-    {
         id: "puja-yajna",
         name: "Puja & Yajna",
         deva: "यज्ञ",
@@ -69,7 +59,7 @@ export const SERVICES: Service[] = [
         deva: "यात्रा",
         tagline: "The whole pilgrimage, curated into one unhurried day.",
         detail: "Sunrise on the river, darshan at Vishwanath, a short puja on the ghat, lunch in the old city, and the aarti from your own boat — every handover arranged, nothing to bargain.",
-        includes: ["Sunrise boat ride", "VIP darshan", "Ganga puja on the ghat", "Aarti from a private boat"],
+        includes: ["Sunrise boat ride", "Kashi Vishwanath darshan", "Ganga puja on the ghat", "Aarti from a private boat"],
         image: "/sunrise.png",
     },
 ];

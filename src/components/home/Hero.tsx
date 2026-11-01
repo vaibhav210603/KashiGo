@@ -161,7 +161,6 @@ export default function Hero() {
                         <p className="mt-5 text-sm text-white/55">
                             Also by KashiGo:{" "}
                             <Link href="/puja" className="text-white/80 underline decoration-marigold/60 underline-offset-4 hover:text-marigold">Puja &amp; Yajna</Link>{" · "}
-                            <Link href="/services#vip-darshan" className="text-white/80 underline decoration-marigold/60 underline-offset-4 hover:text-marigold">VIP darshan</Link>{" · "}
                             <Link href="/services#quiet-kashi" className="text-white/80 underline decoration-marigold/60 underline-offset-4 hover:text-marigold">a crowd-free Kashi</Link>
                         </p>
                     </motion.div>

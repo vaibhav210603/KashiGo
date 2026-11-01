@@ -4,13 +4,13 @@ import { SERVICES } from "@/lib/services";
 import ServicesClient from "./ServicesClient";
 
 export const metadata: Metadata = {
-  title: { absolute: "VIP Darshan, Puja & Private Tours in Varanasi — KashiGo Services" },
+  title: { absolute: "Puja, Trip Planning & Private Tours in Varanasi — KashiGo Services" },
   description:
-    "Beyond the boat: assured VIP darshan at Kashi Vishwanath, puja and yajna by learned acharyas, Varanasi's hidden gems, and a peaceful, crowd-free Kashi — one honest price in writing.",
+    "Beyond the boat: trip planning by a local, puja and yajna by learned acharyas, Varanasi's hidden gems, and a peaceful, crowd-free Kashi — one honest price in writing.",
   alternates: { canonical: "https://kashigo.in/services" },
   openGraph: {
     title: "KashiGo Services — Kashi, beyond the boat",
-    description: "VIP darshan, puja & yajna, hidden gems and a crowd-free Kashi — arranged by a local.",
+    description: "Trip planning, puja & yajna, hidden gems and a crowd-free Kashi — arranged by a local.",
     url: "https://kashigo.in/services",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
   },

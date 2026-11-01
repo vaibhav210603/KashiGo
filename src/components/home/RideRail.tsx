@@ -10,20 +10,14 @@ import { money, useCurrency } from "@/lib/currency";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 
 const cards = [
-    ...RIDES_BY_POPULARITY.map((r) => ({ href: `/book?ride=${r.id}`, name: r.short, time: r.time, summary: r.summary, image: r.image, badge: r.badge, price: boatPrice(r.id), perks: r.perks })),
-    { href: "/book?ride=custom", name: CUSTOM_RIDE.short, time: "Any time", summary: CUSTOM_RIDE.summary, image: CUSTOM_RIDE.image, badge: undefined, price: BOAT_PRICES_INR.custom, perks: undefined },
+    ...RIDES_BY_POPULARITY.map((r) => ({ href: `/book?ride=${r.id}`, name: r.short, time: r.time, summary: r.summary, image: r.image, badge: r.badge, price: boatPrice(r.id), perks: r.perks, featured: r.id === "p5" })),
+    { href: "/book?ride=custom", name: CUSTOM_RIDE.short, time: "Any time", summary: CUSTOM_RIDE.summary, image: CUSTOM_RIDE.image, badge: undefined, price: BOAT_PRICES_INR.custom, perks: undefined, featured: false },
 ];
 
-const SPEED = 28; // px per second — a slow drift, enough to show the strip moves
-const RESUME_AFTER = 4000; // ms of no interaction before drifting again
-
-// A slowly drifting, endlessly looping strip of ride cards. Each card links straight into
-// the booking screen with that ride chosen. Hover, touch or the arrows pause the drift.
+// A looping strip of ride cards that the visitor moves themselves (swipe, drag, wheel or the arrows) — it never
+// scrolls on its own. Each card links straight into the booking screen with that ride chosen.
 export default function RideRail() {
     const railRef = useRef<HTMLDivElement>(null);
-    const pausedUntil = useRef(0);
-    const hovering = useRef(false);
-    const pos = useRef(0);
     const [active, setActive] = useState(0);
     const [currency] = useCurrency();
 
@@ -45,39 +39,22 @@ export default function RideRail() {
         return ((x % w) + w) % w;
     };
 
+    // Work only when the visitor scrolls: keep the position inside the first copy and update the counter.
     useEffect(() => {
         const rail = railRef.current;
         if (!rail) return;
-        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        let raf = 0;
-        let last = performance.now();
-
-        const tick = (now: number) => {
-            const dt = Math.min(now - last, 64);
-            last = now;
-            const idle = !hovering.current && now > pausedUntil.current && !document.hidden;
-            if (idle && !reduce) {
-                pos.current = wrap(pos.current + (SPEED * dt) / 1000);
-                rail.scrollLeft = pos.current;
-            } else {
-                // Follow whatever the visitor scrolled to, and keep it inside the first copy.
-                if (rail.scrollLeft >= setWidth()) rail.scrollLeft = wrap(rail.scrollLeft);
-                pos.current = rail.scrollLeft;
-            }
-            setActive(Math.round(pos.current / cardStep()) % cards.length);
-            raf = requestAnimationFrame(tick);
+        const onScroll = () => {
+            if (rail.scrollLeft >= setWidth()) rail.scrollLeft = wrap(rail.scrollLeft);
+            setActive(Math.round(rail.scrollLeft / cardStep()) % cards.length);
         };
-        raf = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(raf);
+        rail.addEventListener("scroll", onScroll, { passive: true });
+        return () => rail.removeEventListener("scroll", onScroll);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    const pause = () => { pausedUntil.current = performance.now() + RESUME_AFTER; };
 
     const go = (dir: 1 | -1) => {
         const rail = railRef.current;
         if (!rail) return;
-        pause();
         const step = cardStep();
         const w = setWidth();
         // Snap to the nearest card, then move one. Shift by one copy first if the target would leave
@@ -90,10 +67,11 @@ export default function RideRail() {
 
     const renderCard = (c: (typeof cards)[number], copy: boolean, i: number) => (
         <Link key={`${copy ? "b" : "a"}-${c.href}`} href={c.href} aria-hidden={copy || undefined} tabIndex={copy ? -1 : undefined}
-            onFocus={pause}
-            className="group relative shrink-0 w-[78%] sm:w-[44%] md:w-[31%] lg:w-[23.5%] aspect-[3/4.2] overflow-hidden rounded-[1.75rem] bg-night-3 ring-1 ring-white/10 transition-[transform,box-shadow] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 hover:shadow-[0_30px_80px_-20px_rgba(255,122,26,0.55)]">
+            className={`group relative shrink-0 w-[78%] sm:w-[44%] md:w-[31%] lg:w-[23.5%] aspect-[3/4.2] overflow-hidden rounded-[1.75rem] bg-night-3 ${c.featured ? "ring-2 ring-[#e8c158] shadow-[0_0_40px_-8px_rgba(232,193,88,0.55)]" : "ring-1 ring-white/10"} transition-[transform,box-shadow] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 hover:shadow-[0_30px_80px_-20px_rgba(255,122,26,0.55)]`}>
             <Image src={c.image} alt={copy ? "" : `${c.name} — Varanasi boat ride`} fill className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110" sizes="(max-width:768px) 80vw, 25vw" />
             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-night via-night/40 to-night/10 transition-opacity duration-700 group-hover:opacity-90" />
+            {/* The most popular ride gets a gold sheen that sweeps across now and then */}
+            {c.featured && <span aria-hidden className="shine-loop pointer-events-none absolute inset-0 z-10 rounded-[1.75rem]" />}
             {/* Fire rim that lights up on hover */}
             <div aria-hidden className="absolute inset-0 rounded-[1.75rem] opacity-0 ring-1 ring-inset ring-marigold/60 transition-opacity duration-700 group-hover:opacity-100" />
 
@@ -108,7 +86,9 @@ export default function RideRail() {
                 <p className="mt-2 text-sm text-white/65 line-clamp-2 max-h-0 opacity-0 transition-all duration-700 group-hover:max-h-12 group-hover:opacity-100 [@media(hover:none)]:max-h-12 [@media(hover:none)]:opacity-100">{c.summary}</p>
                 {c.perks && (
                     <ul className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] leading-tight text-white/85">
-                        {c.perks.map((p) => <li key={p} className="flex items-start gap-1"><Check size={12} className="mt-px shrink-0 text-marigold" />{p}</li>)}
+                        {/* Three fit the card on a phone; the full list is on the booking screen and the ride page */}
+                        {c.perks.slice(0, 3).map((p) => <li key={p} className="flex items-start gap-1"><Check size={12} className="mt-px shrink-0 text-marigold" />{p}</li>)}
+                        {c.perks.length > 3 && <li className="flex items-start gap-1 font-semibold text-marigold">+{c.perks.length - 3} more privileges</li>}
                     </ul>
                 )}
                 <div className="mt-4 flex items-center justify-between border-t border-white/15 pt-4">
@@ -130,8 +110,8 @@ export default function RideRail() {
                 <div>
                     <Eyebrow className="text-marigold">Private boat · price is for the whole boat</Eyebrow>
                     <h2 className="mt-4 font-display font-light text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-[-0.03em] text-white">
-                        <SplitWords text="The river," />{" "}
-                        <SplitWords text="by the hour." delay={0.15} className="italic" wordClassName={() => "text-fire pr-[0.05em]"} />
+                        <SplitWords text="Explore" />{" "}
+                        <SplitWords text="packages." delay={0.15} className="italic" wordClassName={() => "text-fire pr-[0.05em]"} />
                     </h2>
                     <p className="mt-4 text-sm text-white/50">{cards.length} rides · drag, swipe or use the arrows</p>
                 </div>
@@ -144,9 +124,6 @@ export default function RideRail() {
 
             <div className="relative mt-10 max-w-7xl mx-auto">
                 <div ref={railRef}
-                    onPointerEnter={(e) => { if (e.pointerType === "mouse") hovering.current = true; }}
-                    onPointerLeave={() => { hovering.current = false; }}
-                    onTouchStart={pause} onTouchMove={pause} onWheel={pause}
                     data-lenis-prevent-wheel
                     className="flex gap-5 overflow-x-auto px-4 sm:px-6 pb-8 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_1.5rem,black_calc(100%-4rem),transparent)]">
                     {cards.map((c, i) => renderCard(c, false, i))}

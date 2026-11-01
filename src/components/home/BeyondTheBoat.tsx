@@ -14,12 +14,12 @@ const svc = (id: string) => SERVICES.find((s) => s.id === id)!;
 // The carousel's three experiences, with the Hindi name shown large on each card.
 const CARDS: { s: Service; label: string; href: string; flagship?: boolean }[] = [
     { s: svc("puja-yajna"), label: "यज्ञ और पूजा", href: "/puja" },
-    { s: svc("vip-darshan"), label: "VIP दर्शन", href: "/services#vip-darshan" },
+    { s: svc("hidden-kashi"), label: "काशी के रत्न", href: "/services#hidden-kashi" },
     { s: svc("trip-planner"), label: "यात्रा योजना", href: "#trip-planner", flagship: true },
 ];
 const TRIP = svc("trip-planner");
 const TRIP_ICONS = [Store, PhoneCall, MapPin, ShieldAlert, Crown];
-const MORE = ["kashi-in-a-day", "quiet-kashi", "hidden-kashi"].map(svc);
+const MORE = ["kashi-in-a-day", "quiet-kashi"].map(svc);
 const WA = `https://wa.me/918175966910?text=${encodeURIComponent("Namaste! I'd like KashiGo to plan my Varanasi trip.")}`;
 
 // Tilts toward the pointer, like a card held up to the light.

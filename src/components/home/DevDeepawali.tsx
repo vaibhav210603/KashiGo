@@ -300,6 +300,15 @@ export function DevDeepawaliSection() {
     const [people, setPeople] = useState(2);
     const prices = today ? seatPrices(today, 3) : [];
     const price = prices[0]?.inr ?? 0;
+    // The price card sweeps with a gold sheen once, the first time it scrolls into view.
+    const card = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const el = card.current;
+        if (!el) return;
+        const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { el.classList.add("go"); io.disconnect(); } }, { threshold: 0.4 });
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
 
     return (
         <section id="dev-deepawali" className="relative scroll-mt-16 overflow-hidden bg-gradient-to-b from-night via-[#0a1846] to-[#0c1f58] pt-12 pb-60 sm:pb-72 md:pt-20">
@@ -318,7 +327,7 @@ export function DevDeepawaliSection() {
                     <p className="mt-2 text-center text-xs text-white/55 lg:text-left">Fireworks, the laser show and the lit ghats on Dev Deepawali · film by {FILM.credit}, on YouTube</p>
                 </div>
 
-                <div className="lg:order-3 rounded-2xl border-2 border-[#e8c158] bg-gradient-to-b from-[#12348f] to-[#0a1c52] p-4 sm:p-5 text-white">
+                <div ref={card} className="shine-once relative lg:order-3 rounded-2xl border-2 border-[#e8c158] bg-gradient-to-b from-[#12348f] to-[#0a1c52] p-4 sm:p-5 text-white">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Today&apos;s price</p>
                     <p className="mt-1 font-display text-4xl leading-none" style={{ color: GOLD }}>
                         {price ? inr(price) : " "}<span className="ml-1 whitespace-nowrap font-sans text-sm font-medium text-white/70">per person{price ? usdHint(price, currency) : ""}</span>

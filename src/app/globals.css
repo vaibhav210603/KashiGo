@@ -196,6 +196,18 @@ body {
 /* A diya flame: a teardrop that stretches and settles. */
 @keyframes flame { 0%, 100% { transform: scale(1, 1); } 30% { transform: scale(0.9, 1.12); } 60% { transform: scale(1.06, 0.94); } }
 .flame { border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%; background: radial-gradient(ellipse at 50% 78%, #fff8dc 0%, #ffd060 40%, #ff8a1f 80%); transform-origin: 50% 100%; animation: flame 1.7s ease-in-out infinite; }
+/* Gold sheen sweeping across a card: .shine-once runs a single pass when .go is added (on scroll into view),
+   .shine-loop passes every few seconds. A transform on a pseudo-element, so it costs the phone almost nothing. */
+.shine-once, .shine-loop { overflow: hidden; }
+.shine-once::after, .shine-loop::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 233, 170, 0.55) 48%, rgba(255, 255, 255, 0.75) 50%, rgba(255, 233, 170, 0.55) 52%, transparent 70%);
+  transform: translateX(-130%);
+}
+@keyframes shine-pass { to { transform: translateX(130%); } }
+@keyframes shine-repeat { 0% { transform: translateX(-130%); } 35%, 100% { transform: translateX(130%); } }
+.shine-once.go::after { animation: shine-pass 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.15s 1 both; }
+.shine-loop::after { animation: shine-repeat 4.5s ease-in-out 1s infinite; }
 /* Paused while scrolled out of view (set by the section's IntersectionObserver). */
 .anim-paused, .anim-paused * { animation-play-state: paused !important; }
 
@@ -204,6 +216,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .promo-track, .flicker, .bob, .wave-drift, .wave-drift-slow, .spin-slow, .slow-zoom, .unroll, .glow-pulse, .drift-across, .shimmer, .flame { animation: none; }
+  .shine-once::after, .shine-loop::after { display: none; }
   /* Still: show each review once and let the row scroll by hand. */
   .drift-across { transform: translateX(var(--x, 0)); } /* still: spread out where they'd be mid-drift */
   .reviews-track { animation: none; overflow-x: auto; max-width: 100vw; }
