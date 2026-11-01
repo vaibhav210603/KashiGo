@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
 import DevDeepawaliHero from "@/components/home/DevDeepawaliHero";
+import { DevDeepawaliSection } from "@/components/home/DevDeepawali";
 import RideRail from "@/components/home/RideRail";
 import WhyKashiGo from "@/components/home/WhyKashiGo";
 import GhatMarquee from "@/components/home/GhatMarquee";
 import HowItWorks from "@/components/home/HowItWorks";
 import GoogleReviews from "@/components/home/GoogleReviews";
-import Gallery from "@/components/home/Gallery";
 import ShopShelf from "@/components/home/ShopShelf";
 import CheatSheetSignup from "@/components/home/CheatSheetSignup";
 import BeyondTheBoat from "@/components/home/BeyondTheBoat";
@@ -149,13 +149,13 @@ export default function Home() {
       }} />
       {/* Order: the boat (our USP) → proof it's good → why us → everything else we do in Kashi → how booking works → guides */}
       <DevDeepawaliHero />
+      <DevDeepawaliSection />
       <RideRail />
       <GhatMarquee />
       <GoogleReviews />
       <WhyKashiGo />
       <BeyondTheBoat />
       <HowItWorks />
-      <Gallery />
       <ShopShelf />
       <FAQSection />
       <CheatSheetSignup />

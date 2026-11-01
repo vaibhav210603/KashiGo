@@ -16,6 +16,7 @@ export type RidePage = {
     duration: string;
     iso8601Duration: string;
     startPoint: string;
+    pickup?: boolean; // true: the boat collects guests from their nearest ghat, so startPoint isn't a fixed place
     bestFor: string[];
     intro: string[];
     sections: { heading: string; body: string[] }[];
@@ -101,8 +102,8 @@ export const RIDE_PAGES: RidePage[] = [
         rideId: "p5",
         title: "Ganga Aarti Boat Ride Varanasi — Evening Aarti from the River",
         description:
-            "Watch the evening Ganga Aarti at Dashashwamedh Ghat from a private boat. Front-row river view of all seven priests, fixed price per boat, book online with a local boatman.",
-        h1: "Evening Ganga Aarti Boat Ride (Dashashwamedh Ghat)",
+            "See 7+ evening aartis on different ghats and the whole ghat tour from your own private boat, with front-row views of the Ganga Aarti. Diyas for deep daan, life jackets and photos included. Fixed price per boat, book online with a local boatman.",
+        h1: "Evening Ganga Aarti Boat Ride (7+ Aartis)",
         keywords: [
             "ganga aarti boat ride varanasi",
             "dashashwamedh ghat aarti boat",
@@ -111,15 +112,24 @@ export const RIDE_PAGES: RidePage[] = [
             "best way to watch ganga aarti",
             "kashi aarti boat ride",
         ],
-        duration: "About 1.5 hours (including the 40–50 minute ceremony)",
+        duration: "About 1.5 hours",
         iso8601Duration: "PT1H30M",
-        startPoint: "Dashashwamedh Ghat",
+        startPoint: "Your nearest ghat",
+        pickup: true,
         bestFor: ["Seeing the whole ceremony", "Families", "Anyone who dislikes crowds", "Photography"],
         intro: [
             "Every evening at Dashashwamedh Ghat, seven priests perform a synchronised fire ceremony to the Goddess Ganga — brass lamps, conch shells, incense and chanting for 40 to 50 minutes in front of tens of thousands of people.",
             "From the ghat steps you see the priests' backs. From a boat 30 to 50 metres out, you see all seven at once, the lit ghats behind them and the flames reflected in the river. It's the view in every famous photo of the Aarti.",
+            "Our evening ride doesn't stop at one ghat. On your own private boat, your boatman takes you along the whole riverfront so you see more than seven aartis on different ghats, with the ghat tour on the way.",
         ],
         sections: [
+            {
+                heading: "7+ aartis and the whole ghat tour",
+                body: [
+                    "Aartis are performed at several ghats each evening, not only at Dashashwamedh. Your private boat moves along the river so you see more than seven of them, one after another, along with the full stretch of ghats lit up at dusk.",
+                    "Every booking also comes with 3 diyas for deep daan (floating lamps on the Ganga), life jackets for everyone on board, and memorable photos of your evening. Send us a video review afterwards and we add 300 KashiGo coins to your account — worth ₹300 off your next booking.",
+                ],
+            },
             {
                 heading: "Why watch the Aarti from a boat",
                 body: [
@@ -155,11 +165,11 @@ export const RIDE_PAGES: RidePage[] = [
         faqs: [
             {
                 q: "How much does a Ganga Aarti boat ride cost?",
-                a: "KashiGo's evening Aarti ride at Dashashwamedh is {price} for the whole private boat, not per person — a fixed price booked online, with a local boatman.",
+                a: "KashiGo's evening Aarti ride is {price} for the whole private boat, not per person — a fixed price booked online, with a local boatman. It covers 7+ aartis on different ghats and the ghat tour, plus 3 diyas for deep daan, life jackets and photos of your evening.",
             },
             {
                 q: "What time should I be at the ghat?",
-                a: "Our evening Aarti ride starts at about 6:30 p.m., adjusted to the season's sunset. We'll confirm the exact meeting time after you book.",
+                a: "Our evening Aarti ride starts at about 6:30 p.m., adjusted to the season's sunset, and lasts about 1.5 hours. Your boat picks you up from your nearest ghat — we'll confirm the exact time after you book.",
             },
             {
                 q: "Is the Ganga Aarti better from a boat or the ghat steps?",

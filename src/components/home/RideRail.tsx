@@ -3,15 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, ArrowRight, ArrowUpRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { Eyebrow, SplitWords } from "@/components/motion/primitives";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, boatPrice } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
 import { BOAT_PRICES_INR } from "@/lib/boatPrices";
 
 const cards = [
-    ...RIDES_BY_POPULARITY.map((r) => ({ href: `/book?ride=${r.id}`, name: r.short, time: r.time, summary: r.summary, image: r.image, badge: r.badge, price: boatPrice(r.id) })),
-    { href: "/book?ride=custom", name: CUSTOM_RIDE.short, time: "Any time", summary: CUSTOM_RIDE.summary, image: CUSTOM_RIDE.image, badge: undefined, price: BOAT_PRICES_INR.custom },
+    ...RIDES_BY_POPULARITY.map((r) => ({ href: `/book?ride=${r.id}`, name: r.short, time: r.time, summary: r.summary, image: r.image, badge: r.badge, price: boatPrice(r.id), perks: r.perks })),
+    { href: "/book?ride=custom", name: CUSTOM_RIDE.short, time: "Any time", summary: CUSTOM_RIDE.summary, image: CUSTOM_RIDE.image, badge: undefined, price: BOAT_PRICES_INR.custom, perks: undefined },
 ];
 
 const SPEED = 28; // px per second — a slow drift, enough to show the strip moves
@@ -106,6 +106,11 @@ export default function RideRail() {
                 <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.2em] text-marigold"><Clock size={13} />{c.time}</p>
                 <h3 className="mt-2 font-display text-[1.9rem] leading-[1] text-white tracking-tight">{c.name}</h3>
                 <p className="mt-2 text-sm text-white/65 line-clamp-2 max-h-0 opacity-0 transition-all duration-700 group-hover:max-h-12 group-hover:opacity-100 [@media(hover:none)]:max-h-12 [@media(hover:none)]:opacity-100">{c.summary}</p>
+                {c.perks && (
+                    <ul className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] leading-tight text-white/85">
+                        {c.perks.map((p) => <li key={p} className="flex items-start gap-1"><Check size={12} className="mt-px shrink-0 text-marigold" />{p}</li>)}
+                    </ul>
+                )}
                 <div className="mt-4 flex items-center justify-between border-t border-white/15 pt-4">
                     <p className="text-white"><span className="text-xs text-white/50">from </span><span className="font-display text-2xl">{money(c.price, currency)}</span></p>
                     <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-night transition-all duration-500 group-hover:w-24 group-hover:bg-marigold">

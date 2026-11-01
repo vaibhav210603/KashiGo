@@ -7,7 +7,7 @@ export const BOAT_PRICES_INR = {
     p2: 2599,  // Morning Ganga Aarti
     p3: 2599,  // Day Ghat Tour
     p4: 2599,  // Temple + Boat Tour
-    p5: 2599,  // Dashashwamedh Evening Aarti
+    p5: 3699,  // Evening Aarti — 7+ aartis on different ghats + the full ghat tour, with extra privileges (Nov 2026)
     p6: 2599,  // Sunset Ride
     custom: 3650,
 } as const;

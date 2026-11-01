@@ -10,10 +10,10 @@ import { SplitWords, Magnetic } from "@/components/motion/primitives";
 import Embers from "@/components/motion/Embers";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
-const TRUST = ["Fixed price", "Private boat", "Pay at ghat or online", "Run by a Varanasi local"];
+export const TRUST = ["Fixed price", "Private boat", "Pay at ghat or online", "Run by a Varanasi local"];
 
 // The next ride leaving today in Varanasi time (or tomorrow's first). Client-only to avoid hydration drift.
-function useNextDeparture() {
+export function useNextDeparture() {
     const [state, setState] = useState<{ clock: string; ride: string; time: string } | null>(null);
     useEffect(() => {
         const update = () => {
@@ -31,11 +31,11 @@ function useNextDeparture() {
 }
 
 // A green rubber stamp that slams onto the hero once the headline is in, with an ink ripple on impact.
-export function GuaranteeStamp({ reduce }: { reduce: boolean }) {
+export function GuaranteeStamp({ reduce, className = "relative order-first h-20 w-20 sm:h-24 sm:w-24 shrink-0 lg:absolute lg:right-[6%] lg:top-[-2.5rem] lg:h-40 lg:w-40" }: { reduce: boolean; className?: string }) {
     const at = 1.35;
     return (
         <Link href="/policies#guarantee" aria-label="100% money-back guarantee — read the policy"
-            className="relative order-first h-24 w-24 shrink-0 lg:absolute lg:right-[6%] lg:top-[-2.5rem] lg:h-40 lg:w-40">
+            className={className}>
             {!reduce && (
                 <motion.span aria-hidden className="absolute inset-0 rounded-full border-2 border-emerald-400"
                     initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: [0.9, 1.7], opacity: [0.8, 0] }}

@@ -1,7 +1,8 @@
 import { ArrowUpRight, PenLine } from "lucide-react";
 import { getGoogleReviews, GOOGLE_REVIEWS_URL, GOOGLE_WRITE_REVIEW_URL, type GoogleReview } from "@/lib/googleReviews";
-import { Eyebrow, Reveal, SplitWords } from "@/components/motion/primitives";
+import { Eyebrow, SplitWords } from "@/components/motion/primitives";
 import GoogleG from "@/components/ui/GoogleG";
+import GalleryMedia from "@/components/home/Gallery";
 
 // Stars filled to the exact rating (e.g. 4.7 → four and a bit).
 function Stars({ rating, size = 16 }: { rating: number; size?: number }) {
@@ -47,6 +48,7 @@ function ReviewCard({ r, hidden = false }: { r: GoogleReview; hidden?: boolean }
     );
 }
 
+// Guests in one place: Google reviews, then a tiled gallery of our photos and clips (the video review among them).
 export default async function GoogleReviews() {
     const data = await getGoogleReviews();
 
@@ -67,41 +69,30 @@ export default async function GoogleReviews() {
                         </a>
                     </div>
                 </div>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10"><GalleryMedia /></div>
             </section>
         );
     }
 
-    const drift = data.reviews.length >= 3;
     return (
-        <section aria-labelledby="google-reviews-title" className="relative overflow-hidden bg-parchment-2 py-20 md:py-28">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
-                <div>
-                    <Eyebrow className="text-fire">Reviews from Google</Eyebrow>
-                    <h2 id="google-reviews-title" className="mt-4 font-display font-light text-5xl sm:text-6xl leading-[0.95] tracking-[-0.03em] text-night">
-                        <SplitWords text="Loved by travellers" /> <SplitWords text="on Google." delay={0.15} className="italic" wordClass="text-fire-deep pr-[0.05em]" />
-                    </h2>
-                </div>
-                <Reveal delay={0.1}>
-                    <div className="flex items-center gap-5 rounded-[1.75rem] border border-night/10 bg-[#fffaf0] p-5 pr-7">
-                        <span className="font-display text-6xl leading-none text-night">{data.rating.toFixed(1)}</span>
-                        <div>
-                            <Stars rating={data.rating} size={20} />
-                            <p className="mt-1.5 flex items-center gap-1.5 text-sm text-night/60"><GoogleG size={14} /> {data.count.toLocaleString("en-IN")} Google review{data.count === 1 ? "" : "s"}</p>
-                        </div>
-                    </div>
-                </Reveal>
+        <section aria-labelledby="reviews-title" className="relative overflow-hidden bg-parchment-2 py-16 md:py-28">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                <Eyebrow className="text-fire">Reviews, photos &amp; videos from our guests</Eyebrow>
+                <h2 id="reviews-title" className="mt-4 font-display font-light text-5xl sm:text-6xl leading-[0.95] tracking-[-0.03em] text-night">
+                    <SplitWords text="Real rides," /> <SplitWords text="real guests." delay={0.15} className="italic" wordClass="text-fire-deep pr-[0.05em]" />
+                </h2>
             </div>
 
-            <div className={`mt-12 ${drift ? "group [mask-image:linear-gradient(to_right,transparent,black_4rem,black_calc(100%-4rem),transparent)]" : "max-w-7xl mx-auto px-4 sm:px-6"}`}>
-                {drift ? (
-                    <div className="reviews-track flex w-max gap-5 px-2 group-hover:[animation-play-state:paused]">
-                        {data.reviews.map((r, i) => <ReviewCard key={`a${i}`} r={r} />)}
-                        <span className="reviews-dup contents">{data.reviews.map((r, i) => <ReviewCard key={`b${i}`} r={r} hidden />)}</span>
+            {/* A row people swipe (phones) or scroll (trackpad / shift+wheel) themselves; each card snaps into place. */}
+            <div className="mt-10">
+                <div className="mx-auto max-w-7xl">
+                    <div className="flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 pb-3 sm:scroll-px-6 sm:px-6 [scrollbar-width:thin]">
+                        {data.reviews.map((r, i) => <div key={i} className="flex snap-start"><ReviewCard r={r} /></div>)}
                     </div>
-                ) : (
-                    <div className="flex flex-wrap gap-5">{data.reviews.map((r, i) => <ReviewCard key={i} r={r} />)}</div>
-                )}
+                </div>
             </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10"><GalleryMedia /></div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10 flex flex-wrap gap-3">
                 <a href={data.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-full bg-night px-6 font-medium text-parchment transition-colors hover:bg-fire hover:text-night">

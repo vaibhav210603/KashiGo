@@ -182,12 +182,30 @@ body {
 
 }
 
+/* Dev Deepawali (home). Only transform / opacity / clip-path, so phones animate them on the GPU. */
+@keyframes slow-zoom { from { transform: scale(1.04); } to { transform: scale(1.14); } }
+.slow-zoom { animation: slow-zoom 30s ease-in-out infinite alternate; will-change: transform; }
+@keyframes unroll { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+.unroll { animation: unroll 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
+@keyframes glow-pulse { 0%, 100% { opacity: 0.65; } 50% { opacity: 1; } }
+.glow-pulse { animation: glow-pulse 5s ease-in-out infinite; }
+@keyframes drift-across { from { transform: translateX(-12vw); } to { transform: translateX(112vw); } }
+.drift-across { animation: drift-across 40s linear infinite; will-change: transform; }
+@keyframes shimmer { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.7; } }
+.shimmer { animation: shimmer 3.2s ease-in-out infinite; }
+/* A diya flame: a teardrop that stretches and settles. */
+@keyframes flame { 0%, 100% { transform: scale(1, 1); } 30% { transform: scale(0.9, 1.12); } 60% { transform: scale(1.06, 0.94); } }
+.flame { border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%; background: radial-gradient(ellipse at 50% 78%, #fff8dc 0%, #ffd060 40%, #ff8a1f 80%); transform-origin: 50% 100%; animation: flame 1.7s ease-in-out infinite; }
+/* Paused while scrolled out of view (set by the section's IntersectionObserver). */
+.anim-paused, .anim-paused * { animation-play-state: paused !important; }
+
 /* Google reviews drift: the cards are rendered twice, so -50% loops seamlessly. */
 .reviews-track { animation: promo-scroll 70s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .promo-track, .flicker, .bob, .wave-drift, .wave-drift-slow, .spin-slow { animation: none; }
+  .promo-track, .flicker, .bob, .wave-drift, .wave-drift-slow, .spin-slow, .slow-zoom, .unroll, .glow-pulse, .drift-across, .shimmer, .flame { animation: none; }
   /* Still: show each review once and let the row scroll by hand. */
+  .drift-across { transform: translateX(var(--x, 0)); } /* still: spread out where they'd be mid-drift */
   .reviews-track { animation: none; overflow-x: auto; max-width: 100vw; }
   .reviews-dup { display: none; }
   .accordion { transition: none; }

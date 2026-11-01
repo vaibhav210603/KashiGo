@@ -3,14 +3,15 @@
 import { BOAT_PRICES_INR, SHORT_NOTICE_HOURS, SURGE_PCT } from "@/lib/boatPrices";
 
 export type BoatRideId = "p1" | "p2" | "p3" | "p4" | "p5" | "p6";
-export type BoatRide = { id: BoatRideId; name: string; short: string; time: string; summary: string; image: string; badge?: string; slot: "Morning" | "Afternoon" | "Evening" };
+// `perks`: extras included with the ride, shown on its card, the booking screen and its page.
+export type BoatRide = { id: BoatRideId; name: string; short: string; time: string; summary: string; image: string; badge?: string; slot: "Morning" | "Afternoon" | "Evening"; perks?: string[] };
 
 export const BOAT_RIDES: BoatRide[] = [
     { id: "p1", name: "Sunrise Boat Ride + Bird Feeding", short: "Sunrise ride", time: "5:30 AM", image: "/sunrise_bg.png", badge: "Best photos", slot: "Morning", summary: "Watch Varanasi wake up from the Ganges — morning rituals along all the main ghats and Siberian gulls in winter." },
     { id: "p2", name: "Morning Ganga Aarti at Assi Ghat", short: "Morning Aarti", time: "6:00 AM", image: "/m_aarti_bg.png", slot: "Morning", summary: "The quieter dawn Aarti (Subah-e-Banaras) at Assi Ghat, seen from the river." },
     { id: "p3", name: "Day Ghat Tour", short: "Day ghat tour", time: "12:00 PM", image: "/day_ghat_bg.png", badge: "Lowest price", slot: "Afternoon", summary: "A daylight ride past the major ghats with the stories behind each one." },
     { id: "p4", name: "Temple + Boat Tour", short: "Temple + boat", time: "2:00 PM", image: "/temple_boat_bg.png", slot: "Afternoon", summary: "Boat ride combined with a walk to the key temples of the old city." },
-    { id: "p5", name: "Evening Ganga Aarti Boat Ride (Dashashwamedh)", short: "Evening Ganga Aarti", time: "6:30 PM", image: "/e_aarti_bg.png", badge: "Most popular", slot: "Evening", summary: "A front-row view of the evening fire ceremony from a boat anchored at Dashashwamedh Ghat." },
+    { id: "p5", name: "Evening Ganga Aarti Boat Ride (7+ Aartis)", short: "Evening Ganga Aarti", time: "6:30 PM", image: "/e_aarti_bg.png", badge: "Most popular", slot: "Evening", summary: "See 7+ aartis on different ghats and the whole ghat tour, on your own private boat — with front-row views of the grand evening fire ceremony.", perks: ["A private boat, just for your group", "3 diyas for deep daan", "Life jackets for everyone", "Memorable photos of your evening", "300 KashiGo coins for a video review"] },
     { id: "p6", name: "Sunset Boat Ride", short: "Sunset ride", time: "5:00 PM", image: "/sunset_bg.png", slot: "Evening", summary: "Golden hour on the Ganges past the old ghats." },
 ];
 

@@ -1,19 +1,26 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Play } from "lucide-react";
-import { Eyebrow, Reveal, SplitWords } from "@/components/motion/primitives";
 
-// Real photos and clips from KashiGo rides (public/gallery). Videos are H.264 with faststart, compressed for the web.
-type Item =
-    | { kind: "photo"; src: string; alt: string; caption: string; className: string }
-    | { kind: "clip"; src: string; poster: string; alt: string; caption: string; className: string };
+// Real photos and clips from KashiGo rides (public/gallery), the guests' video review among them.
+// Laid out as uneven tiles (CSS columns, each tile its own shape) rather than a regular grid.
+// Videos are H.264 with faststart, compressed for the web.
+type Tile =
+    | { kind: "photo"; src: string; alt: string; caption: string; aspect: string; position?: string }
+    | { kind: "clip"; src: string; poster: string; alt: string; caption: string; aspect: string }
+    | { kind: "review"; src: string; poster: string; alt: string; caption: string; aspect: string };
 
-const ITEMS: Item[] = [
-    { kind: "photo", src: "/gallery/lit-bajra-night.jpg", alt: "A bajra boat lit with white lights on the Ganga at night", caption: "Our lit bajra, waiting after dark", className: "col-span-2 aspect-[16/9]" },
-    { kind: "clip", src: "/gallery/evening-aarti-group.mp4", poster: "/gallery/evening-aarti-group.jpg", alt: "A group in life jackets filming the ghats from the boat at night", caption: "Evening Aarti ride", className: "row-span-2" },
-    { kind: "photo", src: "/gallery/group-aarti-boat.jpg", alt: "A group of guests in life jackets taking photos from the boat at Dashashwamedh at night", caption: "A pilgrim group at Dashashwamedh", className: "aspect-[4/3]" },
-    { kind: "clip", src: "/gallery/ghats-from-boat.mp4", poster: "/gallery/ghats-from-boat.jpg", alt: "The ghats gliding past from a boat on the Ganga", caption: "The ghats from the water", className: "aspect-[4/3]" },
+// Order matters: columns fill top to bottom, so tall and short tiles alternate to keep the columns even.
+const TILES: Tile[] = [
+    { kind: "review", src: "/gallery/guest-testimonial.mp4", poster: "/gallery/guest-testimonial.jpg", alt: "Video review: a couple talks about their KashiGo boat ride on the ghat", caption: "Video review", aspect: "aspect-[9/15]" },
+    { kind: "photo", src: "/gallery/lit-bajra-night.jpg", alt: "A bajra boat lit with white lights on the Ganga at night", caption: "Our lit bajra after dark", aspect: "aspect-[5/4]" },
+    { kind: "photo", src: "/gallery/guests-on-boat-life-jackets.jpg", alt: "Two guests on a KashiGo boat with life jackets, the ghats behind them", caption: "Life jackets on board", aspect: "aspect-[3/5]" },
+    { kind: "clip", src: "/gallery/ghats-from-boat.mp4", poster: "/gallery/ghats-from-boat.jpg", alt: "The ghats gliding past from a boat on the Ganga", caption: "The ghats from the water", aspect: "aspect-square" },
+    { kind: "photo", src: "/gallery/group-aarti-boat.jpg", alt: "A group of guests in life jackets taking photos from the boat at Dashashwamedh at night", caption: "A pilgrim group at the Aarti", aspect: "aspect-[4/5]" },
+    { kind: "photo", src: "/gallery/ghat-puja-with-pandit.jpg", alt: "Guests sitting with a pandit for a puja on the ghat by the Ganga", caption: "A puja on the ghat", aspect: "aspect-[4/5]", position: "object-[50%_40%]" },
+    { kind: "clip", src: "/gallery/evening-aarti-group.mp4", poster: "/gallery/evening-aarti-group.jpg", alt: "A group in life jackets filming the ghats from the boat at night", caption: "Evening Aarti ride", aspect: "aspect-[3/5]" },
+    { kind: "photo", src: "/gallery/sunset-couple.jpg", alt: "Two guests in life jackets on the boat at sunset over the Ganga", caption: "Sunset on the Ganga", aspect: "aspect-[4/5]", position: "object-[50%_30%]" },
 ];
 
 // Muted loops play only while on screen, so they cost nothing until someone scrolls to them.
@@ -29,51 +36,39 @@ function Clip({ src, poster, alt }: { src: string; poster: string; alt: string }
     return <video ref={ref} src={src} poster={poster} aria-label={alt} muted loop playsInline preload="none" className="absolute inset-0 h-full w-full object-cover" />;
 }
 
-export default function Gallery() {
+// The video review has sound, so it waits for a tap; then it plays in place with its controls.
+function ReviewClip({ src, poster, alt }: { src: string; poster: string; alt: string }) {
+    const [playing, setPlaying] = useState(false);
+    if (playing) return <video src={src} poster={poster} aria-label={alt} controls autoPlay playsInline className="absolute inset-0 h-full w-full object-cover" />;
     return (
-        <section aria-labelledby="gallery-title" className="relative overflow-hidden bg-night py-14 md:py-28 text-parchment">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                <Eyebrow className="text-marigold">From our boats</Eyebrow>
-                <h2 id="gallery-title" className="mt-4 font-display font-light text-5xl sm:text-6xl leading-[0.95] tracking-[-0.03em]">
-                    <SplitWords text="Real rides," /> <SplitWords text="real guests." delay={0.15} className="italic" wordClass="text-marigold pr-[0.05em]" />
-                </h2>
+        <button type="button" onClick={() => setPlaying(true)} aria-label={`Play ${alt}`} className="group/play absolute inset-0">
+            {/* eslint-disable-next-line @next/next/no-img-element -- already compressed JPEG in /public */}
+            <img src={poster} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+            <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-night shadow-lg transition-transform group-active/play:scale-95">
+                <Play size={22} fill="currentColor" className="ml-0.5" />
+            </span>
+        </button>
+    );
+}
 
-                <div className="-mx-4 mt-8 flex snap-x snap-mandatory items-start gap-3 overflow-x-auto scroll-px-4 px-4 [scrollbar-width:none] sm:mx-0 sm:mt-12 sm:grid sm:gap-5 sm:overflow-visible sm:px-0 lg:grid-cols-[minmax(0,22rem)_1fr]">
-                    {/* The guests' own words, on camera — with sound, so it only plays when they press play. */}
-                    <Reveal className="w-[62vw] shrink-0 snap-start sm:w-auto">
-                        <figure className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5">
-                            <div className="relative aspect-[9/16]">
-                                <video src="/gallery/guest-testimonial.mp4" poster="/gallery/guest-testimonial.jpg" controls playsInline preload="none"
-                                    aria-label="Video review: a couple talks about their KashiGo boat ride on the ghat"
-                                    className="absolute inset-0 h-full w-full object-cover" />
-                            </div>
-                            <figcaption className="flex items-center gap-2 px-5 py-4 text-sm text-parchment/70">
-                                <Play size={14} className="text-marigold" /> Video review — guests after their boat ride
-                            </figcaption>
-                        </figure>
-                    </Reveal>
-
-                    <div className="contents sm:grid sm:grid-cols-3 sm:gap-5 sm:auto-rows-[minmax(0,1fr)]">
-                        {ITEMS.map((it, i) => (
-                            <Reveal key={it.src} delay={0.05 * i} className={`group relative w-[62vw] shrink-0 snap-start overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 max-sm:aspect-[9/16] sm:w-auto ${it.className}`}>
-                                {it.kind === "photo" ? (
-                                    // eslint-disable-next-line @next/next/no-img-element -- already compressed JPEGs in /public
-                                    <img src={it.src} alt={it.alt} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
-                                ) : (
-                                    <Clip src={it.src} poster={it.poster} alt={it.alt} />
-                                )}
-                                <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-5 pb-4 pt-10 text-sm text-white/90">{it.caption}</span>
-                            </Reveal>
-                        ))}
-                        <Reveal delay={0.25} className="group relative w-[62vw] shrink-0 snap-start overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 max-sm:aspect-[9/16] sm:w-auto sm:col-span-3 sm:aspect-[21/9]">
-                            {/* eslint-disable-next-line @next/next/no-img-element -- already compressed JPEG in /public */}
-                            <img src="/gallery/sunset-couple.jpg" alt="Two guests in life jackets on the boat at sunset over the Ganga" loading="lazy" decoding="async"
-                                className="absolute inset-0 h-full w-full object-cover object-[50%_30%] transition-transform duration-700 group-hover:scale-[1.03]" />
-                            <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-5 pb-4 pt-10 text-sm text-white/90">Sunset on the Ganga</span>
-                        </Reveal>
-                    </div>
-                </div>
-            </div>
-        </section>
+export default function GalleryMedia() {
+    return (
+        <div className="mx-auto max-w-4xl columns-2 gap-3 sm:columns-3 sm:gap-4">
+            {TILES.map((t) => (
+                <figure key={t.src} className={`group relative mb-3 break-inside-avoid overflow-hidden rounded-2xl bg-night sm:mb-4 ${t.aspect}`}>
+                    {t.kind === "photo" ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- already compressed JPEGs in /public
+                        <img src={t.src} alt={t.alt} loading="lazy" decoding="async" className={`absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] ${t.position ?? ""}`} />
+                    ) : t.kind === "clip" ? (
+                        <Clip src={t.src} poster={t.poster} alt={t.alt} />
+                    ) : (
+                        <ReviewClip src={t.src} poster={t.poster} alt={t.alt} />
+                    )}
+                    <figcaption className={`pointer-events-none absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${t.kind === "review" ? "bg-marigold text-night" : "bg-night/60 text-white/90"}`}>
+                        {t.kind === "review" && <Play size={10} fill="currentColor" />}{t.caption}
+                    </figcaption>
+                </figure>
+            ))}
+        </div>
     );
 }

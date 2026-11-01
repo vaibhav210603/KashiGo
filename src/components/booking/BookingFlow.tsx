@@ -346,6 +346,16 @@ export default function BookingFlow() {
                     })}
                 </div>
 
+                {selected?.perks && (
+                    <div className="mt-4 rounded-2xl border border-marigold/40 bg-gradient-to-br from-marigold/15 to-transparent p-4">
+                        <p className="text-sm font-semibold text-night">{selected.summary}</p>
+                        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-fire">Special privileges included</p>
+                        <ul className="mt-2 grid gap-1.5 text-sm text-night/75 sm:grid-cols-2">
+                            {selected.perks.map((p) => <li key={p} className="flex items-start gap-2"><Check size={16} className="mt-0.5 shrink-0 text-[#1d7f76]" />{p}</li>)}
+                        </ul>
+                    </div>
+                )}
+
                 {ride === "custom" && (
                     <div className="mt-4 grid gap-3 rounded-2xl bg-parchment-2/60 p-4">
                         <label className="text-sm font-semibold text-night/75">Start time
