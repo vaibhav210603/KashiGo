@@ -37,7 +37,7 @@ export const BOOKING_PHONE = "+91 81759 66910";
 // Rides happen in Varanasi, so "today" and "too late" are always judged in India time,
 // whatever timezone the visitor's phone is in.
 export const BOOKING_WINDOW_DAYS = 8; // today + the next 7 days
-export const BOOKING_LEAD_MINUTES = 60; // a same-day ride needs this much notice for the boatman
+export const BOOKING_LEAD_MINUTES = 60; // less notice than this on a same-day ride is accepted, but flagged (bookingTimeWarning)
 
 export function istNow(at: Date = new Date()): { iso: string; minutes: number } {
     const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(at);
@@ -74,10 +74,16 @@ export function bookingTimeProblem(dateIso: string, startMinutes: number, now = 
     if (Number.isNaN(startMinutes)) return "Pick a start time for your ride.";
     if (dateIso < now.iso) return "That date has already passed — pick today or a later date.";
     if (dateIso > addDaysIso(now.iso, BOOKING_WINDOW_DAYS - 1)) return `Rides can be booked up to ${BOOKING_WINDOW_DAYS - 1} days ahead — call +91 81759 66910 for later dates.`;
-    if (dateIso === now.iso && startMinutes < now.minutes + BOOKING_LEAD_MINUTES) {
-        return "This ride starts too soon to book for today — pick tomorrow or a later date.";
-    }
     return null;
+}
+
+// A same-day ride starting within the hour (or already started) is still booked — we confirm by phone and
+// refund in full if no boat can be arranged. Shown to the customer and flagged to the owner; never blocks.
+export function bookingTimeWarning(dateIso: string, startMinutes: number, now = istNow()): string | null {
+    if (dateIso !== now.iso || Number.isNaN(startMinutes) || startMinutes >= now.minutes + BOOKING_LEAD_MINUTES) return null;
+    return startMinutes <= now.minutes
+        ? "This ride's usual start time has passed — we'll call you right away to arrange a boat, and refund you in full if we can't."
+        : "This ride starts in under an hour — we'll call you right away to confirm your boat, and refund you in full if we can't make it.";
 }
 
 // How much notice a ride has, and the short-notice surcharge that goes with it (lib/boatPrices.ts).

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Check, Minus, Plus, Wallet, Smartphone, Globe, Tag, Coins, LogOut, CalendarCheck, Clock } from "lucide-react";
 import { BOAT_PRICES_INR, EXTRA_PASSENGER_INR, FREE_PASSENGERS, SHORT_NOTICE_HOURS, SURGE_PCT, noticeFeeInr, passengerFeeInr } from "@/lib/boatPrices";
-import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, rideStartMinutes, noticeFor, BOOKING_WINDOW_DAYS, type Notice } from "@/lib/boatRides";
+import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, bookingTimeWarning, rideStartMinutes, noticeFor, BOOKING_WINDOW_DAYS, type Notice } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
 import { goToThankYou } from "@/lib/thankYou";
 import { money, useCurrency, type Currency } from "@/lib/currency";
@@ -211,6 +211,11 @@ export default function BookingFlow() {
         goTo(!selectedDate ? "s-date" : !ghat ? "s-ghat" : "s-details");
     };
 
+    // Booked anyway when the ride starts within the hour (or has started): we call to confirm, refund if we can't.
+    const lateWarning = todayIso && selectedDate && ride && (ride !== "custom" || customTime)
+        ? bookingTimeWarning(selectedDate, rideStartMinutes(ride, customTime), { iso: todayIso, minutes: nowMinutes })
+        : null;
+
     const applyCode = async () => {
         const c = code.trim().toUpperCase();
         if (!c) return;
@@ -407,6 +412,12 @@ export default function BookingFlow() {
                         );
                     })}
                 </div>
+
+                {lateWarning && (
+                    <p role="status" className="mt-4 flex items-start gap-2.5 rounded-2xl border border-[#ffd21f] bg-[#fff6c8] px-4 py-3 text-sm text-night/80">
+                        <Clock size={18} className="mt-0.5 shrink-0 text-ember" /><span><b className="text-night">Booking for right now?</b> {lateWarning}</span>
+                    </p>
+                )}
 
                 {selected?.perks && (
                     <div className="mt-4 rounded-2xl border border-marigold/40 bg-gradient-to-br from-marigold/15 to-transparent p-4">

@@ -11,7 +11,7 @@ import { getSession } from "@/lib/auth";
 import { finalize, prepareCheckout, refInfo, saveProfile } from "@/lib/checkout";
 import { normalizeEmail } from "@/lib/email";
 import { orderMailParts, type OrderRecord } from "@/lib/orderMail";
-import { BOAT_RIDES, CUSTOM_RIDE, GHATS, bookingTimeProblem, istAt, istNow, noticeFor, rideStartMinutes, toMinutes, inr } from "@/lib/boatRides";
+import { BOAT_RIDES, CUSTOM_RIDE, GHATS, bookingTimeProblem, bookingTimeWarning, istAt, istNow, noticeFor, rideStartMinutes, toMinutes, inr } from "@/lib/boatRides";
 import { rateLimited } from "@/lib/rateLimit";
 
 // Initialize Supabase Client
@@ -52,7 +52,7 @@ type Booking = {
 
 // Rebuilds the booking from the request using only values we recognise; everything shown to
 // the customer or the owner comes from here, never from raw client input.
-function parseBooking(data: any): { booking: Booking; problems: string[] } {
+function parseBooking(data: any): { booking: Booking; problems: string[]; warnings: string[] } {
     const problems: string[] = [];
     const isCustom = data?.experienceType === "custom";
     const ride = isCustom ? null : BOAT_RIDES.find((r) => r.id === data?.packageId);
@@ -71,6 +71,8 @@ function parseBooking(data: any): { booking: Booking; problems: string[] } {
     const rideDate = clean(data?.rideDate, 10);
     const timeProblem = bookingTimeProblem(rideDate, rideStartMinutes(product, customTime));
     if (timeProblem) problems.push(timeProblem);
+    // Accepted, but the owner is told to check a boat can be arranged (and refund if not).
+    const lateNotice = bookingTimeWarning(rideDate, rideStartMinutes(product, customTime));
 
     const p = data?.passengerDetails || {};
     const name = clean(p.name, 80);
@@ -106,6 +108,7 @@ function parseBooking(data: any): { booking: Booking; problems: string[] } {
             paymentRef: paymentMode === "credits" ? "" : clean(data?.razorpayPaymentId, 64),
         },
         problems,
+        warnings: lateNotice ? [`LATE BOOKING — ${lateNotice.replace(/ — we'll.*$/, "")}. Call the customer now; refund if no boat.`] : [],
     };
 }
 
@@ -259,7 +262,7 @@ export async function POST(req: Request) {
     } catch {
         return NextResponse.json({ success: false, message: "Invalid request." }, { status: 400 });
     }
-    const { booking: b, problems } = parseBooking(data);
+    const { booking: b, problems, warnings } = parseBooking(data);
 
     if (b.paymentMode === "cod" && !b.paymentRef) {
         return NextResponse.json({ success: false, message: "Pay-at-the-ghat bookings need a 50% advance online to confirm the boat." }, { status: 400 });
@@ -295,7 +298,7 @@ export async function POST(req: Request) {
     }
     if ((verified.status === "paid" || verified.status === "advance") && verified.ref) await finalize(verified.ref);
     await saveProfile(customerEmail, b.name, b.phone);
-    const notes = [...problems, ...(verified.note ? [verified.note] : [])];
+    const notes = [...warnings, ...problems, ...(verified.note ? [verified.note] : [])];
 
     try {
         const dbError = await saveOrder(b, rideId, verified, notes, customerEmail);
