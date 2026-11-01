@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { getAllPosts } from "@/lib/blog";
 import { RIDE_PAGES } from "@/lib/ridePages";
+import { EXPERTS, expertPath } from "@/lib/experts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://kashigo.in";
@@ -102,6 +103,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date("2026-10-17"),
       changeFrequency: "weekly" as const,
       priority: 0.9,
+    })),
+    ...EXPERTS.map((e) => ({
+      url: `${baseUrl}${expertPath(e)}`,
+      lastModified: new Date("2026-11-01"),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
     })),
     ...blogPosts,
   ];

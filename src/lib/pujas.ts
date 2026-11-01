@@ -179,12 +179,6 @@ export const ACHARYA_BYTES: { name: string; role: string; video: string; poster?
     { name: "Maruti Kinkar Maharaj", role: "Acharya · KashiGo Anushthan", video: "/puja/maruti-kinkar-maharaj.mp4", poster: "/puja/maruti-kinkar-maharaj.jpg" },
 ];
 
-// The acharyas shown as round portraits wherever we offer a consultation (home page and /puja).
-export const ACHARYAS: { name: string; nameDeva: string; role: string; icon: string }[] = [
-    { name: "Ramanuj Das Badri Narayan Upadhyay", nameDeva: "बदरी नारायण उपाध्याय", role: "Senior Acharya", icon: "/puja/badri-narayan-upadhyay-icon.jpg" },
-    { name: "Maruti Kinkar Maharaj", nameDeva: "मारुति किंकर महाराज", role: "Acharya", icon: "/puja/maruti-kinkar-maharaj-icon.jpg" },
-];
-
 // Talking to an acharya: a call is charged by the minute, paid only if the caller is satisfied.
 export const CONSULT_PER_MINUTE_INR = 101;
 export const CONSULT_WHATSAPP = `https://wa.me/918175966910?text=${encodeURIComponent(`Namaste! I'd like to book a call with a KashiGo acharya (₹${CONSULT_PER_MINUTE_INR} per minute).`)}`;

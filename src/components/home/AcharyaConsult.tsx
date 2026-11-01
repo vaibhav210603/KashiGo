@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, CalendarCheck, Clock, Phone, ShieldCheck, Sparkles } from "lucide-react";
 import { FIRE_BTN } from "@/components/ui/styles";
-import { ACHARYAS, CONSULT_PER_MINUTE_INR, CONSULT_WHATSAPP } from "@/lib/pujas";
+import { CONSULT_PER_MINUTE_INR, CONSULT_WHATSAPP } from "@/lib/pujas";
+import { EXPERTS, expertPath } from "@/lib/experts";
 import { inr } from "@/lib/boatRides";
 
 const NOTES = [
@@ -10,7 +11,7 @@ const NOTES = [
     { Icon: Sparkles, text: "Remedies start working according to the scale of the problem — from 2 months to 1 year" },
 ];
 
-// Yajna & puja consultations with the acharyas: portraits (no video here), two ways to book, and the terms.
+// Consultations with KashiGo's gurus and experts: portraits that open their profiles (no video here), two ways to book, and the terms.
 // On the home page it sits right after the ride packages and links on to /puja, where the acharyas' videos play.
 export default function AcharyaConsult({ id = "consult", knowMore = false }: { id?: string; knowMore?: boolean }) {
     return (
@@ -24,7 +25,7 @@ export default function AcharyaConsult({ id = "consult", knowMore = false }: { i
                     <h2 className="mt-4 font-display text-4xl font-light leading-[1.02] tracking-[-0.02em] sm:text-5xl">
                         A solution to all your problems — <em className="text-fire">mental, physical and financial.</em>
                     </h2>
-                    <p className="mt-4 text-lg text-white/75">Know more about yourself, with the acharyas of Kashi.</p>
+                    <p className="mt-4 text-lg text-white/75">Know more about yourself — with Kashi&apos;s Vedic gurus and a numerologist.</p>
 
                     <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                         <a href={CONSULT_WHATSAPP} target="_blank" rel="noopener" className={`${FIRE_BTN} h-14 w-full px-7 text-lg sm:w-auto`}>
@@ -48,17 +49,19 @@ export default function AcharyaConsult({ id = "consult", knowMore = false }: { i
                     )}
                 </div>
 
-                {/* The acharyas, as portraits */}
-                <ul className="order-first flex justify-center gap-6 sm:gap-10 lg:order-none">
-                    {ACHARYAS.map((a) => (
-                        <li key={a.name} className="flex w-36 flex-col items-center text-center sm:w-44">
-                            <span className="relative block rounded-full bg-gradient-to-b from-[#f7dc8c] via-marigold to-[#b8862a] p-[3px] shadow-[0_0_40px_-6px_rgba(255,182,39,0.55)]">
-                                {/* eslint-disable-next-line @next/next/no-img-element -- small square portrait in /public */}
-                                <img src={a.icon} alt={a.name} width={160} height={160} loading="lazy" className="h-28 w-28 rounded-full border-2 border-night object-cover sm:h-36 sm:w-36" />
-                            </span>
-                            <span className="mt-3 font-deva text-lg leading-tight text-marigold">{a.nameDeva}</span>
-                            <span className="mt-0.5 text-xs leading-snug text-white/70">{a.name}</span>
-                            <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">{a.role}</span>
+                {/* The gurus and experts, as portraits — each opens their profile */}
+                <ul className="order-first grid grid-cols-3 gap-2 sm:gap-6 lg:order-none">
+                    {EXPERTS.map((a) => (
+                        <li key={a.slug}>
+                            <Link href={expertPath(a)} className="group flex flex-col items-center text-center">
+                                <span className="relative block rounded-full bg-gradient-to-b from-[#f7dc8c] via-marigold to-[#b8862a] p-[3px] shadow-[0_0_40px_-6px_rgba(255,182,39,0.55)] transition-transform duration-500 group-hover:-translate-y-1">
+                                    {/* eslint-disable-next-line @next/next/no-img-element -- small square portrait in /public */}
+                                    <img src={a.icon} alt={a.name} width={144} height={144} loading="lazy" className="h-[5.5rem] w-[5.5rem] rounded-full border-2 border-night object-cover sm:h-32 sm:w-32" />
+                                </span>
+                                <span className="mt-2.5 rounded-full bg-marigold/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-marigold">{a.title}</span>
+                                <span className="mt-1.5 font-deva text-[15px] leading-tight text-white sm:text-lg">{a.nameDeva.replace(/^रामानुज दास /, "")}</span>
+                                <span className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-semibold text-marigold/90 group-hover:underline">View profile <ArrowRight size={11} /></span>
+                            </Link>
                         </li>
                     ))}
                 </ul>
