@@ -208,6 +208,10 @@ body {
 @keyframes shine-repeat { 0% { transform: translateX(-130%); } 35%, 100% { transform: translateX(130%); } }
 .shine-once.go::after { animation: shine-pass 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.15s 1 both; }
 .shine-loop::after { animation: shine-repeat 4.5s ease-in-out 1s infinite; }
+/* Fireworks: a burst of spark lines that blooms and fades, on a loop. Transform/opacity only. */
+@keyframes burst { 0% { transform: scale(0.08); opacity: 0; } 8% { opacity: 1; } 65% { opacity: 0.85; } 100% { transform: scale(1); opacity: 0; } }
+.burst { animation: burst 2.8s cubic-bezier(0.12, 0.75, 0.3, 1) infinite both; will-change: transform, opacity; }
+.burst > i { position: absolute; left: 50%; bottom: 50%; width: 2px; height: 46%; border-radius: 2px; transform-origin: 50% 100%; }
 /* Paused while scrolled out of view (set by the section's IntersectionObserver). */
 .anim-paused, .anim-paused * { animation-play-state: paused !important; }
 
@@ -215,7 +219,7 @@ body {
 .reviews-track { animation: promo-scroll 70s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .promo-track, .flicker, .bob, .wave-drift, .wave-drift-slow, .spin-slow, .slow-zoom, .unroll, .glow-pulse, .drift-across, .shimmer, .flame { animation: none; }
+  .promo-track, .flicker, .bob, .wave-drift, .wave-drift-slow, .spin-slow, .slow-zoom, .unroll, .glow-pulse, .drift-across, .shimmer, .flame, .burst { animation: none; }
   .shine-once::after, .shine-loop::after { display: none; }
   /* Still: show each review once and let the row scroll by hand. */
   .drift-across { transform: translateX(var(--x, 0)); } /* still: spread out where they'd be mid-drift */

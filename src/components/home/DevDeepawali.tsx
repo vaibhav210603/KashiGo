@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { AlertTriangle, ArrowDown, Minus, Play, Plus, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, ArrowRight, Minus, Play, Plus, TrendingUp } from "lucide-react";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, seatPrices, whatsappLink } from "@/lib/devDeepawali";
+import { DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, seatPrices } from "@/lib/devDeepawali";
 
 // Dev Deepawali on the home page: the invitation card in the hero and the section right after it.
 // Every animation here is a CSS transform / opacity loop (see globals.css), so phones run them on the GPU,
@@ -19,7 +20,7 @@ const useIstToday = () => useSyncExternalStore(subscribe, () => istNow().iso, ()
 const usdHint = (n: number, currency: string) => (currency === "usd" ? ` ≈ ${money(n, "usd").replace(/\.\d+$/, "")}` : "");
 const fmtDay = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" });
 
-function InvitationSeal() {
+export function InvitationSeal() {
     return (
         <span className="inline-flex items-center rounded-md bg-[#d7191f] px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-white shadow-[0_4px_18px_-4px_rgba(215,25,31,0.9)]">
             Invitation
@@ -27,7 +28,7 @@ function InvitationSeal() {
     );
 }
 
-function FillingFast() {
+export function FillingFast() {
     return (
         <span className="inline-flex items-center gap-2 text-sm font-bold text-[#ff7070]">
             <span className="relative flex h-2.5 w-2.5">
@@ -40,7 +41,7 @@ function FillingFast() {
 }
 
 // A clay diya: a static lamp, a flame that flickers and a soft glow — all HTML, all composited.
-function Diya({ size = 28, delay = 0 }: { size?: number; delay?: number }) {
+export function Diya({ size = 28, delay = 0 }: { size?: number; delay?: number }) {
     return (
         <span aria-hidden className="relative inline-block shrink-0" style={{ width: size, height: size * 0.75 }}>
             <span className="flicker absolute rounded-full" style={{ left: -size * 0.45, right: -size * 0.45, top: -size * 0.75, height: size * 1.6, background: "radial-gradient(circle, rgba(255,176,64,0.55) 0%, rgba(255,120,30,0) 65%)", animationDelay: `${delay}s` }} />
@@ -71,7 +72,6 @@ export function InviteCard() {
     const today = useIstToday();
     const [currency] = useCurrency();
     const [now, next] = today ? seatPrices(today, 2) : [];
-    const go = () => document.getElementById("dev-deepawali")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
     return (
         <div className="unroll relative mx-auto w-full max-w-[26rem]">
@@ -112,10 +112,10 @@ export function InviteCard() {
                     )}
                     <div className="mt-3"><FillingFast /></div>
 
-                    <button type="button" onClick={go}
+                    <Link href="/dev-deepawali"
                         className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] text-base font-bold text-[#0a1c52] shadow-[0_8px_24px_-8px_rgba(232,193,88,0.95)]">
-                        Book now <ArrowDown size={16} />
-                    </button>
+                        Book now <ArrowRight size={16} />
+                    </Link>
                 </div>
 
                 {/* A line of diyas along the foot of the scroll */}
@@ -186,7 +186,7 @@ const FLOATERS = [
     { y: 56, size: 15, dur: 48, delay: -40 }, { y: 74, size: 22, dur: 32, delay: -2 },
 ];
 
-function RiverScene() {
+export function RiverScene() {
     const ref = useRef<HTMLDivElement>(null);
     // Stop every loop while the river is off screen.
     useEffect(() => {
@@ -250,7 +250,7 @@ function RiverScene() {
 // Until it's tapped this is just the thumbnail — YouTube's player (several hundred KB) only loads on tap.
 const FILM = { id: "z4SA0ciEoO8", title: "Dev Deepawali Varanasi — cinematic film", credit: "Shrunal Waigankar" };
 
-function FestivalFilm() {
+export function FestivalFilm() {
     const [playing, setPlaying] = useState(false);
     return (
         <div className="relative aspect-video w-full overflow-hidden rounded-2xl border-2 border-[#e8c158] bg-night shadow-[0_24px_60px_-24px_rgba(30,80,220,0.8)]">
@@ -272,7 +272,7 @@ function FestivalFilm() {
     );
 }
 
-function Countdown() {
+export function Countdown() {
     const [left, setLeft] = useState<number | null>(null);
     useEffect(() => {
         const tick = () => setLeft(LIGHTING_AT - Date.now());
@@ -379,11 +379,11 @@ export function DevDeepawaliSection() {
                         )}
                     </div>
 
-                    <a href={whatsappLink(people, price)} target="_blank" rel="noopener"
+                    <Link href={`/dev-deepawali?people=${people}#book`}
                         className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] text-lg font-bold text-[#0a1c52] shadow-[0_10px_30px_-10px_rgba(232,193,88,0.9)]">
-                        Book for {people} {people === 1 ? "person" : "people"}
-                    </a>
-                    <p className="mt-2 text-center text-xs text-white/55">Opens WhatsApp — we confirm your seats and send a secure payment link.</p>
+                        Book for {people} {people === 1 ? "person" : "people"} <ArrowRight size={18} />
+                    </Link>
+                    <p className="mt-2 text-center text-xs text-white/55">Secure online payment — pay in full, or 50% now and 50% at the ghat.</p>
                 </div>
             </div>
         </section>

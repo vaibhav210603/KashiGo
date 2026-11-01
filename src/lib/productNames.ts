@@ -8,5 +8,6 @@ export function productName(id: string | null | undefined): string {
     if (id === "guide") return "Varanasi Insider Guide";
     if (id === "guide-trivia") return "Varanasi Insider Guide (trivia price)";
     if (id === "india-tour") return "India Field Guide";
+    if (id === "dev-deepawali") return "Dev Deepawali seats";
     return BOAT_RIDES.find((r) => r.id === id)?.short ?? findShopProduct(id)?.name ?? id;
 }

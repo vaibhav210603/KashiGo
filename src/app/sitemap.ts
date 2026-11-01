@@ -104,6 +104,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: 0.9,
     })),
+    {
+      url: `${baseUrl}/dev-deepawali`,
+      lastModified: new Date("2026-11-01"),
+      changeFrequency: "daily" as const,
+      priority: 0.9,
+    },
     ...EXPERTS.map((e) => ({
       url: `${baseUrl}${expertPath(e)}`,
       lastModified: new Date("2026-11-01"),

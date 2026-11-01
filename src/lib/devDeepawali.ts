@@ -31,6 +31,24 @@ export function seatPrices(todayIso: string, days = 3) {
         .map((iso) => ({ iso, inr: seatPriceOn(iso) }));
 }
 
+// What every Dev Deepawali seat includes. Boarding ghat and time are confirmed on a call after booking.
+export const AMENITIES: { title: string; detail: string }[] = [
+    { title: "Your seat on a KashiGo boat", detail: "A reserved seat on our shared boat for Dev Deepawali night, in your name." },
+    { title: "Front-row river view", detail: "The lit ghats, the grand aarti and the fireworks over the water — from the Ganga itself." },
+    { title: "Life jackets for everyone", detail: "On board for every passenger, the whole evening." },
+    { title: "A trusted local boatman", detail: "A boatman we work with all year, not a stranger found in the crowd." },
+    { title: "Price fixed, paid online", detail: "Nothing to bargain on the night, and no surprise charges at the ghat." },
+    { title: "100% money-back guarantee", detail: "If we can't give you the ride you booked, you get every rupee back." },
+];
+
+// Pay in full now, or 50% now and the rest to the boatman at the ghat.
+export type DdPay = "full" | "advance";
+export const ddSplit = (total: number, pay: DdPay) => {
+    const online = pay === "advance" ? Math.ceil(total / 2) : total;
+    return { online, atGhat: total - online };
+};
+export const DD_MAX_PEOPLE = 12;
+
 export const WHATSAPP = "918175966910";
 export const whatsappLink = (people: number, priceInr: number) =>
     `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
