@@ -179,5 +179,3 @@ export const ACHARYA_BYTES: { name: string; role: string; video: string; poster?
     { name: "Maruti Kinkar Maharaj", role: "Acharya · KashiGo Anushthan", video: "/puja/maruti-kinkar-maharaj.mp4", poster: "/puja/maruti-kinkar-maharaj.jpg" },
 ];
 
-// Talking to an acharya: a call is charged by the minute, paid only if the caller is satisfied.
-export const CONSULT_PER_MINUTE_INR = 101;

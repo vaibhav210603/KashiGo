@@ -4,8 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, ArrowUpRight, Award, BookOpen, Briefcase, CalendarCheck, Check, Clock, Gem, Hash, Heart, HeartPulse, House, Orbit, Phone, ScrollText, ShieldCheck, Sparkles, Users } from "lucide-react";
 import { FIRE_BTN } from "@/components/ui/styles";
 import { JsonLd } from "@/components/JsonLd";
-import { EXPERTS, consultHref, expertBySlug, expertPath, type Expert, type ExpertiseIcon } from "@/lib/experts";
-import { CONSULT_PER_MINUTE_INR } from "@/lib/pujas";
+import { EXPERTS, consultHref, expertBySlug, expertPath, ratePerMinute, type Expert, type ExpertiseIcon } from "@/lib/experts";
 
 const BASE = "https://kashigo.in";
 
@@ -30,8 +29,8 @@ const EXPERTISE_ICONS: Record<ExpertiseIcon, typeof Heart> = {
     career: Briefcase, health: HeartPulse, family: Users, numerology: Hash,
 };
 
-const TERMS = [
-    { Icon: Clock, text: `Calls are charged ₹${CONSULT_PER_MINUTE_INR} per minute` },
+const terms = (e: Expert) => [
+    { Icon: Clock, text: `Calls are charged ₹${e.perMinuteInr} per minute` },
     { Icon: ShieldCheck, text: "Pay only if satisfied" },
     { Icon: Sparkles, text: "Remedies start working according to the scale of the problem — from 2 months to 1 year" },
 ];
@@ -95,6 +94,7 @@ export default async function ExpertPage({ params }: { params: Promise<{ slug: s
                             </div>
                             <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-marigold via-fire to-ember px-5 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-night shadow-lg">{e.title}</span>
                         </div>
+                        <p className="mt-7 text-center text-lg font-bold text-emerald-400">{ratePerMinute(e)}</p>
                     </div>
 
                     <div className="text-center lg:text-left">
@@ -251,7 +251,7 @@ export default async function ExpertPage({ params }: { params: Promise<{ slug: s
                     <p className="font-deva text-2xl text-marigold">{e.nameDeva}</p>
                     <h2 className="mt-2 font-display text-4xl font-light leading-tight sm:text-5xl">Know more <em className="text-fire">about yourself.</em></h2>
                     <ul className="mx-auto mt-8 grid max-w-xl gap-3 text-left text-white/80">
-                        {TERMS.map(({ Icon, text }) => <li key={text} className="flex items-start gap-3"><Icon size={18} className="mt-0.5 shrink-0 text-marigold" />{text}</li>)}
+                        {terms(e).map(({ Icon, text }) => <li key={text} className="flex items-start gap-3"><Icon size={18} className="mt-0.5 shrink-0 text-marigold" />{text}</li>)}
                     </ul>
                     <div className="mt-9"><Ctas e={e} center /></div>
                 </div>
@@ -270,7 +270,7 @@ export default async function ExpertPage({ params }: { params: Promise<{ slug: s
                                     <span className="min-w-0 flex-1">
                                         <span className="block font-deva text-lg leading-tight text-fire-deep">{o.nameDeva}</span>
                                         <span className="block truncate font-semibold text-night">{o.name}</span>
-                                        <span className="block text-xs uppercase tracking-[0.16em] text-night/50">{o.title}</span>
+                                        <span className="block text-xs uppercase tracking-[0.16em] text-night/50">{o.title} · <span className="font-bold normal-case tracking-normal text-emerald-600">{ratePerMinute(o)}</span></span>
                                     </span>
                                     <ArrowRight size={18} className="shrink-0 text-night/40 transition-transform group-hover:translate-x-1 group-hover:text-fire" />
                                 </Link>

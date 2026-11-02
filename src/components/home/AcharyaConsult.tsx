@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, CalendarCheck, Clock, Phone, ShieldCheck, Sparkles } from "lucide-react";
 import { FIRE_BTN } from "@/components/ui/styles";
-import { CONSULT_PER_MINUTE_INR } from "@/lib/pujas";
-import { EXPERTS, consultHref, expertPath } from "@/lib/experts";
-import { inr } from "@/lib/boatRides";
+import { EXPERTS, consultHref, expertPath, ratePerMinute } from "@/lib/experts";
 
 const NOTES = [
-    { Icon: Clock, text: `Calls are charged ${inr(CONSULT_PER_MINUTE_INR)} per minute` },
+    { Icon: Clock, text: "Calls are charged by the minute — the rate is under each expert" },
     { Icon: ShieldCheck, text: "Pay only if satisfied" },
     { Icon: Sparkles, text: "Remedies start working according to the scale of the problem — from 2 months to 1 year" },
 ];
@@ -69,7 +67,8 @@ function Portraits({ className }: { className: string }) {
                             {/* eslint-disable-next-line @next/next/no-img-element -- small square portrait in /public */}
                             <img src={a.icon} alt={a.name} width={144} height={144} loading="lazy" className="h-[5.5rem] w-[5.5rem] rounded-full border-2 border-night object-cover sm:h-32 sm:w-32" />
                         </span>
-                        <span className="mt-2.5 rounded-full bg-marigold/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-marigold">{a.title}</span>
+                        <span className="mt-2 text-sm font-bold text-emerald-400 sm:text-base">{ratePerMinute(a)}</span>
+                        <span className="mt-1.5 rounded-full bg-marigold/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-marigold">{a.title}</span>
                         <span className="mt-1.5 font-deva text-[15px] leading-tight text-white sm:text-lg">{a.nameDeva.replace(/^रामानुज दास /, "")}</span>
                         <span className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-semibold text-marigold/90 group-hover:underline">View profile <ArrowRight size={11} /></span>
                     </Link>

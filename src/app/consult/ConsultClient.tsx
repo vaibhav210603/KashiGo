@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CalendarCheck, Camera, Check, Clock, Hand, Loader2, Lock, Phone, ShieldCheck, Sparkles, X } from "lucide-react";
-import { EXPERTS } from "@/lib/experts";
-import { CONSULT_PER_MINUTE_INR } from "@/lib/pujas";
+import { EXPERTS, ratePerMinute } from "@/lib/experts";
 import { goToThankYou } from "@/lib/thankYou";
 import { track } from "@/lib/analytics";
 
@@ -79,7 +78,7 @@ export default function ConsultClient() {
             track("generate_lead", { lead_source: `consult_${kind}`, item_id: expert });
             goToThankYou({
                 title: "Request received",
-                message: `We'll call you on ${f.phone} to fix a time with ${chosen.name}.${kind === "call" ? ` Calls are ₹${CONSULT_PER_MINUTE_INR} per minute — pay only if satisfied.` : " Pay only if satisfied."}`,
+                message: `We'll call you on ${f.phone} to fix a time with ${chosen.name}.${kind === "call" ? ` Calls are ₹${chosen.perMinuteInr} per minute — pay only if satisfied.` : " Pay only if satisfied."}`,
                 ref: { label: "Reference", value: r.id },
                 rows: [["With", chosen.name], ["Type", kind === "call" ? "Call" : "Appointment"], ["Email", f.email]],
                 cta: { label: "Back to KashiGo", href: "/" },
@@ -118,7 +117,8 @@ export default function ConsultClient() {
                                             <img src={x.icon} alt="" className="h-16 w-16 rounded-full border-2 border-night object-cover sm:h-20 sm:w-20" />
                                             {on && <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-marigold text-night"><Check size={14} strokeWidth={3} /></span>}
                                         </span>
-                                        <span className="mt-2 font-deva text-sm leading-tight text-white sm:text-base">{x.nameDeva.replace(/^रामानुज दास /, "")}</span>
+                                        <span className="mt-1.5 text-sm font-bold text-emerald-400">{ratePerMinute(x)}</span>
+                                        <span className="mt-1 font-deva text-sm leading-tight text-white sm:text-base">{x.nameDeva.replace(/^रामानुज दास /, "")}</span>
                                         <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-marigold">{x.title}</span>
                                     </button>
                                 </li>
@@ -128,7 +128,7 @@ export default function ConsultClient() {
 
                     {/* What */}
                     <div className="mt-5 grid grid-cols-2 gap-2 sm:gap-3">
-                        {([["call", Phone, "Book a call", `₹${CONSULT_PER_MINUTE_INR} per minute`], ["appointment", CalendarCheck, "Book an appointment", "In person or online"]] as const).map(([id, Icon, title, sub]) => (
+                        {([["call", Phone, "Book a call", `₹${chosen.perMinuteInr} per minute`], ["appointment", CalendarCheck, "Book an appointment", "In person or online"]] as const).map(([id, Icon, title, sub]) => (
                             <button key={id} type="button" onClick={() => setKind(id)} aria-pressed={kind === id}
                                 className={`flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition-colors sm:p-4 ${kind === id ? "border-[#e8c158] bg-[#e8c158]/10" : "border-white/10 bg-white/[0.03] hover:border-white/30"}`}>
                                 <Icon size={20} className="shrink-0 text-marigold" />
@@ -174,7 +174,7 @@ export default function ConsultClient() {
                     )}
 
                     <ul className="mt-8 grid gap-2 rounded-2xl bg-white/[0.04] p-4 text-sm text-white/75">
-                        <li className="flex items-start gap-2"><Clock size={16} className="mt-0.5 shrink-0 text-marigold" />Calls are charged ₹{CONSULT_PER_MINUTE_INR} per minute</li>
+                        <li className="flex items-start gap-2"><Clock size={16} className="mt-0.5 shrink-0 text-marigold" />Calls with {chosen.name.replace(/^Ramanuj Das /, "")} are charged ₹{chosen.perMinuteInr} per minute</li>
                         <li className="flex items-start gap-2"><ShieldCheck size={16} className="mt-0.5 shrink-0 text-marigold" />Pay only if satisfied</li>
                         <li className="flex items-start gap-2"><Sparkles size={16} className="mt-0.5 shrink-0 text-marigold" />Remedies start working according to the scale of the problem — from 2 months to 1 year</li>
                     </ul>

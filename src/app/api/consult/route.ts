@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { newConsultationId, saveConsultation, type Consultation } from "@/lib/consultations";
 import { EXPERTS } from "@/lib/experts";
-import { CONSULT_PER_MINUTE_INR } from "@/lib/pujas";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
 import { rateLimited } from "@/lib/rateLimit";
 
@@ -48,7 +47,7 @@ export async function POST(req: Request) {
         await saveConsultation(c, { bytes, type: palm.type }).catch((e: Error) => { saveError = e.message; console.error("Consultation not saved:", e); });
 
         const owner = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
-        const label = kind === "call" ? `call (₹${CONSULT_PER_MINUTE_INR}/min)` : "appointment";
+        const label = kind === "call" ? `call (₹${expert.perMinuteInr}/min)` : "appointment";
         if (owner) {
             const t = createTransporter();
             await Promise.all([
@@ -71,7 +70,7 @@ export async function POST(req: Request) {
                         heading: `Thank you, ${name.split(" ")[0]}`,
                         paragraphs: [
                             `We've received your request for ${kind === "call" ? "a call" : "an appointment"} with <b>${expert.name}</b> (reference ${c.id}).`,
-                            `We'll call you on <b>${phone.replace(/[<>&]/g, "")}</b> to fix a time.${kind === "call" ? ` Calls are charged ₹${CONSULT_PER_MINUTE_INR} per minute — and you pay only if satisfied.` : " You pay only if satisfied."}`,
+                            `We'll call you on <b>${phone.replace(/[<>&]/g, "")}</b> to fix a time.${kind === "call" ? ` Calls are charged ₹${expert.perMinuteInr} per minute — and you pay only if satisfied.` : " You pay only if satisfied."}`,
                             `Need us sooner? Call or WhatsApp <a href="tel:+918175966910">+91 81759 66910</a>.`,
                         ],
                     }),

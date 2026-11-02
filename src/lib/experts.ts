@@ -23,7 +23,10 @@ export type Expert = {
     book?: { title: string; subtitle: string; cover: string };
     gallery?: { src: string; caption: string }[];
     website?: string;
+    perMinuteInr: number; // call rate, shown in green under the portrait
 };
+
+export const ratePerMinute = (e: Pick<Expert, "perMinuteInr">) => `₹${e.perMinuteInr}/min`;
 
 // Booking a call or an appointment opens the consultation form (/consult) with the expert already chosen.
 export const consultHref = (e: Pick<Expert, "slug"> | null, kind: "call" | "appointment") => `/consult?${e ? `expert=${e.slug}&` : ""}type=${kind}`;
@@ -37,6 +40,7 @@ const VEDIC_EXPERTISE: Expert["expertise"] = [
 export const EXPERTS: Expert[] = [
     {
         slug: "badri-narayan-upadhyay",
+        perMinuteInr: 99,
         name: "Ramanuj Das Badri Narayan Upadhyay",
         nameDeva: "रामानुज दास बदरी नारायण उपाध्याय",
         title: "Vedic Guru",
@@ -52,6 +56,7 @@ export const EXPERTS: Expert[] = [
     },
     {
         slug: "maruti-kinkar-maharaj",
+        perMinuteInr: 99,
         name: "Maruti Kinkar Maharaj",
         nameDeva: "मारुति किंकर महाराज",
         title: "Vedic Guru",
@@ -67,6 +72,7 @@ export const EXPERTS: Expert[] = [
     },
     {
         slug: "vibha-upadhyay",
+        perMinuteInr: 59,
         name: "Vibha Upadhyay",
         nameDeva: "विभा उपाध्याय",
         title: "Numerologist",
