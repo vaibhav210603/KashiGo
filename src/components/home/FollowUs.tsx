@@ -1,4 +1,4 @@
-import { Facebook, Instagram } from "lucide-react";
+import { Coins, Facebook, Instagram } from "lucide-react";
 
 export const INSTAGRAM_URL = "https://www.instagram.com/kashigo_in/";
 export const FACEBOOK_URL = "https://www.facebook.com/p/KashiGo-61595856537213/";
@@ -14,7 +14,11 @@ export default function FollowUs() {
         <section className="bg-night px-4 pb-14 pt-2 text-white sm:px-6 md:pb-20">
             <div className="mx-auto max-w-3xl text-center">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-marigold">Follow KashiGo</p>
-                <p className="mt-2 text-white/70">Daily reels from the ghats, aarti nights and festival updates.</p>
+                <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-marigold/40 bg-marigold/10 px-4 py-2 font-semibold">
+                    <Coins size={18} className="text-marigold" /> Follow and get <span className="text-marigold">100 KashiGo coins</span>
+                </p>
+                <p className="mt-2 text-xs text-white/55">1 KashiGo coin = ₹1</p>
+                <p className="mt-3 text-white/70">Daily reels from the ghats, aarti nights and festival updates.</p>
                 <ul className="mt-6 grid gap-3 sm:grid-cols-2">
                     {LINKS.map(({ href, Icon, name, handle, bg }) => (
                         <li key={name}>
