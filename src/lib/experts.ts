@@ -42,7 +42,7 @@ export const EXPERTS: Expert[] = [
         slug: "badri-narayan-upadhyay",
         perMinuteInr: 99,
         name: "Ramanuj Das Badri Narayan Upadhyay",
-        nameDeva: "रामानुज दास बदरी नारायण उपाध्याय",
+        nameDeva: "रामानुज दास बद्री नारायण उपाध्याय",
         title: "Vedic Guru",
         role: "Senior Acharya · KashiGo Anushthan",
         icon: "/puja/badri-narayan-upadhyay-icon.jpg",

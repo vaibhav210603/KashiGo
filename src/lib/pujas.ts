@@ -159,7 +159,7 @@ export const ACHARYA_WORD = {
     english: "On Deepavali we worship Maa Lakshmi for wealth, prosperity, growth in business and success in life. Tulsidas put it beautifully in the Ramcharitmanas — “Those who serve you, all four fruits of life come easily.” A special Lakshmi puja on Kalratri fulfils the wish for abundance; and when such rites are performed by a learned acharya, the heart's wish is answered.",
     closing: "जय श्रीमन नारायण",
     name: "Ramanuj Das Badri Narayan Upadhyay",
-    nameDeva: "रामानुज दास बदरी नारायण उपाध्याय",
+    nameDeva: "रामानुज दास बद्री नारायण उपाध्याय",
     photo: "/puja/badri-narayan-upadhyay.jpg" as string | null,
     // His spoken message, shown in place of the photo until `until` (IST) — it names the Deepavali date, so it retires after it.
     // Hindi subtitles are burned in; English captions are the .vtt track.
