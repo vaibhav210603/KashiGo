@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
@@ -19,7 +18,12 @@ export default function DevDeepawaliHero() {
             {/* The ghats on Kartik Purnima under the full moon */}
             <div aria-hidden className="absolute inset-0 -z-30 overflow-hidden">
                 <div className="slow-zoom relative h-full w-full">
-                    <Image src="/dev-deepawali/ghats-full-moon.jpg" alt="" fill priority sizes="100vw" className="object-cover object-[35%_60%]" />
+                    {/* Laptops and desktops: a 2560px night view of the lit ghats (Pexels, free licence), so it stays sharp
+                        full screen. Phones and tablets keep the moonlit ghats, which is plenty at that size. */}
+                    <picture>
+                        <source media="(min-width: 1024px)" srcSet="/dev-deepawali/ghats-night-desktop.jpg" />
+                        <img src="/dev-deepawali/ghats-full-moon.jpg" alt="" fetchPriority="high" decoding="async" className="absolute inset-0 h-full w-full object-cover object-[35%_60%] lg:object-[50%_55%]" />
+                    </picture>
                 </div>
             </div>
             <div aria-hidden className="absolute inset-0 -z-20 bg-gradient-to-t from-night via-night/55 to-night/40" />
