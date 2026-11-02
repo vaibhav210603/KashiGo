@@ -1,6 +1,6 @@
 // Public description of KashiGo's boat rides, shared by the homepage, /book,
 // structured data and /llms.txt so every surface (and AI crawler) sees the same facts.
-import { BOAT_PRICES_INR, SHORT_NOTICE_HOURS, SURGE_PCT } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, SURGE_PCT } from "@/lib/boatPrices";
 
 export type BoatRideId = "p1" | "p2" | "p3" | "p4" | "p5" | "p6";
 // `perks`: extras included with the ride, shown on its card, the booking screen and its page.
@@ -87,15 +87,12 @@ export function bookingTimeWarning(dateIso: string, startMinutes: number, now = 
 }
 
 // How much notice a ride has, and the short-notice surcharge that goes with it (lib/boatPrices.ts).
-// "urgent" = the ride is today or starts within 12 hours; "nextDay" = tomorrow; "planned" = 2+ days ahead.
+// "urgent" = the ride is today; "nextDay" = tomorrow; "planned" = 2+ days ahead. Only the India date counts —
+// `startMinutes` is kept so callers needn't change if a time-of-day rule comes back.
 export type Notice = { tier: "urgent" | "nextDay" | "planned"; pct: number };
-export function noticeFor(dateIso: string, startMinutes: number, now = istNow()): Notice {
+export function noticeFor(dateIso: string, _startMinutes: number, now = istNow()): Notice {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso) || dateIso <= now.iso) return { tier: "urgent", pct: SURGE_PCT.urgent };
-    const tomorrow = addDaysIso(now.iso, 1);
-    if (dateIso === tomorrow) {
-        const minutesAway = 24 * 60 + (Number.isNaN(startMinutes) ? 0 : startMinutes) - now.minutes;
-        return minutesAway < SHORT_NOTICE_HOURS * 60 ? { tier: "urgent", pct: SURGE_PCT.urgent } : { tier: "nextDay", pct: SURGE_PCT.nextDay };
-    }
+    if (dateIso === addDaysIso(now.iso, 1)) return { tier: "nextDay", pct: SURGE_PCT.nextDay };
     return { tier: "planned", pct: 0 };
 }
 

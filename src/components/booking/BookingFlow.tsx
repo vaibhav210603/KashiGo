@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import Image from "next/image";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Check, Loader2, Minus, Plus, Wallet, Smartphone, Globe, Tag, Coins, LogOut, CalendarCheck, Clock } from "lucide-react";
-import { BOAT_PRICES_INR, EXTRA_PASSENGER_INR, FREE_PASSENGERS, SHORT_NOTICE_HOURS, SURGE_PCT, noticeFeeInr, passengerFeeInr } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, EXTRA_PASSENGER_INR, FREE_PASSENGERS, SURGE_PCT, noticeFeeInr, passengerFeeInr } from "@/lib/boatPrices";
 import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, bookingTimeWarning, rideStartMinutes, noticeFor, BOOKING_WINDOW_DAYS, type Notice } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
 import { goToThankYou } from "@/lib/thankYou";
@@ -84,7 +84,7 @@ function NoticeNote({ notice, fee, ridePrice, currency, planAhead, onPlanAhead }
             </p>
             <details className="mt-1 text-xs text-night/55">
                 <summary className="cursor-pointer font-semibold text-night/70">How short-notice pricing works</summary>
-                <p className="mt-1">Our boatmen plan their week ahead. Today or within {SHORT_NOTICE_HOURS} hours +{SURGE_PCT.urgent}% · tomorrow +{SURGE_PCT.nextDay}% · 2 or more days ahead: the regular price on our website.</p>
+                <p className="mt-1">Our boatmen plan their week ahead. Today +{SURGE_PCT.urgent}% · tomorrow +{SURGE_PCT.nextDay}% · 2 or more days ahead: the regular price on our website.</p>
             </details>
             {planAhead && (
                 <button type="button" onClick={onPlanAhead}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { BOAT_PRICES_INR, SHORT_NOTICE_HOURS, SURGE_PCT, noticeFeeInr } from "@/lib/boatPrices";
+import { BOAT_PRICES_INR, SURGE_PCT, noticeFeeInr } from "@/lib/boatPrices";
 import { inr } from "@/lib/boatRides";
 
 const faqs = [
@@ -13,7 +13,7 @@ const faqs = [
   },
   {
     q: "Why does a same-day or next-day ride cost more?",
-    a: `Our boatmen plan their week in advance. When you book for today, we call one in at short notice — often rearranging his day or asking for an early start — and we pay him fairly for it. So a ride today or within ${SHORT_NOTICE_HOURS} hours is +${SURGE_PCT.urgent}% (${inr(BOAT_PRICES_INR.p5)} becomes ${inr(BOAT_PRICES_INR.p5 + noticeFeeInr(BOAT_PRICES_INR.p5, SURGE_PCT.urgent))}), and a ride tomorrow is +${SURGE_PCT.nextDay}% (${inr(BOAT_PRICES_INR.p5 + noticeFeeInr(BOAT_PRICES_INR.p5, SURGE_PCT.nextDay))}). Book 2 or more days ahead and you pay the price on our website. It's the same private boat, boatman and money-back guarantee either way, and you always see the exact total before you pay.`,
+    a: `Our boatmen plan their week in advance. When you book for today, we call one in at short notice — often rearranging his day or asking for an early start — and we pay him fairly for it. So a ride today is +${SURGE_PCT.urgent}% (${inr(BOAT_PRICES_INR.p5)} becomes ${inr(BOAT_PRICES_INR.p5 + noticeFeeInr(BOAT_PRICES_INR.p5, SURGE_PCT.urgent))}), and a ride tomorrow is +${SURGE_PCT.nextDay}% (${inr(BOAT_PRICES_INR.p5 + noticeFeeInr(BOAT_PRICES_INR.p5, SURGE_PCT.nextDay))}). Book 2 or more days ahead and you pay the price on our website. It's the same private boat, boatman and money-back guarantee either way, and you always see the exact total before you pay.`,
   },
   {
     q: "How do I book a Varanasi boat ride online?",

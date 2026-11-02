@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import PageHero from "@/components/layout/PageHero";
-import { EXTRA_PASSENGER_INR, FREE_PASSENGERS, SHORT_NOTICE_HOURS, SURGE_PCT } from "@/lib/boatPrices";
+import { EXTRA_PASSENGER_INR, FREE_PASSENGERS, SURGE_PCT } from "@/lib/boatPrices";
 import { inr } from "@/lib/boatRides";
 
 export const metadata: Metadata = {
@@ -25,7 +25,7 @@ const SECTIONS: { id: string; title: string; body: ReactNode[] }[] = [
     id: "short-notice",
     title: "Short-notice bookings",
     body: [
-      `The prices on our website are for rides booked 2 or more days ahead. A ride booked for tomorrow costs ${SURGE_PCT.nextDay}% more on the boat price, and a ride booked for today, or starting within ${SHORT_NOTICE_HOURS} hours, costs ${SURGE_PCT.urgent}% more.`,
+      `The prices on our website are for rides booked 2 or more days ahead. A ride booked for tomorrow costs ${SURGE_PCT.nextDay}% more on the boat price, and a ride booked for today costs ${SURGE_PCT.urgent}% more.`,
       "Our boatmen plan their week in advance. A late booking means calling one in at short notice, and we pay him extra for it. The ride, boat and guarantee are the same; only the price changes.",
       "The extra is on the boat price only. The extra-passenger charge and any discount code work as usual, and the booking screen shows each date's price and your exact total before you pay.",
     ],
