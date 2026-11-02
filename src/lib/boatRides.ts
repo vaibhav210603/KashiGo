@@ -37,6 +37,11 @@ export const BOOKING_PHONE = "+91 81759 66910";
 // Rides happen in Varanasi, so "today" and "too late" are always judged in India time,
 // whatever timezone the visitor's phone is in.
 export const BOOKING_WINDOW_DAYS = 8; // today + the next 7 days
+// Dev Deepawali (Kartik Purnima): that evening only the festival's shared-boat seats are sold, at /dev-deepawali.
+export const DEV_DEEPAWALI_DAY = "2026-11-24";
+export const DEV_DEEPAWALI_PATH = "/dev-deepawali";
+export const DEV_DEEPAWALI_CLOSED = "24 November is Dev Deepawali — that evening only our Dev Deepawali boat runs. Book your seat at kashigo.in/dev-deepawali.";
+
 export const BOOKING_LEAD_MINUTES = 60; // less notice than this on a same-day ride is accepted, but flagged (bookingTimeWarning)
 
 export function istNow(at: Date = new Date()): { iso: string; minutes: number } {
@@ -73,6 +78,7 @@ export function bookingTimeProblem(dateIso: string, startMinutes: number, now = 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso) || Number.isNaN(Date.parse(`${dateIso}T00:00:00Z`)) || addDaysIso(dateIso, 0) !== dateIso) return "Pick a date for your ride.";
     if (Number.isNaN(startMinutes)) return "Pick a start time for your ride.";
     if (dateIso < now.iso) return "That date has already passed — pick today or a later date.";
+    if (dateIso === DEV_DEEPAWALI_DAY) return DEV_DEEPAWALI_CLOSED;
     if (dateIso > addDaysIso(now.iso, BOOKING_WINDOW_DAYS - 1)) return `Rides can be booked up to ${BOOKING_WINDOW_DAYS - 1} days ahead — call +91 81759 66910 for later dates.`;
     return null;
 }

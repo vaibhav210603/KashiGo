@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prepareCheckout } from "@/lib/checkout";
-import { noticeFor, rideStartMinutes } from "@/lib/boatRides";
+import { DEV_DEEPAWALI_CLOSED, DEV_DEEPAWALI_DAY, noticeFor, rideStartMinutes } from "@/lib/boatRides";
+import { isBoatProduct } from "@/lib/pricing";
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET!;
@@ -24,6 +25,7 @@ async function generateAccessToken() {
 export async function POST(req: Request) {
     try {
         const { product, coupon, useCredits, guests, rideDate, customTime } = await req.json();
+        if (isBoatProduct(String(product)) && rideDate === DEV_DEEPAWALI_DAY) return NextResponse.json({ success: false, message: DEV_DEEPAWALI_CLOSED }, { status: 400 });
         // Boat rides booked for today or tomorrow carry the short-notice surcharge (ignored for everything else).
         const notice = noticeFor(String(rideDate ?? ""), rideStartMinutes(String(product), String(customTime ?? "")));
 

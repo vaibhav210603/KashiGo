@@ -1,8 +1,8 @@
 // Dev Deepawali 2026 shared boat ride, shown on the home page (invitation banner + section).
 // Booked on WhatsApp: we confirm the seats and send a payment link (a quotation, see /admin).
-import { addDaysIso } from "@/lib/boatRides";
+import { DEV_DEEPAWALI_DAY, addDaysIso } from "@/lib/boatRides";
 
-export const DEV_DEEPAWALI_DATE = "2026-11-24"; // Kartik Purnima, Tuesday 24 November 2026
+export const DEV_DEEPAWALI_DATE = DEV_DEEPAWALI_DAY; // Kartik Purnima, Tuesday 24 November 2026
 export const DEV_DEEPAWALI_LABEL = "Tue 24 Nov";
 // The ghats are lit from dusk.
 export const LIGHTING_AT = Date.parse("2026-11-24T17:15:00+05:30");

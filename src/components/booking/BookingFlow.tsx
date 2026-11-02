@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Check, Loader2, Minus, Plus, Wallet, Smartphone, Globe, Tag, Coins, LogOut, CalendarCheck, Clock } from "lucide-react";
 import { BOAT_PRICES_INR, EXTRA_PASSENGER_INR, FREE_PASSENGERS, SURGE_PCT, noticeFeeInr, passengerFeeInr } from "@/lib/boatPrices";
-import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, bookingTimeWarning, rideStartMinutes, noticeFor, BOOKING_WINDOW_DAYS, type Notice } from "@/lib/boatRides";
+import { RIDES_BY_POPULARITY, CUSTOM_RIDE, GHATS, BoatRideId, inr, istNow, addDaysIso, bookingTimeProblem, bookingTimeWarning, rideStartMinutes, DEV_DEEPAWALI_DAY, DEV_DEEPAWALI_PATH, noticeFor, BOOKING_WINDOW_DAYS, type Notice } from "@/lib/boatRides";
 import { track } from "@/lib/analytics";
 import { goToThankYou } from "@/lib/thankYou";
 import { money, useCurrency, type Currency } from "@/lib/currency";
@@ -367,6 +368,16 @@ export default function BookingFlow() {
             <Section id="s-date" n={1} title="Pick the date of your ride" error={timeProblem || errors.date}>
                 <div className="rail -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2.5">
                     {dates.map((d, i) => {
+                        // Dev Deepawali: no ordinary rides that evening — the chip opens the festival booking page.
+                        if (d.iso === DEV_DEEPAWALI_DAY) return (
+                            <Link key={d.iso} href={DEV_DEEPAWALI_PATH}
+                                className="relative w-[5.1rem] shrink-0 rounded-2xl border-2 border-[#e8c158] bg-gradient-to-b from-[#12348f] to-[#0a1c52] pb-2 pt-3 text-center text-white shadow-[0_8px_24px_-10px_rgba(40,100,255,0.8)]">
+                                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#d7191f] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide">Dev Diwali</span>
+                                <span className="block text-xs font-semibold text-[#e8c158]">{d.top}</span>
+                                <span className="block font-display text-lg leading-tight">{d.bottom}</span>
+                                <span className="mt-1 block text-[11px] font-semibold leading-tight text-[#f3d27a]">Festival boat →</span>
+                            </Link>
+                        );
                         const on = selectedDate === d.iso;
                         const n = noticeOf(d.iso);
                         const best = n.tier === "planned";
