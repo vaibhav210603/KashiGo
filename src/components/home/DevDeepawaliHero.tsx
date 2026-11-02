@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useReducedMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Phone } from "lucide-react";
 import DiyaRiver from "@/components/motion/DiyaRiver";
 import { GuaranteeStamp } from "@/components/home/Hero";
 import { InviteCard } from "@/components/home/DevDeepawali";
@@ -43,6 +43,9 @@ export default function DevDeepawaliHero() {
                         {/* 100% money-back guarantee, at eye level with the button */}
                         <GuaranteeStamp reduce={reduce} className="relative h-[5.5rem] w-[5.5rem] shrink-0 sm:h-28 sm:w-28" />
                     </div>
+                    <a href="tel:+918175966910" className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full border border-white/30 bg-night/40 px-6 font-semibold text-white backdrop-blur-sm transition-colors hover:border-marigold sm:w-auto">
+                        <Phone size={17} className="text-marigold" /> Call us · +91 81759 66910
+                    </a>
                 </div>
 
                 <InviteCard />

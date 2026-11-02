@@ -3,6 +3,7 @@ import { JsonLd } from "@/components/JsonLd";
 import DevDeepawaliHero from "@/components/home/DevDeepawaliHero";
 import { DevDeepawaliSection } from "@/components/home/DevDeepawali";
 import AcharyaConsult from "@/components/home/AcharyaConsult";
+import FollowUs from "@/components/home/FollowUs";
 import RideRail from "@/components/home/RideRail";
 import WhyKashiGo from "@/components/home/WhyKashiGo";
 import GhatMarquee from "@/components/home/GhatMarquee";
@@ -153,6 +154,7 @@ export default function Home() {
       <DevDeepawaliSection />
       <RideRail />
       <AcharyaConsult knowMore />
+      <FollowUs />
       <GhatMarquee />
       <GoogleReviews />
       <WhyKashiGo />
