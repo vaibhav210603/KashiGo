@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowRight, BadgeIndianRupee, Check, Eye, LifeBuoy, Loader2, Lock, Minus, Play, Plus, ShieldCheck, Ticket, TrendingUp, UserCheck } from "lucide-react";
+import { ArrowDown, ArrowRight, BadgeCheck, BadgeIndianRupee, Check, Eye, LifeBuoy, Loader2, Lock, Minus, Play, Plus, ShieldCheck, Ticket, TrendingUp, UserCheck } from "lucide-react";
 import DiyaRiver from "@/components/motion/DiyaRiver";
 import { Countdown, FestivalFilm, FillingFast, InvitationSeal, RiverScene } from "@/components/home/DevDeepawali";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { AMENITIES, DD_MAX_PEOPLE, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, ddSplit, seatPrices, type DdPay } from "@/lib/devDeepawali";
+import { AMENITIES, BEST_PRICE_LINE, DD_MAX_PEOPLE, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, ddSplit, seatPrices, type DdPay } from "@/lib/devDeepawali";
 import { goToThankYou } from "@/lib/thankYou";
 import { track } from "@/lib/analytics";
 
@@ -67,7 +67,8 @@ export default function DevDeepawaliClient() {
     const [currency] = useCurrency();
     const ladder = today ? seatPrices(today, 5) : [];
     const price = ladder[0]?.inr ?? 0;
-    const tomorrow = ladder[1]?.inr;
+    const tomorrow = ladder[1]?.inDays === 1 ? ladder[1].inr : undefined;
+    const next = ladder[1];
 
     return (
         <div className="w-full bg-night text-white">
@@ -101,7 +102,8 @@ export default function DevDeepawaliClient() {
                             <s className="mr-3 align-middle font-sans text-2xl font-medium text-white/45 decoration-[#ff6b6b] decoration-2">{inr(GHAT_PRICE_INR)}</s>
                             <span style={{ color: GOLD }}>{price ? inr(price) : " "}</span>
                         </p>
-                        {price > 0 && <p className="mt-2 text-xs text-white/70">You save <b className="text-[#7ee0c9]">{inr(GHAT_PRICE_INR - price)}</b> on the ghat price{currency === "usd" ? ` · ≈ ${money(price, "usd").replace(/\.\d+$/, "")}` : ""}</p>}
+                        <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[#7ee0c9]"><BadgeCheck size={15} /> {BEST_PRICE_LINE}</p>
+                        {price > 0 && <p className="mt-1 text-xs text-white/70">You save <b className="text-[#7ee0c9]">{inr(GHAT_PRICE_INR - price)}</b> on the ghat price{currency === "usd" ? ` · ≈ ${money(price, "usd").replace(/\.\d+$/, "")}` : ""}</p>}
                     </div>
 
                     <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -154,8 +156,9 @@ export default function DevDeepawaliClient() {
                                 {price > 0 && <span className="rounded-full bg-[#7ee0c9] px-3 py-1 text-xs font-bold text-night">Save {inr(GHAT_PRICE_INR - price)}</span>}
                             </div>
                             <p className="mt-3 font-display text-6xl" style={{ color: GOLD }}>{price ? inr(price) : " "}</p>
-                            <p className="mt-1 text-sm text-white/70">per person · {tomorrow ? `${inr(tomorrow)} from tomorrow` : "rises daily"}</p>
-                            <ul className="mt-5 flex flex-wrap gap-1.5 text-xs text-white/90">
+                            <p className="mt-1 text-sm text-white/70">per person · {next ? `${inr(next.inr)} from ${next.inDays === 1 ? "tomorrow" : fmtDay(next.iso)}` : "rises every 2 days"}</p>
+                            <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[#7ee0c9]"><BadgeCheck size={15} /> {BEST_PRICE_LINE}</p>
+                            <ul className="mt-4 flex flex-wrap gap-1.5 text-xs text-white/90">
                                 {AMENITIES.map((a) => <li key={a.title} className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1"><Check size={12} className="text-[#7ee0c9]" />{a.short}</li>)}
                             </ul>
                             <button onClick={() => { track("dd_cta", { from: "compare" }); goBook(); }} className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] font-bold text-[#0a1c52]">
@@ -192,13 +195,13 @@ export default function DevDeepawaliClient() {
                 </div>
             </section>
 
-            {/* ── Urgency: the price rises every day ── */}
+            {/* ── Urgency: the price rises every 2 days ── */}
             <section className="py-16 md:py-20">
                 <div className="mx-auto max-w-5xl px-4 sm:px-6">
                     <div className="rounded-[2rem] border-2 bg-gradient-to-br from-[#12348f] via-[#0b2366] to-[#0a1c52] p-6 sm:p-9" style={{ borderColor: GOLD }}>
                         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                             <div>
-                                <p className="flex items-center gap-2 font-semibold text-[#ffc2c2]"><TrendingUp size={18} /> The price rises every day until the festival</p>
+                                <p className="flex items-center gap-2 font-semibold text-[#ffc2c2]"><TrendingUp size={18} /> The price rises ₹200 every 2 days until the festival</p>
                                 <h2 className="mt-2 font-display text-3xl font-light leading-tight sm:text-4xl">Book today, <em style={{ color: GOLD }}>pay today&apos;s price.</em></h2>
                             </div>
                             <div className="rounded-full bg-[#d7191f]/20 px-4 py-2 ring-1 ring-[#ff4d4d]/40"><FillingFast /></div>
@@ -206,7 +209,7 @@ export default function DevDeepawaliClient() {
                         <ol className="mt-7 grid grid-cols-3 gap-2 sm:grid-cols-5">
                             {ladder.map((p, i) => (
                                 <li key={p.iso} className={`rounded-2xl px-2 py-3 text-center ${i === 0 ? "bg-[#e8c158] text-[#0a1c52] shadow-[0_10px_30px_-10px_rgba(232,193,88,0.9)]" : "bg-white/5 text-white/75 ring-1 ring-white/10"} ${i > 2 ? "hidden sm:block" : ""}`}>
-                                    <span className="block text-[11px] font-bold uppercase tracking-wider">{i === 0 ? "Today" : i === 1 ? "Tomorrow" : fmtDay(p.iso)}</span>
+                                    <span className="block text-[11px] font-bold uppercase tracking-wider">{i === 0 ? "Today" : p.inDays === 1 ? "Tomorrow" : fmtDay(p.iso)}</span>
                                     <span className="mt-0.5 block font-display text-xl">{inr(p.inr)}</span>
                                 </li>
                             ))}

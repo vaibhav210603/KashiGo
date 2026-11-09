@@ -2,10 +2,10 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Minus, Play, Plus, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowRight, BadgeCheck, Minus, Play, Plus, TrendingUp } from "lucide-react";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, seatPrices } from "@/lib/devDeepawali";
+import { BEST_PRICE_LINE, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, seatPrices } from "@/lib/devDeepawali";
 
 // Dev Deepawali on the home page: the invitation card in the hero and the section right after it.
 // Every animation here is a CSS transform / opacity loop (see globals.css), so phones run them on the GPU,
@@ -19,6 +19,7 @@ const useIstToday = () => useSyncExternalStore(subscribe, () => istNow().iso, ()
 // The seat is priced in rupees; visitors browsing in $ get a rough conversion next to it.
 const usdHint = (n: number, currency: string) => (currency === "usd" ? ` ≈ ${money(n, "usd").replace(/\.\d+$/, "")}` : "");
 const fmtDay = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" });
+const fromDay = (p: { iso: string; inDays: number }) => (p.inDays === 1 ? "tomorrow" : fmtDay(p.iso));
 
 export function InvitationSeal() {
     return (
@@ -105,9 +106,10 @@ export function InviteCard() {
                         <span className="ml-1.5 font-sans text-sm font-medium text-white/70">/ person{now ? usdHint(now.inr, currency) : ""}</span>
                     </p>
                     <p className="mt-1.5 text-[11px] text-white/55">{inr(GHAT_PRICE_INR)} is what local boatmen charge on the ghat</p>
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#7ee0c9]"><BadgeCheck size={13} /> {BEST_PRICE_LINE}</p>
                     {next && (
                         <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#d7191f]/25 px-3 py-1 text-xs font-semibold text-[#ffc2c2] ring-1 ring-[#ff4d4d]/40">
-                            <TrendingUp size={13} /> {inr(next.inr)} from tomorrow · rises daily
+                            <TrendingUp size={13} /> {inr(next.inr)} from {fromDay(next)} · rises every 2 days
                         </p>
                     )}
                     <div className="mt-3"><FillingFast /></div>
@@ -338,18 +340,19 @@ export function DevDeepawaliSection() {
                     <p className="mt-1.5 text-xs text-white/60">
                         Local boatmen on the ghat charge {inr(GHAT_PRICE_INR)} per person{price ? <> — you save <b className="text-[#7ee0c9]">{inr(GHAT_PRICE_INR - price)}</b> each</> : null}.
                     </p>
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[#7ee0c9]"><BadgeCheck size={15} /> {BEST_PRICE_LINE} — you won&apos;t find this seat cheaper.</p>
 
-                    {/* The price goes up every day — show the next few days so it's plain. */}
+                    {/* The price goes up every 2 days — show the next rises so it's plain. */}
                     <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                         {prices.map((p, i) => (
                             <div key={p.iso} className={`rounded-xl px-1 py-2 ${i === 0 ? "bg-[#e8c158] text-[#0a1c52]" : "bg-white/5 text-white/70 ring-1 ring-white/10"}`}>
-                                <span className="block text-[11px] font-semibold uppercase tracking-wider">{i === 0 ? "Today" : i === 1 ? "Tomorrow" : fmtDay(p.iso)}</span>
+                                <span className="block text-[11px] font-semibold uppercase tracking-wider">{i === 0 ? "Today" : p.inDays === 1 ? "Tomorrow" : fmtDay(p.iso)}</span>
                                 <span className="block font-semibold">{inr(p.inr)}</span>
                             </div>
                         ))}
                     </div>
                     <p className="mt-2 flex items-center gap-1.5 text-xs text-white/65">
-                        <TrendingUp size={14} className="text-[#ff8a8a]" /> The price goes up every day until Dev Deepawali. Book today to lock it in.
+                        <TrendingUp size={14} className="text-[#ff8a8a]" /> The price goes up ₹200 every 2 days until Dev Deepawali. Book today to lock it in.
                     </p>
 
                     <div className="mt-4"><Countdown /></div>

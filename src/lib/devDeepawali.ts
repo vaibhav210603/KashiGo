@@ -7,28 +7,35 @@ export const DEV_DEEPAWALI_LABEL = "Tue 24 Nov";
 // The ghats are lit from dusk.
 export const LIGHTING_AT = Date.parse("2026-11-24T17:15:00+05:30");
 
-// Per-passenger price on a shared boat. It starts at ₹5,499 and rises ₹100 every day until the festival,
+// Per-passenger price on a shared boat. Reset to ₹5,499 on 8 Nov and rises ₹200 every 2 days until the festival,
 // so booking early is always cheapest.
 export const SEAT_PRICE_START_INR = 5499;
 // What local boatmen ask per person on the ghat that night — shown struck through next to our price.
-// Keep it above the last day's price (₹5,499 + 23 days × ₹100 = ₹7,799).
+// Keep it above the last day's price (₹5,499 + 8 rises × ₹200 = ₹7,099).
 export const GHAT_PRICE_INR = 8999;
-export const SEAT_PRICE_FROM = "2026-11-01";
-export const DAILY_HIKE_INR = 100;
+export const SEAT_PRICE_FROM = "2026-11-08";
+export const HIKE_INR = 200;
+export const HIKE_EVERY_DAYS = 2;
+export const BEST_PRICE_LINE = "Best price, guaranteed";
 
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 
 // Seat price on a given India date (YYYY-MM-DD).
 export function seatPriceOn(iso: string): number {
     const last = iso > DEV_DEEPAWALI_DATE ? DEV_DEEPAWALI_DATE : iso;
-    return SEAT_PRICE_START_INR + Math.max(0, daysBetween(SEAT_PRICE_FROM, last)) * DAILY_HIKE_INR;
+    return SEAT_PRICE_START_INR + Math.floor(Math.max(0, daysBetween(SEAT_PRICE_FROM, last)) / HIKE_EVERY_DAYS) * HIKE_INR;
 }
 
-// Today's price and the next few days', for the "price goes up every day" line.
-export function seatPrices(todayIso: string, days = 3) {
-    return Array.from({ length: days }, (_, i) => addDaysIso(todayIso, i))
-        .filter((iso) => iso <= DEV_DEEPAWALI_DATE)
-        .map((iso) => ({ iso, inr: seatPriceOn(iso) }));
+// Today's price, then the next few price rises (each with the date it starts and how many days away that is).
+export function seatPrices(todayIso: string, steps = 3) {
+    const out = [{ iso: todayIso, inDays: 0, inr: seatPriceOn(todayIso) }];
+    for (let d = 1; out.length < steps; d++) {
+        const iso = addDaysIso(todayIso, d);
+        if (iso > DEV_DEEPAWALI_DATE) break;
+        const inr = seatPriceOn(iso);
+        if (inr !== out[out.length - 1].inr) out.push({ iso, inDays: d, inr });
+    }
+    return out;
 }
 
 // What every Dev Deepawali seat includes. Boarding ghat and time are confirmed on a call after booking.
