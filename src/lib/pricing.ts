@@ -71,6 +71,7 @@ export type CouponRule = {
 // Used only if the coupons table isn't there yet (before the migration runs) — the old hard-coded codes.
 export const LEGACY_RULES: CouponRule[] = [
     { code: "WELCOME10", kind: "percent", value: 10, applies_to: ["all"] },
+    { code: "WELCOME20", kind: "percent", value: 20, applies_to: ["all"] },
     { code: "BLISS20", kind: "percent", value: 20, applies_to: ["all"] },
     { code: "LAUNCH40", kind: "percent", value: 40, applies_to: ["shop", "guide"] },
     { code: "INSIDER20", kind: "percent", value: 20, applies_to: ["shop"] },
@@ -78,6 +79,26 @@ export const LEGACY_RULES: CouponRule[] = [
     { code: "EXCLUSIVE20", kind: "percent", value: 20, applies_to: ["guide"] },
     { code: "KASHIGO21", kind: "fixed_price", value: 10, applies_to: ["boat"] },
 ];
+
+// How a booking is paid: everything online now, or 50% online now and 50% at the ghat.
+export type PayPlan = "full" | "advance50";
+
+// Codes that only work with one way of paying: WELCOME10 with 50/50, WELCOME20 with full online payment.
+const PLAN_ONLY: Record<string, PayPlan> = { WELCOME10: "advance50", WELCOME20: "full" };
+const PLAN_MESSAGES: Record<PayPlan, (code: string) => string> = {
+    advance50: (code) => `${code} is for 50/50 payment (50% now, 50% at the ghat). Paying in full online? Use WELCOME20 for 20% off.`,
+    full: (code) => `${code} is for full online payment. Paying 50/50? Use WELCOME10 for 10% off.`,
+};
+
+// Why this code can't be used with this way of paying, or null when it can.
+export function planProblem(code: string | null | undefined, plan: PayPlan): string | null {
+    const c = String(code ?? "").trim().toUpperCase();
+    const only = PLAN_ONLY[c];
+    return only && only !== plan ? PLAN_MESSAGES[only](c) : null;
+}
+
+// Whether this code is one made for this way of paying (e.g. WELCOME10 for 50/50).
+export const isPlanCode = (code: string | null | undefined, plan: PayPlan) => PLAN_ONLY[String(code ?? "").trim().toUpperCase()] === plan;
 
 export const ruleApplies = (rule: CouponRule, product: string) => rule.applies_to.some((s) => scopesFor(product).includes(s));
 

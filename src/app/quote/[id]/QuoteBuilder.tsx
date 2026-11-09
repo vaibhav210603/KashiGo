@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, LifeBuoy, Loader2, Minus, Plus, Tag, Trash2, UserPlus, X } from "lucide-react";
-import { CHILD_FREE_UNDER, CHILD_JACKET_INR, cleanSelection, priceQuote, quoteSplit, siteCouponOff, startSelection, type Quote, type QuoteSelection, type SiteCoupon } from "@/lib/quotes";
+import { CHILD_FREE_UNDER, CHILD_JACKET_INR, cleanSelection, priceQuote, quotePlan, quoteSplit, siteCouponOff, startSelection, type Quote, type QuoteSelection, type SiteCoupon } from "@/lib/quotes";
+import type { PayPlan } from "@/lib/pricing";
 import QuotePay from "./QuotePay";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
@@ -20,8 +21,9 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
     const siteOff = siteCouponOff(priced.total, siteCoupon);
     const lines = siteCoupon ? [...priced.lines, { label: `Coupon ${siteCoupon.code}`, detail: "", amountInr: -siteOff }] : priced.lines;
     const total = priced.total - siteOff;
-    // 50%-advance quotes: half online now, the rest to the boatman at the ghat.
-    const split = quoteSplit(quote, total);
+    // The customer pays in full online, or 50/50: half online now, the rest to the boatman at the ghat.
+    const [plan, setPlan] = useState<PayPlan>(() => quotePlan(quote.payment));
+    const split = quoteSplit(plan, total);
     const missingName = sel.passengers.some((p) => !p.name.trim());
     const locked = readOnly || Boolean(paid);
     const [code, setCode] = useState("");
@@ -37,9 +39,8 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
     }, []);
     const freebies = [b.kidsUnder6 ? "Life jackets for adults" : `Life jackets × ${1 + sel.passengers.length}`, ...(quote.inclusions ?? []).map((f) => f.label)];
 
-    // The quote's own codes first; anything else is checked as a site-wide code.
-    const applyCode = async () => {
-        const c = code.trim().toUpperCase();
+    // The quote's own codes first; anything else is checked as a site-wide code, for the way of paying chosen.
+    const applyCode = async (c = code.trim().toUpperCase(), p = plan) => {
         if (!c || checking) return;
         const hit = b.coupons?.find((x) => x.code === c);
         if (hit) { setSiteCoupon(null); setSel((s) => ({ ...s, coupon: hit.code })); setCodeMsg(`${hit.percentOff}% off applied`); return; }
@@ -47,11 +48,16 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
         setSel((s) => ({ ...s, coupon: "" }));
         setCodeMsg("");
         setChecking(true);
-        const r = await fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "coupon", id: quote.id, code: c }) })
+        const r = await fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "coupon", id: quote.id, code: c, plan: p }) })
             .then((x) => x.json()).catch(() => ({ success: false, message: "Couldn't check the code — try again." }));
         setChecking(false);
         if (r.success) { setSiteCoupon(r.coupon); setCodeMsg("applied"); }
         else { setSiteCoupon(null); setCodeMsg(r.message || "That code isn't valid."); }
+    };
+    // Switching between full and 50/50 checks a site-wide code again (WELCOME10 is 50/50 only, WELCOME20 full only).
+    const choosePlan = (p: PayPlan) => {
+        setPlan(p);
+        if (siteCoupon) applyCode(siteCoupon.code, p);
     };
     const removeCode = () => { setSel((s) => ({ ...s, coupon: "" })); setSiteCoupon(null); setCode(""); setCodeMsg(""); };
     const appliedCode = clean.coupon || siteCoupon?.code || "";
@@ -76,7 +82,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                         <span className="font-heading font-extrabold text-xl tabular-nums">{inr(paid.dueInr)}</span>
                     </div>
                 ) : null}
-                <div className="mt-3"><QuotePay id={quote.id} name={quote.customer.name} total={inr(paid.amountInr)} paid due={paid.dueInr ? inr(paid.dueInr) : undefined} /></div>
+                <div className="mt-3"><QuotePay id={quote.id} name={quote.customer.name} fullInr={paid.amountInr} paid={{ dueInr: paid.dueInr ?? 0 }} /></div>
             </Card>
         );
     }
@@ -252,11 +258,12 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                         <QuotePay
                             id={quote.id}
                             name={quote.customer.name}
-                            total={inr(split.online)}
-                            paid={false}
+                            fullInr={total}
+                            beforeCodeInr={priced.total}
                             selection={clean}
                             siteCoupon={siteCoupon}
-                            due={split.atGhat ? inr(split.atGhat) : undefined}
+                            plan={plan}
+                            onPlan={choosePlan}
                             blocked={missingName ? "Enter a name for every passenger you added (or remove the empty row)." : undefined}
                         />
                     </div>

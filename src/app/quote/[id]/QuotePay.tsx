@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import { CheckCircle2, Loader2, Lock, Printer, Tag, X } from "lucide-react";
-import { siteCouponOff, type QuoteSelection, type SiteCoupon } from "@/lib/quotes";
+import { quoteSplit, siteCouponOff, type QuoteSelection, type SiteCoupon } from "@/lib/quotes";
+import { planProblem, type PayPlan } from "@/lib/pricing";
 import { goToThankYou } from "@/lib/thankYou";
 
-// `due`: on a 50%-advance quote, what's left to pay at the ghat (then `total` is the advance charged now).
-// `siteCoupon`: a site-wide code already applied by the page around it (QuoteBuilder).
-// `codeBox`: fixed-price quotes — show a discount-code box here and re-split the full total when a code applies.
+// Every quotation offers two ways to pay: all online now, or 50% now and 50% at the ghat.
+// `fullInr`: the total after any code applied by the page around it (QuoteBuilder's `siteCoupon`); `beforeCodeInr` without it.
+// `plan` / `onPlan`: the page around it keeps the choice (QuoteBuilder); otherwise it's kept here, starting at `defaultPlan`.
+// `codeBox`: fixed-price quotes — show a discount-code box here and take the code off `fullInr`.
+// `paid`: shows the confirmation instead; `dueInr` is what's left to pay at the ghat on a 50/50 booking.
 type Props = {
-    id: string; name: string; total: string; paid: boolean; selection?: QuoteSelection; blocked?: string; due?: string;
-    siteCoupon?: SiteCoupon | null; codeBox?: { fullInr: number; advance: boolean };
+    id: string; name: string; fullInr: number; beforeCodeInr?: number; paid?: { dueInr: number } | null; selection?: QuoteSelection; blocked?: string;
+    siteCoupon?: SiteCoupon | null; codeBox?: boolean; plan?: PayPlan; onPlan?: (p: PayPlan) => void; defaultPlan?: PayPlan;
 };
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
@@ -27,10 +30,12 @@ const loadRazorpay = () =>
 const post = (body: object) =>
     fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());
 
-export default function QuotePay({ id, name, total: totalLabel, paid: initiallyPaid, selection, blocked, due: dueLabel, siteCoupon, codeBox }: Props) {
+export default function QuotePay({ id, name, fullInr, beforeCodeInr, paid: paidOrder, selection, blocked, siteCoupon, codeBox, plan: shownPlan, onPlan, defaultPlan = "full" }: Props) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
-    const [paymentId] = useState(initiallyPaid ? "received" : "");
+    const [paymentId] = useState(paidOrder ? "received" : "");
+    const [ownPlan, setOwnPlan] = useState<PayPlan>(defaultPlan);
+    const plan = shownPlan ?? ownPlan;
     // Fixed-price quotes: the code box lives here.
     const [ownCoupon, setOwnCoupon] = useState<SiteCoupon | null>(null);
     const [code, setCode] = useState("");
@@ -38,23 +43,33 @@ export default function QuotePay({ id, name, total: totalLabel, paid: initiallyP
     const [codeOpen, setCodeOpen] = useState(false);
     const [checking, setChecking] = useState(false);
     const coupon = siteCoupon ?? ownCoupon;
-    let total = totalLabel, due = dueLabel, off = 0;
-    if (codeBox && ownCoupon) {
-        off = siteCouponOff(codeBox.fullInr, ownCoupon);
-        const after = codeBox.fullInr - off;
-        const online = codeBox.advance ? Math.ceil(after / 2) : after;
-        total = inr(online);
-        due = codeBox.advance ? inr(after - online) : undefined;
-    }
-    const applyCode = async () => {
-        const c = code.trim().toUpperCase();
-        if (!c || checking) return;
+    const off = codeBox ? siteCouponOff(fullInr, ownCoupon) : 0;
+    const split = quoteSplit(plan, fullInr - off);
+    const total = inr(split.online);
+    const due = paidOrder ? (paidOrder.dueInr ? inr(paidOrder.dueInr) : undefined) : split.atGhat ? inr(split.atGhat) : undefined;
+    // What each choice would cost, for the two buttons — without the code on the choice it doesn't work with.
+    const totalFor = (p: PayPlan) => (coupon && planProblem(coupon.code, p) ? beforeCodeInr ?? fullInr : fullInr - off);
+    const fullNow = totalFor("full");
+    const half = quoteSplit("advance50", totalFor("advance50"));
+
+    const check = async (c: string, p: PayPlan) => {
         setCodeMsg("");
         setChecking(true); // feedback the moment Apply is pressed, while the server checks the code
-        const r = await post({ action: "coupon", id, code: c }).catch(() => ({ success: false, message: "Couldn't check the code — try again." }));
+        const r = await post({ action: "coupon", id, code: c, plan: p }).catch(() => ({ success: false, message: "Couldn't check the code — try again." }));
         setChecking(false);
         if (r.success) setOwnCoupon(r.coupon);
-        else { setOwnCoupon(null); setCodeMsg(r.message || "That code isn't valid."); }
+        else { setOwnCoupon(null); setCodeOpen(true); setCodeMsg(r.message || "That code isn't valid."); }
+    };
+    const applyCode = () => {
+        const c = code.trim().toUpperCase();
+        if (c && !checking) check(c, plan);
+    };
+    // Switching between full and 50/50 checks the applied code again (WELCOME10 is 50/50 only, WELCOME20 full only).
+    const choosePlan = (p: PayPlan) => {
+        if (p === plan) return;
+        if (onPlan) onPlan(p);
+        else setOwnPlan(p);
+        if (ownCoupon) check(ownCoupon.code, p);
     };
 
     const pay = async () => {
@@ -62,7 +77,7 @@ export default function QuotePay({ id, name, total: totalLabel, paid: initiallyP
         setBusy(true);
         setError("");
         try {
-            const o = await post({ action: "order", id, selection, siteCoupon: coupon?.code });
+            const o = await post({ action: "order", id, selection, siteCoupon: coupon?.code, plan });
             if (!o.success) throw new Error(o.message);
             await loadRazorpay();
             const rzp = new (window as any).Razorpay({
@@ -119,6 +134,22 @@ export default function QuotePay({ id, name, total: totalLabel, paid: initiallyP
 
     return (
         <div className="print:hidden">
+            <div role="radiogroup" aria-label="How would you like to pay?" className="mb-3 grid grid-cols-2 gap-2">
+                {([
+                    ["full", "Pay in full", `${inr(fullNow)} online now`, "Nothing to pay at the ghat · WELCOME20"],
+                    ["advance50", "50 / 50", `${inr(half.online)} online now`, `${inr(half.atGhat)} at the ghat · WELCOME10`],
+                ] as const).map(([p, title, now, sub]) => (
+                    <button key={p} type="button" role="radio" aria-checked={plan === p} onClick={() => choosePlan(p)}
+                        className={`rounded-xl p-3 text-left ring-1 transition-colors ${plan === p ? "bg-night text-white ring-night" : "bg-white text-night ring-sandstone/60 hover:ring-night/40"}`}>
+                        <span className="flex items-center justify-between gap-2">
+                            <span className="text-sm font-extrabold">{title}</span>
+                            <span className={`h-4 w-4 rounded-full border-2 shrink-0 ${plan === p ? "border-marigold bg-marigold shadow-[inset_0_0_0_2px_#070b18]" : "border-night/25"}`} />
+                        </span>
+                        <span className={`mt-1 block font-heading font-extrabold tabular-nums ${plan === p ? "text-marigold" : "text-fire"}`}>{now}</span>
+                        <span className={`block text-[11px] leading-snug ${plan === p ? "text-white/60" : "text-night/55"}`}>{sub}</span>
+                    </button>
+                ))}
+            </div>
             {codeBox && (
                 <div className="mb-3">
                     {ownCoupon ? (

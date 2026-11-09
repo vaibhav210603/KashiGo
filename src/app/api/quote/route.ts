@@ -7,6 +7,7 @@ import { isQuotePaid, quoteOrderRecord, razorpay as rz } from "@/lib/quotePaymen
 import { orderMailParts, syncOrdersToDb, type OrderRecord } from "@/lib/orderMail";
 import { createTransporter, simpleEmail } from "@/lib/mailer";
 import { rateLimited } from "@/lib/rateLimit";
+import type { PayPlan } from "@/lib/pricing";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const longDate = (iso: string) => new Date(`${iso}T00:00:00+05:30`).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" });
@@ -71,10 +72,12 @@ export async function POST(req: Request) {
         const body = await req.json();
         const q = await getQuote(String(body?.id ?? ""));
         if (!q) return NextResponse.json({ success: false, message: "Quotation not found." }, { status: 404 });
+        // Every quotation can be paid in full online or 50/50 (half now, half at the ghat): the customer picks.
+        const plan: PayPlan = body.plan === "advance50" ? "advance50" : "full";
         if (body.action === "coupon") {
             // Preview a site-wide discount code (the page shows the saving; "order" checks it again before charging).
             if (rateLimited(req, "quote-coupon", 20, 10 * 60 * 1000)) return NextResponse.json({ success: false, message: "Too many attempts. Try again later." }, { status: 429 });
-            const c = await previewSiteCoupon(q, body.code);
+            const c = await previewSiteCoupon(q, body.code, plan);
             return NextResponse.json(c.ok ? { success: true, coupon: c.coupon } : { success: false, message: c.message });
         }
 
@@ -88,13 +91,13 @@ export async function POST(req: Request) {
             if (body.siteCoupon) {
                 if (sel.coupon) return NextResponse.json({ success: false, message: "Only one code can be used per booking." }, { status: 400 });
                 await releaseUnpaidQuoteHolds(q);
-                const c = await checkSiteCoupon(q, body.siteCoupon);
+                const c = await checkSiteCoupon(q, body.siteCoupon, plan);
                 if (!c.ok) return NextResponse.json({ success: false, message: c.message }, { status: 409 });
                 total -= siteCouponOff(total, c.coupon);
                 siteCode = c.coupon.code;
             }
-            // A 50%-advance quote charges half online; the rest is collected at the ghat.
-            const { online, atGhat } = quoteSplit(q, total);
+            // 50/50 charges half online; the rest is collected at the ghat.
+            const { online, atGhat } = quoteSplit(plan, total);
             if (await isQuotePaid(q)) return NextResponse.json({ success: false, message: "This quotation is already paid." }, { status: 409 });
             const order = await rz().orders.create({
                 amount: online * 100,

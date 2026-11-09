@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { AlertTriangle, Backpack, BadgeIndianRupee, CalendarDays, ChevronDown, Clock, Globe, LifeBuoy, MapPin, Phone, ShieldCheck, Sunrise, Users } from "lucide-react";
 import type { PaidOrder } from "@/lib/quotePayments";
-import { CHILD_FREE_UNDER, CHILD_JACKET_INR, quoteSplit, quoteTotal, travellersOf, type Quote } from "@/lib/quotes";
+import { CHILD_FREE_UNDER, CHILD_JACKET_INR, quotePlan, quoteSplit, quoteTotal, travellersOf, type Quote } from "@/lib/quotes";
 import { getQuote } from "@/lib/quoteStore";
 import { paidQuoteOrder } from "@/lib/quotePayments";
 import QuotePay from "./QuotePay";
@@ -68,14 +68,16 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
     if (!q) notFound();
 
     const total = quoteTotal(q);
-    // 50%-advance quotes charge half online; the rest is paid to the boatman at the ghat.
-    const split = quoteSplit(q, total);
-    const advance = split.atGhat > 0;
     const [paidOrder, qr] = await Promise.all([
         paidQuoteOrder(q),
         QRCode.toString(`${SITE}/quote/${q.id}`, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#070b18", light: "#00000000" } }),
     ]);
     const paid = paidOrder !== null;
+    // The customer pays in full online or 50/50 (half now, half to the boatman at the ghat), choosing on the page.
+    // Once paid, the order says which; until then the page offers both.
+    const advance = Boolean(paidOrder?.dueInr);
+    const split = { online: paidOrder?.amountInr ?? total, atGhat: paidOrder?.dueInr ?? 0 };
+    const half = quoteSplit("advance50", total);
     const journeyDate = q.ride.dateLabel ?? fmt(q.ride.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
     const CARRY = carryList(q);
     const CAREFUL = carefulList(q);
@@ -248,8 +250,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                                 </table>
                                 <div className="flex items-center justify-between gap-4 px-5 sm:px-6 py-5 bg-gradient-to-r from-night to-night-3 text-white">
                                     <div>
-                                        <p className="text-[11px] uppercase tracking-[0.25em] text-white/55 font-bold">Total {advance ? "fare" : "payable"}</p>
-                                        <p className="text-xs text-white/50 mt-0.5">{advance ? "50% online now · 50% at the ghat" : "One-time · no cash at the ghat"}</p>
+                                        <p className="text-[11px] uppercase tracking-[0.25em] text-white/55 font-bold">Total {advance || !paid ? "fare" : "payable"}</p>
+                                        <p className="text-xs text-white/50 mt-0.5">{advance ? "50% online · 50% at the ghat" : paid ? "One-time · no cash at the ghat" : "Pay in full online, or 50% now · 50% at the ghat"}</p>
                                     </div>
                                     <p className="font-display text-4xl sm:text-5xl text-marigold tabular-nums">{inr(total)}</p>
                                 </div>
@@ -270,10 +272,10 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
 
                             <div className="mt-6 max-w-xl mx-auto">
                                 {paid && <PaidStamp />}
-                                {!pdfMode && <QuotePay id={q.id} name={q.customer.name} total={inr(split.online)} paid={paid} due={advance ? inr(split.atGhat) : undefined} codeBox={paid ? undefined : { fullInr: total, advance }} />}
+                                {!pdfMode && <QuotePay id={q.id} name={q.customer.name} fullInr={total} paid={paidOrder && { dueInr: paidOrder.dueInr }} codeBox={!paid} defaultPlan={quotePlan(q.payment)} />}
                                 {!paid && (
                                     <div className={`${pdfMode ? "" : "hidden print:block"} rounded-2xl bg-white ring-2 ring-marigold/60 p-5 text-center`}>
-                                        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-night/50">{advance ? `Pay the ${inr(split.online)} advance online · UPI, cards, net banking` : "Pay securely online · UPI, cards, net banking"}</p>
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-night/50">Pay {inr(total)} in full, or {inr(half.online)} now and {inr(half.atGhat)} at the ghat · UPI, cards, net banking</p>
                                         <p className="mt-1.5 font-heading font-extrabold text-lg text-fire break-all">kashigo.in/quote/{q.id}</p>
                                     </div>
                                 )}
@@ -294,7 +296,17 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                                 <BadgeIndianRupee size={34} />
                             </div>
                             <div>
-                                {advance ? (
+                                {!paid ? (
+                                    <>
+                                        <p className="font-heading font-extrabold text-xl sm:text-2xl">Pay only on this page — or, on 50/50, the rest to your boatman.</p>
+                                        <p className="mt-1.5 text-white/90 leading-relaxed">
+                                            Pay in full through this secure Razorpay link and there&apos;s nothing to pay at the ghat. Choose 50/50 and you pay half here, the other half
+                                            to your KashiGo boatman (cash or UPI). Nobody else — a &ldquo;guide&rdquo; or anyone claiming to be from KashiGo — should ask for money,
+                                            tips-in-advance or an extra fee. If anyone does, don&apos;t pay — call us on
+                                            <a href="tel:+918175966910" className="font-bold underline underline-offset-2"> +91 81759 66910</a>.
+                                        </p>
+                                    </>
+                                ) : advance ? (
                                     <>
                                         <p className="font-heading font-extrabold text-xl sm:text-2xl">Pay only {inr(split.atGhat)} at the ghat — and only to your boatman.</p>
                                         <p className="mt-1.5 text-white/90 leading-relaxed">
@@ -359,7 +371,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                             <div className="text-center sm:text-left">
                                 <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-marigold">{paid ? "Scan to view your booking" : "Scan to pay securely"}</p>
                                 <p className="mt-2 font-display text-2xl sm:text-3xl break-all">kashigo.in/quote/{q.id}</p>
-                                <p className="mt-2 text-white/65 max-w-md">Opens this quotation on your phone — {q.builder ? "add passengers and extras, then pay" : advance ? `pay the ${inr(split.online)} advance` : `pay ${inr(total)}`} by UPI, card or net banking through Razorpay.{advance ? ` The remaining ${inr(split.atGhat)} goes to your boatman at the ghat.` : " No cash, ever."}</p>
+                                <p className="mt-2 text-white/65 max-w-md">Opens this quotation on your phone — {q.builder ? "add passengers and extras, then pay" : `pay ${inr(total)} in full, or 50% now and 50% at the ghat,`} by UPI, card or net banking through Razorpay.</p>
                                 <a href={SITE} className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-5 py-2.5 text-sm font-semibold transition-colors">
                                     <Globe size={16} /> More at kashigo.in
                                 </a>
@@ -468,9 +480,9 @@ function CompactQuote({ q, paidOrder, journeyDate, carry, careful }: { q: Quote;
 
                 <p className="flex items-start gap-2 rounded-xl bg-red-50 ring-1 ring-red-200 px-3 py-2.5 text-xs text-red-800">
                     <BadgeIndianRupee size={16} className="shrink-0 mt-px" />
-                    {q.payment === "advance50"
-                        ? <span><b>Pay the 50% advance on this page</b>, and the rest only to your KashiGo boatman at the ghat. If anyone else asks for money, call <a href="tel:+918175966910" className="font-bold underline">+91 81759 66910</a>.</span>
-                        : <span><b>No cash at the ghat.</b> Pay only on this page. If anyone asks for money, call <a href="tel:+918175966910" className="font-bold underline">+91 81759 66910</a>.</span>}
+                    {paidOrder && !paidOrder.dueInr
+                        ? <span><b>No cash at the ghat.</b> Your ride is paid. If anyone asks for money, call <a href="tel:+918175966910" className="font-bold underline">+91 81759 66910</a>.</span>
+                        : <span><b>Pay only on this page</b>{paidOrder ? "" : " (in full, or 50% now)"}, and anything left only to your KashiGo boatman at the ghat. If anyone else asks for money, call <a href="tel:+918175966910" className="font-bold underline">+91 81759 66910</a>.</span>}
                 </p>
 
                 {/* Everything else, folded away */}

@@ -4,6 +4,7 @@
 // Safe to import from client components: the admin generator uses the package templates here.
 import { BOAT_RIDES, CUSTOM_RIDE, toMinutes } from "@/lib/boatRides";
 import { BOAT_PRICES_INR, returnFareInr } from "@/lib/boatPrices";
+import type { PayPlan } from "@/lib/pricing";
 
 export type QuoteLine = { label: string; detail: string; amountInr: number };
 export type Slot = "Morning" | "Afternoon" | "Evening";
@@ -35,7 +36,7 @@ export type Quote = {
     itinerary: { time: string; what: string }[];
     lines: QuoteLine[];
     builder?: QuoteBuilder; // lets the customer shape the quote on the page before paying
-    payment?: QuotePaymentMethod; // how it's paid; missing = all online
+    payment?: QuotePaymentMethod; // the way of paying selected first on the page (the customer can switch); missing = all online
 };
 
 // A passenger on an admin-made quote. Children under 6 ride free and pay only for their life jacket.
@@ -282,16 +283,18 @@ export const STATIC_QUOTES: Record<string, Quote> = {
 };
 export const quoteTotal = (q: Pick<Quote, "lines">) => q.lines.reduce((s, l) => s + l.amountInr, 0);
 
-// "advance50": half (rounded up) online through Razorpay to confirm the boat, the rest to the boatman at the ghat.
+// Every quotation can be paid in full online or 50/50: "advance50" is half (rounded up) online through Razorpay
+// to confirm the boat, the rest to the boatman at the ghat. The customer chooses on the page.
 export type QuotePaymentMethod = "online" | "advance50";
+export const quotePlan = (m?: QuotePaymentMethod | null): PayPlan => (m === "advance50" ? "advance50" : "full");
 // A site-wide discount code (managed in /admin → Coupons) applied to a quotation's total. The server checks the
 // code and works out the same amount; the page only previews it. Fixed-price codes don't apply to quotations.
 export type SiteCoupon = { code: string; kind: "percent" | "amount_off"; value: number };
 export const siteCouponOff = (total: number, c?: SiteCoupon | null) =>
     !c ? 0 : Math.max(0, Math.min(total - 1, c.kind === "percent" ? Math.round((total * Math.min(c.value, 100)) / 100) : Math.round(c.value)));
 
-export function quoteSplit(q: Pick<Quote, "payment">, total: number): { online: number; atGhat: number } {
-    if (q.payment !== "advance50") return { online: total, atGhat: 0 };
+export function quoteSplit(plan: PayPlan, total: number): { online: number; atGhat: number } {
+    if (plan !== "advance50") return { online: total, atGhat: 0 };
     const online = Math.ceil(total / 2);
     return { online, atGhat: total - online };
 }

@@ -7,7 +7,7 @@ import Razorpay from "razorpay";
 import { INR_PER_USD } from "@/lib/boatPrices";
 import { getSession } from "@/lib/auth";
 import { couponMessage, quote } from "@/lib/coupons";
-import type { CouponRule } from "@/lib/pricing";
+import { planProblem, type CouponRule, type PayPlan } from "@/lib/pricing";
 import { hasServiceRole, supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export type Provider = "razorpay" | "paypal" | "credits";
@@ -36,7 +36,9 @@ export async function getBalance(email: string): Promise<number> {
     return Number(data?.credits_inr ?? 0);
 }
 
-export async function prepareCheckout(req: Request, opts: { product: string; coupon?: string | null; useCredits?: boolean; provider: Provider; guests?: number; noticePct?: number }): Promise<Prepared> {
+export async function prepareCheckout(req: Request, opts: { product: string; coupon?: string | null; useCredits?: boolean; provider: Provider; guests?: number; noticePct?: number; plan?: PayPlan }): Promise<Prepared> {
+    const wrongPlan = planProblem(opts.coupon, opts.plan ?? "full");
+    if (wrongPlan) return { ok: false, message: wrongPlan, status: 409 };
     const session = await getSession(req);
     const email = session?.email ?? null;
     const wantsCoins = opts.useCredits || opts.provider === "credits";

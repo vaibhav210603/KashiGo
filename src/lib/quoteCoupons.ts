@@ -1,7 +1,7 @@
 // Server-only. Site-wide discount codes (the `coupons` table, managed in /admin) on quotation payments.
 // A use is reserved against the Razorpay order when it's created and counted as paid when the payment verifies.
 import { couponMessage, couponStatus, getRule } from "@/lib/coupons";
-import { ruleApplies } from "@/lib/pricing";
+import { planProblem, ruleApplies, type PayPlan } from "@/lib/pricing";
 import { razorpay } from "@/lib/quotePayments";
 import { quoteReceipt, type Quote, type SiteCoupon } from "@/lib/quotes";
 import { hasServiceRole, supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -14,9 +14,12 @@ const customer = (q: Q) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(q.customer.email ?
 const ref = (orderId: string) => `razorpay:${orderId}`;
 const MISSING = ["PGRST202", "42883"]; // coupon functions not installed yet: codes still work, without usage limits
 
-export async function checkSiteCoupon(q: Q, code: unknown): Promise<{ ok: true; coupon: SiteCoupon } | { ok: false; message: string }> {
-    // Rule and usage are looked up together (one round trip, not two); the rule still decides first.
+// `plan`: how the customer is paying — WELCOME10 works only with 50/50, WELCOME20 only with full online payment.
+export async function checkSiteCoupon(q: Q, code: unknown, plan: PayPlan): Promise<{ ok: true; coupon: SiteCoupon } | { ok: false; message: string }> {
     const c = String(code ?? "").trim().toUpperCase();
+    const wrongPlan = planProblem(c, plan);
+    if (wrongPlan) return { ok: false, message: wrongPlan };
+    // Rule and usage are looked up together (one round trip, not two); the rule still decides first.
     const [rule, status] = await Promise.all([getRule(c), c ? couponStatus(c, customer(q)) : "not_found"]);
     if (!rule) return { ok: false, message: "That code isn't valid." };
     if (!ruleApplies(rule, product(q))) return { ok: false, message: "That code doesn't apply to this quotation." };
@@ -27,11 +30,11 @@ export async function checkSiteCoupon(q: Q, code: unknown): Promise<{ ok: true; 
 
 // The page's preview: no Razorpay calls on the common path ("order" re-checks everything before charging).
 // Only when the limit looks reached — possibly by this quotation's own unpaid checkout — free those holds and look again.
-export async function previewSiteCoupon(q: Q, code: unknown) {
-    const c = await checkSiteCoupon(q, code);
+export async function previewSiteCoupon(q: Q, code: unknown, plan: PayPlan) {
+    const c = await checkSiteCoupon(q, code, plan);
     if (c.ok || ![couponMessage("customer_limit"), couponMessage("used_up")].includes(c.message)) return c;
     await releaseUnpaidQuoteHolds(q);
-    return checkSiteCoupon(q, code);
+    return checkSiteCoupon(q, code, plan);
 }
 
 // A customer who closed the checkout and tries again mustn't be told they've already used the code:

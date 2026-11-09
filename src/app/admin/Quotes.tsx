@@ -68,7 +68,7 @@ export default function Quotes() {
                             <p className="text-sm text-white/60">{q.ride.title} · {q.ride.ghat} · {longDate(q.ride.date)}, {q.ride.startTime}{q.ride.guests ? ` · ${q.ride.guests} passenger${q.ride.guests === 1 ? "" : "s"}` : ""}</p>
                         </div>
                         <p className="font-display text-2xl text-marigold tabular-nums">{rupees(total)}</p>
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${paid ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/70"}`}>{q.payment === "advance50" ? (paid ? `50% paid · ${rupees(quoteSplit(q, total).atGhat)} at ghat` : "Awaiting 50% advance") : paid ? "Paid" : "Awaiting payment"}</span>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${paid ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/70"}`}>{paid ? "Paid" : "Awaiting payment"}</span>
                         <Actions q={q} total={total} compact />
                         {createdBy && <button onClick={() => remove(q.id)} aria-label={`Delete ${q.id}`} className="h-9 w-9 inline-flex items-center justify-center rounded-full text-white/50 hover:bg-ember/20 hover:text-ember"><Trash2 size={16} /></button>}
                     </div>
@@ -83,10 +83,9 @@ function Actions({ q, total, compact }: { q: Quote; total: number; compact?: boo
     const [copied, setCopied] = useState(false);
     const copy = async () => { await navigator.clipboard.writeText(quoteUrl(q.id)); setCopied(true); setTimeout(() => setCopied(false), 1500); };
     const wa = () => {
-        const split = quoteSplit(q, total);
-        const money = split.atGhat
-            ? `Total: ${rupees(total)}\nPay the 50% advance of ${rupees(split.online)} online (UPI / card): ${quoteUrl(q.id)}\nThe remaining ${rupees(split.atGhat)} is paid to your KashiGo boatman at the ghat — nobody else.`
-            : `Total: ${rupees(total)}\nView & pay securely (UPI / card): ${quoteUrl(q.id)}\n\nPlease don't pay any cash at the ghat.`;
+        // Every quotation offers both: in full online (code WELCOME20), or 50/50 (code WELCOME10).
+        const split = quoteSplit("advance50", total);
+        const money = `Total: ${rupees(total)}\nView & pay securely (UPI / card): ${quoteUrl(q.id)}\n\nPay in full online (nothing at the ghat), or 50/50: ${rupees(split.online)} online now and ${rupees(split.atGhat)} to your KashiGo boatman at the ghat — nobody else.`;
         const msg = `Namaste ${q.customer.name.split(" ")[0]} ji 🙏\n\nHere is your KashiGo quotation for the ${q.ride.title} on ${longDate(q.ride.date)} (reach ${q.ride.ghat} by ${q.ride.reportTime}).\n\n${money} — Team KashiGo`;
         const phone = (q.customer.phone || "").replace(/\D/g, "");
         const to = phone.length === 10 ? `91${phone}` : phone;
@@ -119,9 +118,7 @@ function Made({ q, onClose }: { q: Quote; onClose: () => void }) {
                 <button onClick={onClose} aria-label="Close" className="text-white/50 hover:text-white"><X /></button>
             </div>
             <div className="mt-5"><Actions q={q} total={total} /></div>
-            <p className="mt-4 text-xs text-white/50">{quoteSplit(q, total).atGhat
-                ? <>50% advance: the page charges {rupees(quoteSplit(q, total).online)} online (QR + Razorpay) and shows {rupees(quoteSplit(q, total).atGhat)} due at the ghat.</>
-                : <>The page has the QR code and the Razorpay button for exactly {rupees(total)}.</>} You and the customer get an email when it&apos;s paid.</p>
+            <p className="mt-4 text-xs text-white/50">The page has the QR code and lets the customer pay {rupees(total)} in full online (WELCOME20 works), or 50/50: {rupees(quoteSplit("advance50", total).online)} online and {rupees(quoteSplit("advance50", total).atGhat)} at the ghat (WELCOME10 works). You and the customer get an email when it&apos;s paid.</p>
         </div>
     );
 }
@@ -350,17 +347,15 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
                         <span className="text-xs uppercase tracking-[0.2em] text-white/55 font-semibold">Starting total</span>
                         <span className="font-display text-4xl text-marigold tabular-nums">{rupees(total)}</span>
                     </div>
-                    {payment === "advance50" && (
-                        <div className="grid grid-cols-2 divide-x divide-white/10 text-sm">
-                            <p className="px-4 py-3"><span className="block text-xs text-white/55">Online now (50%)</span><span className="text-lg font-semibold tabular-nums">{rupees(quoteSplit({ payment }, total).online)}</span></p>
-                            <p className="px-4 py-3"><span className="block text-xs text-white/55">Due at the ghat</span><span className="text-lg font-semibold tabular-nums">{rupees(quoteSplit({ payment }, total).atGhat)}</span></p>
-                        </div>
-                    )}
+                    <div className="grid grid-cols-2 divide-x divide-white/10 text-sm">
+                        <p className="px-4 py-3"><span className="block text-xs text-white/55">If 50/50: online now</span><span className="text-lg font-semibold tabular-nums">{rupees(quoteSplit("advance50", total).online)}</span></p>
+                        <p className="px-4 py-3"><span className="block text-xs text-white/55">If 50/50: due at the ghat</span><span className="text-lg font-semibold tabular-nums">{rupees(quoteSplit("advance50", total).atGhat)}</span></p>
+                    </div>
                 </div>
                 <div className="mt-5">
-                    <p className="text-sm text-white/60">Payment method</p>
+                    <p className="text-sm text-white/60">Payment option selected first <span className="text-white/40">(the customer sees both and can switch)</span></p>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        {([["online", "Full payment online", "The customer pays the whole amount on the quotation page (Razorpay)."], ["advance50", "50% online · 50% at the ghat", "Only half is charged online; the rest shows as due, paid to the boatman."]] as const).map(([m, label, help]) => (
+                        {([["online", "Full payment online", "The whole amount on the quotation page (Razorpay). Code WELCOME20 works here."], ["advance50", "50% online · 50% at the ghat", "Half online now, the rest to the boatman at the ghat. Code WELCOME10 works here."]] as const).map(([m, label, help]) => (
                             <button key={m} type="button" onClick={() => setPayment(m)} aria-pressed={payment === m}
                                 className={`rounded-2xl border p-3 text-left ${payment === m ? "border-marigold bg-marigold/15" : "border-white/15 hover:border-white/40"}`}>
                                 <p className="font-semibold text-sm">{label}</p>

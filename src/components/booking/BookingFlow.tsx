@@ -15,6 +15,7 @@ import { apiPost, authHeaders, useAuth } from "@/components/auth/useAuth";
 import { useAccount } from "@/components/auth/useAccount";
 import EmailLogin from "@/components/auth/EmailLogin";
 import { FIRE_BTN } from "@/components/ui/styles";
+import type { PayPlan } from "@/lib/pricing";
 
 type RideChoice = BoatRideId | "custom" | "";
 type PayMode = "cod" | "online_domestic" | "online_international";
@@ -132,7 +133,7 @@ export default function BookingFlow() {
     const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
     const [notice, setNotice] = useState("");
     const [code, setCode] = useState("");
-    const [applied, setApplied] = useState<{ product: string; inr: number } | null>(null);
+    const [applied, setApplied] = useState<{ product: string; inr: number; plan: PayPlan } | null>(null);
     const [codeMsg, setCodeMsg] = useState("");
     const [checkingCode, setCheckingCode] = useState(false);
     // Phone login unlocks discount codes and KashiGo coins (refunds come back as coins).
@@ -177,9 +178,11 @@ export default function BookingFlow() {
     const guestFee = ride ? passengerFeeInr(guests) : 0;
     const listPrice = ridePrice + guestFee + noticeFee;
     const product = ride === "custom" ? "custom-boat" : ride;
-    // A code is priced for one ride (the boat only) and only applies to online payment.
-    const codePrice = applied && applied.product === product ? applied.inr : null;
-    const coupon = codePrice !== null && pay !== "cod" ? code.trim().toUpperCase() : undefined;
+    // A code is priced for one ride (the boat only) and checked for the way of paying: WELCOME10 only with
+    // pay at the ghat (50/50), WELCOME20 and the other codes only when paying in full online.
+    const codePlan: PayPlan = pay === "cod" ? "advance50" : "full";
+    const codePrice = applied && applied.product === product && applied.plan === codePlan ? applied.inr : null;
+    const coupon = codePrice !== null ? code.trim().toUpperCase() : undefined;
     const afterCode = coupon ? codePrice! + guestFee + noticeFee : listPrice;
     // Coins only apply to online payment. If they cover the whole ride, there's nothing to pay (mode "credits");
     // otherwise at least ₹1 is left for Razorpay / PayPal. The server recomputes all of this.
@@ -218,7 +221,7 @@ export default function BookingFlow() {
         ? bookingTimeWarning(selectedDate, rideStartMinutes(ride, customTime), { iso: todayIso, minutes: nowMinutes })
         : null;
 
-    const applyCode = async () => {
+    const applyCode = async (codePlanNow: PayPlan = codePlan) => {
         const c = code.trim().toUpperCase();
         if (!c || checkingCode) return;
         if (!product) { setCodeMsg("Choose a ride first."); return; }
@@ -227,12 +230,18 @@ export default function BookingFlow() {
         setCodeMsg("");
         setCheckingCode(true);
         try {
-            const { data } = await apiPost("/api/coupon", { product, code: c }).finally(() => setCheckingCode(false));
+            const { data } = await apiPost("/api/coupon", { product, code: c, plan: codePlanNow }).finally(() => setCheckingCode(false));
             if (data.needsLogin) { setShowLogin(true); setCodeMsg(data.message); return; }
-            if (data.valid && typeof data.inr === "number") { setApplied({ product, inr: data.inr }); setCodeMsg(`Code applied — boat price now ${money(data.inr, currency)}`); return; }
+            if (data.valid && typeof data.inr === "number") { setApplied({ product, inr: data.inr, plan: codePlanNow }); setCodeMsg(`Code applied — boat price now ${money(data.inr, currency)}`); return; }
             if (data.message) { setApplied(null); setCodeMsg(data.message); return; }
         } catch { }
         setApplied(null); setCodeMsg("That code isn't valid.");
+    };
+    // Switching between paying in full and 50/50 checks the applied code again.
+    const choosePay = (mode: PayMode) => {
+        setPay(mode);
+        const p: PayPlan = mode === "cod" ? "advance50" : "full";
+        if (applied && applied.plan !== p) applyCode(p);
     };
 
     const validate = () => {
@@ -502,7 +511,7 @@ export default function BookingFlow() {
                         ["online_international", Globe, "International card / PayPal", "Pay now in $ · secure PayPal checkout"],
                         ["cod", Wallet, "Pay at the ghat", "50% advance online now · rest in cash to your boatman"],
                     ] as const).map(([mode, Icon, title, sub]) => (
-                        <button key={mode} type="button" onClick={() => setPay(mode)} aria-pressed={pay === mode}
+                        <button key={mode} type="button" onClick={() => choosePay(mode)} aria-pressed={pay === mode}
                             className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${pay === mode ? "border-night bg-night text-white" : "border-night/15 bg-white/50 hover:border-night/40"}`}>
                             <Icon size={22} className={pay === mode ? "text-marigold" : "text-night/35"} />
                             <span className="flex-1"><span className={`block font-semibold ${pay === mode ? "text-white" : "text-night"}`}>{title}</span><span className={`block text-sm ${pay === mode ? "text-white/55" : "text-night/50"}`}>{sub}</span></span>
@@ -516,20 +525,19 @@ export default function BookingFlow() {
                         <b className="text-night">A 50% advance is required online to confirm your boat.</b> {price > 0 ? <>Pay {inr(advance)} now by UPI or card (Razorpay), and the remaining {inr(price - advance)}</> : <>Pay half now by UPI or card (Razorpay), and the other half</>} in cash or UPI to your boatman at the ghat.
                     </p>
                 )}
-                {pay !== "cod" && (
-                    <div className="mt-4">
-                        <label htmlFor="booking-code" className="flex items-center gap-2 text-sm font-semibold text-night/75"><Tag size={16} className="text-fire" /> Discount code</label>
-                        <div className="mt-2 flex gap-2">
-                            <input id="booking-code" value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setApplied(null); setCodeMsg(""); }} readOnly={checkingCode}
-                                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCode(); } }}
-                                placeholder="Have a code?" autoComplete="off" className={`${input} uppercase`} />
-                            <button type="button" onClick={applyCode} disabled={checkingCode} className="h-12 min-w-[7rem] px-5 rounded-2xl border border-night/20 bg-transparent font-semibold text-night transition-colors hover:bg-night hover:text-marigold disabled:bg-night/5 disabled:text-night/60 whitespace-nowrap flex items-center justify-center gap-1.5">
-                                {checkingCode ? <><Loader2 size={16} className="animate-spin" /> Checking</> : "Apply"}
-                            </button>
-                        </div>
-                        {codeMsg && (codePrice !== null || !applied) && <p className={`mt-2 text-sm font-medium ${codePrice !== null ? "text-[#1d7f76]" : "text-ember"}`}>{codeMsg}</p>}
+                <div className="mt-4">
+                    <label htmlFor="booking-code" className="flex items-center gap-2 text-sm font-semibold text-night/75"><Tag size={16} className="text-fire" /> Discount code</label>
+                    <p className="mt-1 text-xs text-night/55">WELCOME10 with pay at the ghat (50/50) · WELCOME20 when you pay in full online</p>
+                    <div className="mt-2 flex gap-2">
+                        <input id="booking-code" value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setApplied(null); setCodeMsg(""); }} readOnly={checkingCode}
+                            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCode(); } }}
+                            placeholder="Have a code?" autoComplete="off" className={`${input} uppercase`} />
+                        <button type="button" onClick={() => applyCode()} disabled={checkingCode} className="h-12 min-w-[7rem] px-5 rounded-2xl border border-night/20 bg-transparent font-semibold text-night transition-colors hover:bg-night hover:text-marigold disabled:bg-night/5 disabled:text-night/60 whitespace-nowrap flex items-center justify-center gap-1.5">
+                            {checkingCode ? <><Loader2 size={16} className="animate-spin" /> Checking</> : "Apply"}
+                        </button>
                     </div>
-                )}
+                    {codeMsg && (codePrice !== null || !applied) && <p className={`mt-2 text-sm font-medium ${codePrice !== null ? "text-[#1d7f76]" : "text-ember"}`}>{codeMsg}</p>}
+                </div>
 
                 {/* Phone login: needed for codes, and where refunded KashiGo coins are spent */}
                 {pay !== "cod" && (
