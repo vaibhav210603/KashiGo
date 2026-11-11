@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, LifeBuoy, Loader2, Minus, Plus, Tag, Trash2, UserPlus, X } from "lucide-react";
-import { CHILD_FREE_UNDER, CHILD_JACKET_INR, cleanSelection, priceQuote, quotePlan, quoteSplit, siteCouponOff, startSelection, type Quote, type QuoteSelection, type SiteCoupon } from "@/lib/quotes";
+import { CHILD_FREE_UNDER, CHILD_JACKET_INR, cleanSelection, placeholderPassenger, priceQuote, quotePlan, quoteSplit, siteCouponOff, startSelection, type Quote, type QuoteSelection, type SiteCoupon } from "@/lib/quotes";
 import type { PayPlan } from "@/lib/pricing";
 import QuotePay from "./QuotePay";
 
@@ -130,7 +130,7 @@ export default function QuoteBuilder({ quote, paid, readOnly }: Props) {
                         </ol>
                         {sel.passengers.length < b.maxPassengers && (
                             <button
-                                onClick={() => setSel((s) => ({ ...s, passengers: [...s.passengers, { name: "", age: "" }] }))}
+                                onClick={() => setSel((s) => ({ ...s, passengers: [...s.passengers, placeholderPassenger(s.passengers.length + 2)] }))}
                                 className="mt-2 w-full h-10 rounded-lg border border-dashed border-fire/50 text-fire text-sm font-bold flex items-center justify-center gap-1.5 hover:bg-fire/5"
                             >
                                 <UserPlus size={16} /> Add passenger

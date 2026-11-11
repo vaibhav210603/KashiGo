@@ -5,7 +5,7 @@ import { Check, Copy, Download, ExternalLink, Loader2, MessageCircle, Plus, Refr
 import { apiGet, apiPost, authHeaders } from "@/components/auth/useAuth";
 import { GHATS, addDaysIso, istNow, toMinutes } from "@/lib/boatRides";
 import { returnFareInr } from "@/lib/boatPrices";
-import { CHILD_FREE_UNDER, CHILD_JACKET_INR, DEFAULT_EXTRA_PASSENGER_INR, QUOTE_PACKAGES, defaultItinerary, defaultRoute, defaultValidUntil, priceQuote, quotePackage, quoteSplit, shiftTime, startSelection, type Quote, type QuoteBuilder, type QuotePaymentMethod } from "@/lib/quotes";
+import { CHILD_FREE_UNDER, CHILD_JACKET_INR, DEFAULT_EXTRA_PASSENGER_INR, QUOTE_PACKAGES, defaultItinerary, defaultRoute, defaultValidUntil, priceQuote, quotePackage, quoteSplit, shiftTime, startSelection, type Quote, type QuoteBuilder, type QuotePaymentMethod, placeholderPassenger } from "@/lib/quotes";
 
 const rupees = (n: number) => `${n < 0 ? "− " : ""}₹${Math.abs(Math.round(n)).toLocaleString("en-IN")}`;
 const pretty = (t: string) => shiftTime(t, 0); // "18:30" → "6:30 PM"
@@ -139,7 +139,8 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
     // per-passenger charge; under 6 rides free and pays only the life jacket).
     const [passengers, setPassengers] = useState<Person[]>([{ name: "", age: "" }]);
     const [extraPer, setExtraPer] = useState(String(DEFAULT_EXTRA_PASSENGER_INR));
-    const setCount = (n: number) => setPassengers((ps) => Array.from({ length: Math.max(1, Math.min(20, n)) }, (_, i) => ps[i] ?? { name: "", age: "" }));
+    // New passengers start as placeholders (P_2, age 50…) so the total adds up at once; the admin or the customer can rename them.
+    const setCount = (n: number) => setPassengers((ps) => Array.from({ length: Math.max(1, Math.min(20, n)) }, (_, i) => ps[i] ?? placeholderPassenger(i + 1)));
     const setPerson = (i: number, patch: Partial<Person>) => setPassengers((ps) => ps.map((x, j) => (j === i ? { ...x, ...patch } : x)));
     const lead = passengers[0].name.trim();
     const kids = passengers.slice(1).filter((p) => p.age !== "" && Number(p.age) < CHILD_FREE_UNDER).length;
@@ -355,7 +356,7 @@ function Generator({ onClose, onCreated }: { onClose: () => void; onCreated: (q:
                 <div className="mt-5">
                     <p className="text-sm text-white/60">Payment option selected first <span className="text-white/40">(the customer sees both and can switch)</span></p>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        {([["online", "Full payment online", "The whole amount on the quotation page (Razorpay). Code WELCOME20 works here."], ["advance50", "50% online · 50% at the ghat", "Half online now, the rest to the boatman at the ghat. Code WELCOME10 works here."]] as const).map(([m, label, help]) => (
+                        {([["online", "Pay 100% online", "The whole amount on the quotation page (Razorpay). Code WELCOME20 works here."], ["advance50", "Pay 50% at the ghat", "Half online now, the rest to the boatman at the ghat. Code WELCOME10 works here."]] as const).map(([m, label, help]) => (
                             <button key={m} type="button" onClick={() => setPayment(m)} aria-pressed={payment === m}
                                 className={`rounded-2xl border p-3 text-left ${payment === m ? "border-marigold bg-marigold/15" : "border-white/15 hover:border-white/40"}`}>
                                 <p className="font-semibold text-sm">{label}</p>

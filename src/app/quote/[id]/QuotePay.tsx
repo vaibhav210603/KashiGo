@@ -136,8 +136,8 @@ export default function QuotePay({ id, name, fullInr, beforeCodeInr, paid: paidO
         <div className="print:hidden">
             <div role="radiogroup" aria-label="How would you like to pay?" className="mb-3 grid grid-cols-2 gap-2">
                 {([
-                    ["full", "Pay in full", `${inr(fullNow)} online now`, "Nothing to pay at the ghat · WELCOME20"],
-                    ["advance50", "50 / 50", `${inr(half.online)} online now`, `${inr(half.atGhat)} at the ghat · WELCOME10`],
+                    ["full", "Pay 100% online", `${inr(fullNow)} online now`, "Nothing to pay at the ghat · WELCOME20"],
+                    ["advance50", "Pay 50% at the ghat", `${inr(half.online)} online now`, `${inr(half.atGhat)} at the ghat · WELCOME10`],
                 ] as const).map(([p, title, now, sub]) => (
                     <button key={p} type="button" role="radio" aria-checked={plan === p} onClick={() => choosePlan(p)}
                         className={`rounded-xl p-3 text-left ring-1 transition-colors ${plan === p ? "bg-night text-white ring-night" : "bg-white text-night ring-sandstone/60 hover:ring-night/40"}`}>

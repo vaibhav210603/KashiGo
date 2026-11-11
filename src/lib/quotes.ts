@@ -65,6 +65,8 @@ const isChild = (b: QuoteBuilder, p: QuotePassenger) => Boolean(b.kidsUnder6 && 
 export type QuotePassenger = { name: string; age: string };
 export type QuoteSelection = { returnTrip: boolean; passengers: QuotePassenger[]; addOns: Record<string, number>; coupon?: string };
 
+// What a newly added passenger starts as, until someone types the real name and age. `n` counts the lead as 1.
+export const placeholderPassenger = (n: number): QuotePassenger => ({ name: `P_${n}`, age: "50" });
 export const emptySelection = (): QuoteSelection => ({ returnTrip: false, passengers: [], addOns: {}, coupon: "" });
 // What the customer starts from: the passengers the admin entered, nothing else ticked.
 export const startSelection = (q: Pick<Quote, "builder">): QuoteSelection => ({ ...emptySelection(), passengers: (q.builder?.initialPassengers ?? []).map((p) => ({ ...p })) });
