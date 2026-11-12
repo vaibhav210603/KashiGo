@@ -104,8 +104,7 @@ export default function RideRail() {
     const arrow = "w-12 h-12 shrink-0 rounded-full border border-white/20 inline-flex items-center justify-center text-white hover:bg-marigold hover:border-marigold hover:text-night transition-colors";
 
     return (
-        <section id="rides" className="grain relative bg-night py-16 md:py-24 scroll-mt-16 overflow-hidden" aria-roledescription="carousel" aria-label="Boat rides">
-            <div aria-hidden className="absolute -top-40 right-0 h-96 w-96 rounded-full bg-ganga/10 blur-[120px]" />
+        <section id="rides" className="relative bg-night bg-[radial-gradient(40%_30%_at_85%_40%,rgba(30,120,160,0.10),transparent_70%)] py-16 md:py-24 scroll-mt-16 overflow-hidden" aria-roledescription="carousel" aria-label="Boat rides">
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <Eyebrow className="text-marigold">Private boat · price is for the whole boat</Eyebrow>
@@ -124,11 +123,14 @@ export default function RideRail() {
 
             <div className="relative mt-10 max-w-7xl mx-auto">
                 <div ref={railRef}
-                    data-lenis-prevent-wheel
-                    className="flex gap-5 overflow-x-auto px-4 sm:px-6 pb-8 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_1.5rem,black_calc(100%-4rem),transparent)]">
+                    data-rail
+                    className="flex gap-5 overflow-x-auto overscroll-x-contain px-4 sm:px-6 pb-8 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {cards.map((c, i) => renderCard(c, false, i))}
                     {cards.map((c, i) => renderCard(c, true, i))}
                 </div>
+                {/* Soft edges, drawn over the strip (a mask on the strip itself repaints on every scroll) */}
+                <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-night to-transparent" />
+                <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-night to-transparent" />
             </div>
 
             <div className="relative mx-auto mt-2 flex max-w-7xl items-center gap-4 px-4 sm:px-6" aria-hidden>

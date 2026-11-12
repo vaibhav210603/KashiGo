@@ -13,6 +13,8 @@ export default function SmoothScroll() {
             anchors: { offset: -96 },
             // Let dialogs (menu, checkout) and anything opted out scroll natively.
             prevent: (node) => !!node.closest?.("[role=dialog], [data-lenis-prevent]"),
+            // Sideways swipes over a card strip ([data-rail]) scroll the strip natively; up and down stays smooth.
+            virtualScroll: ({ deltaX, deltaY, event }) => !(Math.abs(deltaX) > Math.abs(deltaY) && (event.target as Element | null)?.closest?.("[data-rail]")),
         });
         let raf = 0;
         const tick = (t: number) => {
