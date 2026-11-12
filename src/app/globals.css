@@ -272,6 +272,14 @@ body {
   100% { transform: translateY(-36px) rotate(40deg); opacity: 0; }
 }
 .astro-float { animation: astro-float 7s ease-in-out infinite; }
+/* Side cards floating once they've fanned out, and glitter falling down the combo section (the wrapper is the
+   section's full height, so translateY(100%) is the bottom). */
+@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.float-y { animation: float-y 5s ease-in-out infinite; }
+@keyframes glitter-fall { from { transform: translateY(-4%); } to { transform: translateY(100%); } }
+.glitter-fall { animation: glitter-fall 9s linear infinite; will-change: transform; }
+@keyframes twinkle { 0%, 100% { opacity: 0.25; transform: rotate(45deg) scale(0.7); } 50% { opacity: 1; transform: rotate(45deg) scale(1.2); } }
+.twinkle { animation: twinkle 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .combo-aura, .combo-ring, .astro-float { animation: none; }
+  .combo-aura, .combo-ring, .astro-float, .float-y, .glitter-fall, .twinkle { animation: none; }
 }

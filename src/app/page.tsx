@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
 import DevDeepawaliHero from "@/components/home/DevDeepawaliHero";
-import { DevDeepawaliSection } from "@/components/home/DevDeepawali";
 import AcharyaConsult from "@/components/home/AcharyaConsult";
 import FollowUs from "@/components/home/FollowUs";
 import RideConsultOffer from "@/components/home/RideConsultOffer";
@@ -152,7 +151,6 @@ export default function Home() {
       }} />
       {/* Order: the boat (our USP) → proof it's good → why us → everything else we do in Kashi → how booking works → guides */}
       <DevDeepawaliHero />
-      <DevDeepawaliSection />
       <RideConsultOffer />
       <RideRail />
       <AcharyaConsult knowMore />
