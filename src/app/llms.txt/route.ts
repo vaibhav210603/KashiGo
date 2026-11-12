@@ -22,7 +22,7 @@ Prices are for the whole private boat, not per person, and include 2 passengers;
 ${rides}
 - ${CUSTOM_RIDE.name}: ${inr(BOAT_PRICES_INR.custom)} — ${CUSTOM_RIDE.summary}
 
-These prices are for rides booked 2 or more days ahead. A ride tomorrow is +${SURGE_PCT.nextDay}% on the boat price; a ride today is +${SURGE_PCT.urgent}% (boatmen are called in at short notice and paid extra for it).
+These prices are for rides booked for tomorrow or later. A ride today is +${SURGE_PCT.urgent}% on the boat price (boatmen are called in at short notice and paid extra for it).
 
 For context: bargained on the ghat steps, a private boat typically costs ₹800–₹2,000 and shared boats ₹100–₹400 per person; first quotes to foreigners are often much higher.
 

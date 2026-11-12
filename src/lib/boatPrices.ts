@@ -7,7 +7,7 @@ export const BOAT_PRICES_INR = {
     p2: 2599,  // Morning Ganga Aarti
     p3: 2599,  // Day Ghat Tour
     p4: 2599,  // Temple + Boat Tour
-    p5: 3699,  // Evening Aarti — 7+ aartis on different ghats + the full ghat tour, with extra privileges (Nov 2026)
+    p5: 2899,  // Evening Aarti — 7+ aartis on different ghats + the full ghat tour, with extra privileges (Nov 2026)
     p6: 2599,  // Sunset Ride
     custom: 3650,
 } as const;
@@ -24,10 +24,10 @@ export const passengerFeeInr = (guests: number) => Math.max(0, Math.trunc(guests
 // rounded up to the next ₹100 (₹2,200 ride → ₹1,100 return). Online bookings don't add one.
 export const returnFareInr = (ridePrice: number) => Math.ceil((ridePrice * 1.5) / 100) * 100 - ridePrice;
 
-// Short-notice rates (online bookings). The prices above are the plan-ahead price, for rides booked
-// 2+ days out. A ride today is +40%; a ride tomorrow is +15%. Judged by the date in India, nothing else.
+// Short-notice rates (online bookings). The prices above are the plan-ahead price, for rides booked for
+// tomorrow or later. A ride today is +30%. Judged by the date in India, nothing else.
 // Boatmen plan their week ahead; a late booking means pulling one in at short notice, and he's paid extra for it.
 // The surcharge is on the boat only — the passenger charge and any code work as usual.
-export const SURGE_PCT = { urgent: 40, nextDay: 15 } as const; // urgent = today
-// The added amount, so a ₹2,599 boat becomes ₹2,999 (+15%) or ₹3,699 (+40%) — rounded up to end in 99.
+export const SURGE_PCT = { urgent: 30 } as const; // urgent = today
+// The added amount, so a ₹2,599 boat becomes ₹3,399 (+30%) — rounded up to end in 99.
 export const noticeFeeInr = (boatInr: number, pct: number) => (pct > 0 ? Math.ceil((boatInr * (1 + pct / 100)) / 100) * 100 - 1 - boatInr : 0);

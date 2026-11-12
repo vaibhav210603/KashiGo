@@ -93,12 +93,11 @@ export function bookingTimeWarning(dateIso: string, startMinutes: number, now = 
 }
 
 // How much notice a ride has, and the short-notice surcharge that goes with it (lib/boatPrices.ts).
-// "urgent" = the ride is today; "nextDay" = tomorrow; "planned" = 2+ days ahead. Only the India date counts —
+// "urgent" = the ride is today; "planned" = tomorrow or later. Only the India date counts —
 // `startMinutes` is kept so callers needn't change if a time-of-day rule comes back.
-export type Notice = { tier: "urgent" | "nextDay" | "planned"; pct: number };
+export type Notice = { tier: "urgent" | "planned"; pct: number };
 export function noticeFor(dateIso: string, _startMinutes: number, now = istNow()): Notice {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso) || dateIso <= now.iso) return { tier: "urgent", pct: SURGE_PCT.urgent };
-    if (dateIso === addDaysIso(now.iso, 1)) return { tier: "nextDay", pct: SURGE_PCT.nextDay };
     return { tier: "planned", pct: 0 };
 }
 

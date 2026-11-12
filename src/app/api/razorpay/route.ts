@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     try {
         const { product, coupon, useCredits, advance, guests, rideDate, customTime } = await req.json();
         if (isBoatProduct(String(product)) && rideDate === DEV_DEEPAWALI_DAY) return NextResponse.json({ success: false, message: DEV_DEEPAWALI_CLOSED }, { status: 400 });
-        // Boat rides booked for today or tomorrow carry the short-notice surcharge (ignored for everything else).
+        // Boat rides booked for today carry the short-notice surcharge (ignored for everything else).
         const notice = noticeFor(String(rideDate ?? ""), rideStartMinutes(String(product), String(customTime ?? "")));
         // Pay-at-the-ghat bookings pay a 50% advance online; coins and most codes don't apply to them —
         // only codes made for 50/50 payment (WELCOME10). Codes made for full payment (WELCOME20) are refused by prepareCheckout.

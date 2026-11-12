@@ -60,7 +60,7 @@ const chip = (on: boolean) =>
 
 const input = "w-full h-12 rounded-2xl border border-night/15 bg-white/70 px-4 text-[16px] text-night placeholder:text-night/35 outline-none transition focus:border-fire focus:bg-white focus:ring-4 focus:ring-marigold/20";
 
-// Under the date picker: why today / tomorrow cost more, said plainly, with a one-tap switch to the plan-ahead price.
+// Under the date picker: why today costs more, said plainly, with a one-tap switch to the plan-ahead price.
 function NoticeNote({ notice, fee, ridePrice, currency, planAhead, onPlanAhead }: {
     notice: Notice; fee: number; ridePrice: number; currency: Currency;
     planAhead?: { top: string; bottom: string }; onPlanAhead: () => void;
@@ -79,14 +79,14 @@ function NoticeNote({ notice, fee, ridePrice, currency, planAhead, onPlanAhead }
             <div className="p-4">
             <p className="flex items-center gap-2 font-semibold text-night">
                 <Clock size={18} className="shrink-0 text-fire" />
-                {notice.tier === "urgent" ? "Short-notice ride" : "Booking for tomorrow"} · +{fee ? money(fee, currency) : `${notice.pct}%`}
+                Short-notice ride · +{fee ? money(fee, currency) : `${notice.pct}%`}
             </p>
             <p className="mt-1.5 text-sm leading-snug text-night/70">
                 We call a boatman in at short notice and pay him fairly for it — same boat, boatman and guarantee, no hidden fees.
             </p>
             <details className="mt-1 text-xs text-night/55">
                 <summary className="cursor-pointer font-semibold text-night/70">How short-notice pricing works</summary>
-                <p className="mt-1">Our boatmen plan their week ahead. Today +{SURGE_PCT.urgent}% · tomorrow +{SURGE_PCT.nextDay}% · 2 or more days ahead: the regular price on our website.</p>
+                <p className="mt-1">Our boatmen plan their week ahead. A ride today is +{SURGE_PCT.urgent}%. Tomorrow or later: the regular price on our website.</p>
             </details>
             {planAhead && (
                 <button type="button" onClick={onPlanAhead}
@@ -165,14 +165,14 @@ export default function BookingFlow() {
 
     const selected = RIDES_BY_POPULARITY.find((r) => r.id === ride);
     const ridePrice = ride === "custom" ? BOAT_PRICES_INR.custom : selected ? BOAT_PRICES_INR[selected.id] : 0;
-    // Short notice (today / tomorrow) adds a surcharge on the boat — see lib/boatPrices.ts. The server prices it the same way.
+    // Short notice (today) adds a surcharge on the boat — see lib/boatPrices.ts. The server prices it the same way.
     const now = { iso: todayIso, minutes: nowMinutes };
-    // Before a ride is chosen, a date is priced as for the latest start of the day (today +80%, tomorrow +50%).
+    // Before a ride is chosen, a date is priced as for the latest start of the day (today +30%).
     const noticeOf = (iso: string, rideId: RideChoice = ride): Notice =>
         !todayIso || !iso ? { tier: "planned", pct: 0 } : noticeFor(iso, rideId ? rideStartMinutes(rideId, customTime) : 23 * 60 + 59, now);
     const rideNotice = noticeOf(selectedDate);
     const noticeFee = ride ? noticeFeeInr(ridePrice, rideNotice.pct) : 0;
-    const planAheadIso = todayIso ? addDaysIso(todayIso, 2) : "";
+    const planAheadIso = todayIso ? addDaysIso(todayIso, 1) : "";
     // 2 passengers are included; each one after that adds ₹350 (lib/boatPrices.ts). The server charges the same total.
     const extraGuests = Math.max(0, guests - FREE_PASSENGERS);
     const guestFee = ride ? passengerFeeInr(guests) : 0;
@@ -404,7 +404,7 @@ export default function BookingFlow() {
                         );
                     })}
                 </div>
-                <p className="mt-2 text-xs text-night/50">Prices depend on how far ahead you book — 2 or more days ahead gets the regular price.</p>
+                <p className="mt-2 text-xs text-night/50">Book for tomorrow or later to get the regular price.</p>
             </Section>
 
             <Section id="s-ride" n={2} title="Choose your ride" error={errors.ride || errors.customTime || errors.customDest}>
