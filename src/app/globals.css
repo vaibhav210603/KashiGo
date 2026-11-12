@@ -256,30 +256,44 @@ body {
 }
 }
 
-/* The combo card (home): a gold aura that turns and breathes around it, a gold ring that runs along its edge,
-   and astro glyphs floating up its sky. Transform / opacity / a registered angle only. */
-.combo-aura {
-  background: conic-gradient(from var(--glow-angle), #e8c158, #ff7a1a 20%, transparent 35%, #f9e29a 55%, #ffb627 70%, transparent 85%, #e8c158);
-  animation: glow-spin 6s linear infinite, glow-pulse 3s ease-in-out infinite;
-}
-.combo-ring {
-  background: conic-gradient(from var(--glow-angle), #7a5a14, #f9e29a 15%, #e8c158 30%, #7a5a14 50%, #ffd36b 70%, #7a5a14);
-  animation: glow-spin 5s linear infinite;
-}
+/* The combo packages (home). Everything moves with transform / opacity only, each loop on its own eased curve,
+   so the motion speeds up and settles like real things do — and the phone never repaints while it runs. */
+html { overflow-anchor: none; } /* stops the browser and the smooth scroller fighting when a section's height settles */
+@keyframes ring-turn { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+.ring-turn { animation: ring-turn 7s cubic-bezier(0.45, 0.1, 0.55, 0.9) infinite; }
+@keyframes aura-a { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.85; } 35% { transform: translate(18%, 30%) scale(1.15); opacity: 1; } 70% { transform: translate(-6%, 55%) scale(0.92); opacity: 0.7; } }
+@keyframes aura-b { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; } 40% { transform: translate(-20%, -35%) scale(1.12); opacity: 1; } 75% { transform: translate(8%, -55%) scale(0.9); opacity: 0.65; } }
+.aura-drift-a { animation: aura-a 9s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+.aura-drift-b { animation: aura-b 11s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+@keyframes breathe { 0%, 100% { opacity: 0.55; transform: scale(0.97); } 50% { opacity: 1; transform: scale(1.03); } }
+.glow-breathe { animation: breathe 4.2s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
+.sun-breathe { animation: breathe 5.5s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
 @keyframes astro-float {
   0% { transform: translateY(14px) rotate(0deg); opacity: 0; }
-  20%, 70% { opacity: 1; }
-  100% { transform: translateY(-36px) rotate(40deg); opacity: 0; }
+  25%, 65% { opacity: 1; }
+  100% { transform: translateY(-40px) rotate(30deg); opacity: 0; }
 }
-.astro-float { animation: astro-float 7s ease-in-out infinite; }
-/* Side cards floating once they've fanned out, and glitter falling down the combo section (the wrapper is the
-   section's full height, so translateY(100%) is the bottom). */
-@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-.float-y { animation: float-y 5s ease-in-out infinite; }
-@keyframes glitter-fall { from { transform: translateY(-4%); } to { transform: translateY(100%); } }
-.glitter-fall { animation: glitter-fall 9s linear infinite; will-change: transform; }
-@keyframes twinkle { 0%, 100% { opacity: 0.25; transform: rotate(45deg) scale(0.7); } 50% { opacity: 1; transform: rotate(45deg) scale(1.2); } }
-.twinkle { animation: twinkle 1.6s ease-in-out infinite; }
+.astro-float { animation: astro-float 7s cubic-bezier(0.25, 0.1, 0.25, 1) infinite; }
+@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+.float-y { animation: float-y 6.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+@keyframes float-soft { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.float-soft { animation: float-soft 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+/* Glitter: the wrapper is the section's full height, so translateY(100%) is the bottom. It speeds up as it falls,
+   sways from side to side at its own rate, and twinkles. */
+@keyframes glitter-fall { 0% { transform: translateY(-4%); opacity: 0; } 8% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(100%); opacity: 0; } }
+.glitter-fall { animation: glitter-fall 12s cubic-bezier(0.4, 0, 0.8, 0.6) infinite; }
+@keyframes glitter-sway { 0%, 100% { transform: translateX(-10px) rotate(0deg); } 50% { transform: translateX(10px) rotate(180deg); } }
+.glitter-sway { animation: glitter-sway 3s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+@keyframes twinkle { 0%, 100% { opacity: 0.35; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1.15); } }
+.twinkle { clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); background: linear-gradient(135deg, #fff6d0, #d9a63a); animation: twinkle 1.6s ease-in-out infinite; }
+/* The river: a boat crossing with a slow start and a gentle glide, rocking on the swell */
+@keyframes boat-cruise { 0% { transform: translateX(-14vw); } 100% { transform: translateX(110vw); } }
+.boat-cruise { animation: boat-cruise 34s cubic-bezier(0.35, 0.05, 0.65, 0.95) -9s infinite; }
+@keyframes boat-rock { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 30% { transform: translateY(-5px) rotate(1deg); } 60% { transform: translateY(-2px) rotate(2deg); } }
+.boat-rock { animation: boat-rock 5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+@keyframes water-glint { 0%, 100% { opacity: 0.35; transform: scaleX(0.9); } 50% { opacity: 0.9; transform: scaleX(1.08); } }
+.water-glint { animation: water-glint 4.8s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .combo-aura, .combo-ring, .astro-float, .float-y, .glitter-fall, .twinkle { animation: none; }
+  .ring-turn, .aura-drift-a, .aura-drift-b, .glow-breathe, .sun-breathe, .astro-float, .float-y, .float-soft,
+  .glitter-fall, .glitter-sway, .twinkle, .boat-cruise, .boat-rock, .water-glint { animation: none; }
 }
