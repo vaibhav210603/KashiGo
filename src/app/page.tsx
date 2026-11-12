@@ -153,8 +153,8 @@ export default function Home() {
       {/* Order: the boat (our USP) → proof it's good → why us → everything else we do in Kashi → how booking works → guides */}
       <DevDeepawaliHero />
       <DevDeepawaliSection />
-      <RideRail />
       <RideConsultOffer />
+      <RideRail />
       <AcharyaConsult knowMore />
       <FollowUs />
       <GhatMarquee />

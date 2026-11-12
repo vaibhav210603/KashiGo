@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, BadgeCheck, Minus, Play, Plus, TrendingUp } from "lucide-react";
+import { ArrowRight, BadgeCheck, Minus, Play, Plus, TrendingUp } from "lucide-react";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
 import { BEST_PRICE_LINE, DD_MAX_PEOPLE, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, THIRD_SEAT_INR, ddTotal, seatPrices, trioPrice } from "@/lib/devDeepawali";
@@ -19,7 +19,6 @@ const useIstToday = () => useSyncExternalStore(subscribe, () => istNow().iso, ()
 // The seat is priced in rupees; visitors browsing in $ get a rough conversion next to it.
 const usdHint = (n: number, currency: string) => (currency === "usd" ? ` ≈ ${money(n, "usd").replace(/\.\d+$/, "")}` : "");
 const fmtDay = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" });
-const fromDay = (p: { iso: string; inDays: number }) => (p.inDays === 1 ? "tomorrow" : fmtDay(p.iso));
 
 export function InvitationSeal() {
     return (
@@ -70,10 +69,6 @@ const Rod = () => <div aria-hidden className="relative z-10 -mx-1.5 h-2.5 rounde
 
 // The invitation in the hero: a blue scroll with gold rods that unrolls once on load.
 export function InviteCard() {
-    const today = useIstToday();
-    const [currency] = useCurrency();
-    const [now, next] = today ? seatPrices(today, 2) : [];
-
     return (
         <div className="unroll relative mx-auto w-full max-w-[26rem]">
             <Rod />
@@ -100,24 +95,14 @@ export function InviteCard() {
                         <span className="h-px flex-1 bg-gradient-to-l from-transparent to-current" />
                     </div>
 
-                    <p className="font-display text-4xl leading-none text-white">
-                        <s className="mr-2 align-middle font-sans text-lg font-medium text-white/50 decoration-[#ff6b6b] decoration-2">{inr(GHAT_PRICE_INR)}</s>
-                        {now ? inr(now.inr) : " "}
-                        <span className="ml-1.5 font-sans text-sm font-medium text-white/70">/ person{now ? usdHint(now.inr, currency) : ""}</span>
-                    </p>
-                    <p className="mt-1.5 text-[11px] text-white/55">{inr(GHAT_PRICE_INR)} is what local boatmen charge on the ghat</p>
-                    {now && <p className="mt-2 text-sm font-semibold text-[#f3d27a]">Trio · 3 seats for {inr(trioPrice(now.inr))} <span className="font-normal text-white/60">({inr(Math.round(trioPrice(now.inr) / 3))} each)</span></p>}
-                    <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#7ee0c9]"><BadgeCheck size={13} /> {BEST_PRICE_LINE}</p>
-                    {next && (
-                        <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#d7191f]/25 px-3 py-1 text-xs font-semibold text-[#ffc2c2] ring-1 ring-[#ff4d4d]/40">
-                            <TrendingUp size={13} /> {inr(next.inr)} from {fromDay(next)} · rises every 2 days
-                        </p>
-                    )}
+                    {/* No prices here — the offers (Solo, Pair, Trio) are on the Dev Deepawali page. */}
+                    <p className="text-[15px] leading-relaxed text-white/85">Watch a million diyas light up the ghats from the river, with fireworks and the laser show.</p>
+                    <p className="mt-2 text-sm font-semibold text-[#f3d27a]">Seat packs for 1, 2 or 3 — the Trio saves the most.</p>
                     <div className="mt-3"><FillingFast /></div>
 
                     <Link href="/dev-deepawali"
                         className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] text-base font-bold text-[#0a1c52] shadow-[0_8px_24px_-8px_rgba(232,193,88,0.95)]">
-                        Book now <ArrowRight size={16} />
+                        View Dev Deepawali offers <ArrowRight size={16} />
                     </Link>
                 </div>
 
@@ -159,7 +144,7 @@ const wave = (amp: number, y: number, len = 240) => {
     return `${d} V200 H0 Z`;
 };
 
-function Boat({ flip = false }: { flip?: boolean }) {
+export function Boat({ flip = false }: { flip?: boolean }) {
     const id = useId();
     return (
         <svg viewBox="0 0 170 70" className={`h-full w-full ${flip ? "-scale-x-100" : ""}`} aria-hidden>
@@ -300,7 +285,8 @@ export function Countdown() {
 
 // Solo / Pair / Trio. The Pair is exactly two seats, so next to it the Trio (a 3rd seat for ₹2,001) is the obvious pick.
 // Under it, a stepper for any other head count (every 3 seats at the Trio price).
-export function SeatPacks({ seat, people, onPick, max = DD_MAX_PEOPLE }: { seat: number; people: number; onPick: (n: number) => void; max?: number }) {
+// `compact` (the home page) drops the explanations and keeps the cards and the stepper.
+export function SeatPacks({ seat, people, onPick, max = DD_MAX_PEOPLE, compact = false }: { seat: number; people: number; onPick: (n: number) => void; max?: number; compact?: boolean }) {
     return (
         <div>
             <div className="grid grid-cols-3 gap-2">
@@ -324,13 +310,13 @@ export function SeatPacks({ seat, people, onPick, max = DD_MAX_PEOPLE }: { seat:
                     );
                 })}
             </div>
-            <p className="mt-2 text-[11px] leading-snug text-white/55">Solo is the price per person, for one seat on the boat. Adding more passengers raises the total.</p>
-            {seat > 0 && (
+            <p className="mt-2 text-[11px] leading-snug text-white/55">{compact ? "Solo is per person. More passengers raise the total." : "Solo is the price per person, for one seat on the boat. Adding more passengers raises the total."}</p>
+            {seat > 0 && !compact && (
                 <p className="mt-2 rounded-xl bg-[#7ee0c9]/10 px-3 py-2 text-xs font-semibold text-[#7ee0c9] ring-1 ring-[#7ee0c9]/30">
                     Trio: the 3rd seat costs just {inr(THIRD_SEAT_INR)} — you save {inr(seat * 3 - trioPrice(seat))} on three seats.
                 </p>
             )}
-            <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white/[0.05] px-3 py-2 ring-1 ring-white/10">
+            <div className={`flex items-center justify-between gap-3 rounded-2xl bg-white/[0.05] px-3 ring-1 ring-white/10 ${compact ? "mt-2 py-1.5" : "mt-3 py-2"}`}>
                 <span className="text-sm text-white/75">{people > 3 ? "Group of" : "Bigger group?"}</span>
                 <span className="flex items-center gap-2">
                     <button type="button" aria-label="Fewer people" onClick={() => onPick(Math.max(1, people - 1))} disabled={people <= 1}
@@ -350,7 +336,7 @@ export function DevDeepawaliSection() {
     const today = useIstToday();
     const [currency] = useCurrency();
     const [people, setPeople] = useState(3);
-    const prices = today ? seatPrices(today, 3) : [];
+    const prices = today ? seatPrices(today, 2) : [];
     const price = prices[0]?.inr ?? 0;
     // The price card sweeps with a gold sheen once, the first time it scrolls into view.
     const card = useRef<HTMLDivElement>(null);
@@ -377,56 +363,45 @@ export function DevDeepawaliSection() {
                 <div className="lg:order-1 lg:row-span-2">
                     <FestivalFilm />
                     <p className="mt-2 text-center text-xs text-white/55 lg:text-left">Fireworks, the laser show and the lit ghats on Dev Deepawali · film by {FILM.credit}, on YouTube</p>
+                    {/* Time left until the lamps are lit, right under the film */}
+                    <div className="mt-4"><Countdown /></div>
                 </div>
 
-                <div ref={card} className="shine-once relative lg:order-3 rounded-2xl border-2 border-[#e8c158] bg-gradient-to-b from-[#12348f] to-[#0a1c52] p-4 sm:p-5 text-white">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Today&apos;s price</p>
-                    <p className="mt-1 font-display text-4xl leading-none" style={{ color: GOLD }}>
-                        <s className="mr-2 align-middle font-sans text-xl font-medium text-white/50 decoration-[#ff6b6b] decoration-2">{inr(GHAT_PRICE_INR)}</s>
-                        {price ? inr(price) : " "}<span className="ml-1 whitespace-nowrap font-sans text-sm font-medium text-white/70">per person{price ? usdHint(price, currency) : ""}</span>
-                    </p>
-                    <p className="mt-1.5 text-xs text-white/60">
-                        Local boatmen on the ghat charge {inr(GHAT_PRICE_INR)} per person{price ? <> — you save <b className="text-[#7ee0c9]">{inr(GHAT_PRICE_INR - price)}</b> each</> : null}.
-                    </p>
-                    <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[#7ee0c9]"><BadgeCheck size={15} /> {BEST_PRICE_LINE} — you won&apos;t find this seat cheaper.</p>
-
-                    {/* The price goes up every 2 days — show the next rises so it's plain. */}
-                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                        {prices.map((p, i) => (
-                            <div key={p.iso} className={`rounded-xl px-1 py-2 ${i === 0 ? "bg-[#e8c158] text-[#0a1c52]" : "bg-white/5 text-white/70 ring-1 ring-white/10"}`}>
-                                <span className="block text-[11px] font-semibold uppercase tracking-wider">{i === 0 ? "Today" : p.inDays === 1 ? "Tomorrow" : fmtDay(p.iso)}</span>
-                                <span className="block font-semibold">{inr(p.inr)}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <p className="mt-2 flex items-center gap-1.5 text-xs text-white/65">
-                        <TrendingUp size={14} className="text-[#ff8a8a]" /> The price goes up ₹200 every 2 days until Dev Deepawali. Book today to lock it in.
-                    </p>
-
-                    <div className="mt-4"><Countdown /></div>
-
-                    <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#d7191f]/15 px-3 py-2 ring-1 ring-[#ff4d4d]/40">
-                        <AlertTriangle size={15} className="shrink-0 text-[#ff6b6b]" />
-                        <FillingFast />
-                    </div>
-
-                    {/* Who's coming: Solo / Pair / Trio, then the total right under it */}
-                    <div className="mt-6">
-                        <p className="mb-3 text-base font-semibold text-white">Who&apos;s coming?</p>
-                        <SeatPacks seat={price} people={people} onPick={setPeople} />
-                        {price > 0 && (
-                            <div className="mt-3 flex items-baseline justify-between border-t border-[#e8c158]/30 pt-3 text-sm">
-                                <span className="text-white/75">Total for {people} {people === 1 ? "person" : "people"}</span>
-                                <span className="font-display text-2xl text-white">{inr(ddTotal(price, people))}</span>
-                            </div>
+                {/* The booking card, kept short: today's price, who's coming, the total and Book. */}
+                <div ref={card} className="shine-once relative mx-auto w-full max-w-md lg:order-3 rounded-2xl border-2 border-[#e8c158] bg-gradient-to-b from-[#12348f] to-[#0a1c52] p-4 text-white">
+                    <div>
+                        <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">Today&apos;s price</p>
+                            <p className="mt-1 font-display text-3xl leading-none" style={{ color: GOLD }}>
+                                <s className="mr-1.5 align-middle font-sans text-base font-medium text-white/50 decoration-[#ff6b6b] decoration-2">{inr(GHAT_PRICE_INR)}</s>
+                                {price ? inr(price) : " "}<span className="ml-1 whitespace-nowrap font-sans text-xs font-medium text-white/70">/ person{price ? usdHint(price, currency) : ""}</span>
+                            </p>
+                        </div>
+                        {prices[1] && (
+                            <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#d7191f]/20 px-2.5 py-1 text-[11px] font-semibold text-[#ffc2c2] ring-1 ring-[#ff4d4d]/40">
+                                <TrendingUp size={12} /> {inr(prices[1].inr)} {prices[1].inDays === 1 ? "tomorrow" : `from ${fmtDay(prices[1].iso)}`}
+                            </span>
                         )}
                     </div>
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#7ee0c9]"><BadgeCheck size={14} /> {BEST_PRICE_LINE}</p>
+                    <div className="mt-1"><FillingFast /></div>
+
+                    <div className="mt-4">
+                        <SeatPacks seat={price} people={people} onPick={setPeople} compact />
+                    </div>
+
+                    {price > 0 && (
+                        <div className="mt-3 flex items-baseline justify-between border-t border-[#e8c158]/30 pt-3 text-sm">
+                            <span className="text-white/75">Total for {people} {people === 1 ? "person" : "people"}</span>
+                            <span className="font-display text-2xl text-white">{inr(ddTotal(price, people))}</span>
+                        </div>
+                    )}
 
                     <Link href={`/dev-deepawali?people=${people}#book`}
-                        className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] text-lg font-bold text-[#0a1c52] shadow-[0_10px_30px_-10px_rgba(232,193,88,0.9)]">
-                        Book for {people} {people === 1 ? "person" : "people"} <ArrowRight size={18} />
+                        className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] text-base font-bold text-[#0a1c52] shadow-[0_10px_30px_-10px_rgba(232,193,88,0.9)]">
+                        Book for {people} {people === 1 ? "person" : "people"} <ArrowRight size={17} />
                     </Link>
-                    <p className="mt-2 text-center text-xs text-white/55">Secure online payment — pay in full, or 50% now and 50% at the ghat.</p>
+                    <p className="mt-2 text-center text-[11px] text-white/55">Pay in full, or 50% now and 50% at the ghat.</p>
                 </div>
             </div>
         </section>

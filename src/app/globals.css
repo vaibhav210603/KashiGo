@@ -255,3 +255,23 @@ body {
   color: transparent;
 }
 }
+
+/* The combo card (home): a gold aura that turns and breathes around it, a gold ring that runs along its edge,
+   and astro glyphs floating up its sky. Transform / opacity / a registered angle only. */
+.combo-aura {
+  background: conic-gradient(from var(--glow-angle), #e8c158, #ff7a1a 20%, transparent 35%, #f9e29a 55%, #ffb627 70%, transparent 85%, #e8c158);
+  animation: glow-spin 6s linear infinite, glow-pulse 3s ease-in-out infinite;
+}
+.combo-ring {
+  background: conic-gradient(from var(--glow-angle), #7a5a14, #f9e29a 15%, #e8c158 30%, #7a5a14 50%, #ffd36b 70%, #7a5a14);
+  animation: glow-spin 5s linear infinite;
+}
+@keyframes astro-float {
+  0% { transform: translateY(14px) rotate(0deg); opacity: 0; }
+  20%, 70% { opacity: 1; }
+  100% { transform: translateY(-36px) rotate(40deg); opacity: 0; }
+}
+.astro-float { animation: astro-float 7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .combo-aura, .combo-ring, .astro-float { animation: none; }
+}
