@@ -105,6 +105,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     })),
     {
+      url: `${baseUrl}/ride-and-consult`,
+      lastModified: new Date("2026-11-12"),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/dev-deepawali`,
       lastModified: new Date("2026-11-01"),
       changeFrequency: "daily" as const,

@@ -59,7 +59,7 @@ export default function DevDeepawaliBookings() {
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <p className="font-semibold"><span className="text-marigold">{b.key}</span> · {b.name}</p>
-                                <p className="text-sm text-white/55">Booked {when(b.created_at)} · {b.guests} seat{b.guests === 1 ? "" : "s"} × {rupees(b.perInr)}</p>
+                                <p className="text-sm text-white/55">Booked {when(b.created_at)} · {b.guests} seat{b.guests === 1 ? "" : "s"} · seat price {rupees(b.perInr)}</p>
                             </div>
                             <span className={`rounded-full px-3 py-1 text-xs font-bold ${b.dueInr ? "bg-marigold/20 text-marigold" : "bg-emerald-400/15 text-emerald-300"}`}>
                                 {b.dueInr ? `50% paid · collect ${rupees(b.dueInr)} at ghat` : "Paid in full"}

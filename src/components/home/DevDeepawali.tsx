@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AlertTriangle, ArrowRight, BadgeCheck, Minus, Play, Plus, TrendingUp } from "lucide-react";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { BEST_PRICE_LINE, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, seatPrices } from "@/lib/devDeepawali";
+import { BEST_PRICE_LINE, DD_MAX_PEOPLE, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, THIRD_SEAT_INR, ddTotal, seatPrices, trioPrice } from "@/lib/devDeepawali";
 
 // Dev Deepawali on the home page: the invitation card in the hero and the section right after it.
 // Every animation here is a CSS transform / opacity loop (see globals.css), so phones run them on the GPU,
@@ -106,6 +106,7 @@ export function InviteCard() {
                         <span className="ml-1.5 font-sans text-sm font-medium text-white/70">/ person{now ? usdHint(now.inr, currency) : ""}</span>
                     </p>
                     <p className="mt-1.5 text-[11px] text-white/55">{inr(GHAT_PRICE_INR)} is what local boatmen charge on the ghat</p>
+                    {now && <p className="mt-2 text-sm font-semibold text-[#f3d27a]">Trio · 3 seats for {inr(trioPrice(now.inr))} <span className="font-normal text-white/60">({inr(Math.round(trioPrice(now.inr) / 3))} each)</span></p>}
                     <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#7ee0c9]"><BadgeCheck size={13} /> {BEST_PRICE_LINE}</p>
                     {next && (
                         <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#d7191f]/25 px-3 py-1 text-xs font-semibold text-[#ffc2c2] ring-1 ring-[#ff4d4d]/40">
@@ -297,11 +298,58 @@ export function Countdown() {
     );
 }
 
+// Solo / Pair / Trio. The Pair is exactly two seats, so next to it the Trio (a 3rd seat for ₹2,001) is the obvious pick.
+// Under it, a stepper for any other head count (every 3 seats at the Trio price).
+export function SeatPacks({ seat, people, onPick, max = DD_MAX_PEOPLE }: { seat: number; people: number; onPick: (n: number) => void; max?: number }) {
+    return (
+        <div>
+            <div className="grid grid-cols-3 gap-2">
+                {DD_PACKS.map((p) => {
+                    const on = people === p.people;
+                    const best = p.people === 3;
+                    const total = ddTotal(seat, p.people);
+                    return (
+                        <button key={p.people} type="button" onClick={() => onPick(p.people)} aria-pressed={on}
+                            className={`relative flex flex-col items-center rounded-2xl border-2 px-1 pb-2.5 pt-7 text-center transition-colors ${best ? "shine-loop" : ""} ${on ? "border-[#e8c158] bg-[#e8c158]/20" : best ? "border-[#e8c158]/70 bg-[#e8c158]/[0.08]" : "border-white/15 bg-white/[0.04] hover:border-white/35"}`}>
+                            {best && <span className="absolute top-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#7ee0c9] px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-[#0a1c52]">Best value</span>}
+                            <span className="text-sm font-bold text-white">{p.name}</span>
+                            <span className="text-[11px] text-white/60">{p.line}</span>
+                            <span className="mt-1.5 font-display text-[1.3rem] leading-none tabular-nums" style={{ color: GOLD }}>{seat ? inr(total) : " "}</span>
+                            <span className={`mt-1 text-[10px] font-semibold leading-tight ${best ? "text-[#7ee0c9]" : "text-white/50"}`}>
+                                {!seat ? " " : best ? `${inr(Math.round(total / 3))} / person` : p.people === 2 ? `${inr(seat)} × 2` : "per person"}
+                            </span>
+                            {best && seat > 0 && <s className="mt-0.5 text-[10px] text-white/40">{inr(seat * 3)}</s>}
+                            <span className={`mt-2 h-4 w-4 rounded-full border-2 ${on ? "border-[#e8c158] bg-[#e8c158] shadow-[inset_0_0_0_3px_#0a1c52]" : "border-white/30"}`} />
+                        </button>
+                    );
+                })}
+            </div>
+            <p className="mt-2 text-[11px] leading-snug text-white/55">Solo is the price per person, for one seat on the boat. Adding more passengers raises the total.</p>
+            {seat > 0 && (
+                <p className="mt-2 rounded-xl bg-[#7ee0c9]/10 px-3 py-2 text-xs font-semibold text-[#7ee0c9] ring-1 ring-[#7ee0c9]/30">
+                    Trio: the 3rd seat costs just {inr(THIRD_SEAT_INR)} — you save {inr(seat * 3 - trioPrice(seat))} on three seats.
+                </p>
+            )}
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white/[0.05] px-3 py-2 ring-1 ring-white/10">
+                <span className="text-sm text-white/75">{people > 3 ? "Group of" : "Bigger group?"}</span>
+                <span className="flex items-center gap-2">
+                    <button type="button" aria-label="Fewer people" onClick={() => onPick(Math.max(1, people - 1))} disabled={people <= 1}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#e8c158] text-[#f3d27a] disabled:opacity-40"><Minus size={16} /></button>
+                    <span className="w-7 text-center font-display text-2xl leading-none text-white tabular-nums" aria-live="polite">{people}</span>
+                    <button type="button" aria-label="More people" onClick={() => onPick(Math.min(max, people + 1))} disabled={people >= max}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e8c158] text-[#0a1c52] disabled:opacity-40"><Plus size={16} /></button>
+                </span>
+            </div>
+            {people > 3 && <p className="mt-1.5 text-[11px] text-white/55">Every 3 seats are charged at the Trio price.</p>}
+        </div>
+    );
+}
+
 // Right after the hero: the river view on the night, today's seat price and Book now, over an animated river.
 export function DevDeepawaliSection() {
     const today = useIstToday();
     const [currency] = useCurrency();
-    const [people, setPeople] = useState(2);
+    const [people, setPeople] = useState(3);
     const prices = today ? seatPrices(today, 3) : [];
     const price = prices[0]?.inr ?? 0;
     // The price card sweeps with a gold sheen once, the first time it scrolls into view.
@@ -362,22 +410,14 @@ export function DevDeepawaliSection() {
                         <FillingFast />
                     </div>
 
-                    {/* Who's coming — right above the total, so it's plain the total is per head × people */}
-                    <div className="mt-5 rounded-2xl border-2 border-[#e8c158] bg-[#e8c158]/10 p-3">
-                        <div className="flex items-center justify-between gap-3">
-                            <span className="pl-1 text-base font-semibold text-white">How many people?</span>
-                            <span className="flex items-center gap-2">
-                                <button type="button" aria-label="Fewer people" onClick={() => setPeople((p) => Math.max(1, p - 1))}
-                                    className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#e8c158] text-[#f3d27a] disabled:opacity-40" disabled={people <= 1}><Minus size={18} /></button>
-                                <span className="w-9 text-center font-display text-3xl leading-none text-white tabular-nums" aria-live="polite">{people}</span>
-                                <button type="button" aria-label="More people" onClick={() => setPeople((p) => Math.min(20, p + 1))}
-                                    className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e8c158] text-[#0a1c52]"><Plus size={18} /></button>
-                            </span>
-                        </div>
+                    {/* Who's coming: Solo / Pair / Trio, then the total right under it */}
+                    <div className="mt-6">
+                        <p className="mb-3 text-base font-semibold text-white">Who&apos;s coming?</p>
+                        <SeatPacks seat={price} people={people} onPick={setPeople} />
                         {price > 0 && (
                             <div className="mt-3 flex items-baseline justify-between border-t border-[#e8c158]/30 pt-3 text-sm">
-                                <span className="text-white/75">{inr(price)} × {people} {people === 1 ? "person" : "people"}</span>
-                                <span className="font-display text-2xl text-white">{inr(price * people)}</span>
+                                <span className="text-white/75">Total for {people} {people === 1 ? "person" : "people"}</span>
+                                <span className="font-display text-2xl text-white">{inr(ddTotal(price, people))}</span>
                             </div>
                         )}
                     </div>

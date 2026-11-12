@@ -25,7 +25,7 @@ async function notify(order: any, payment: any, record: OrderRecord) {
             text: [
                 `Booking: ${n.booking}`,
                 `Dev Deepawali shared boat · Tue 24 Nov 2026`,
-                `Seats: ${n.people} × ${inr(Number(n.per))} = ${inr(Number(n.total))}`,
+                `Seats: ${n.people} · total ${inr(Number(n.total))} (seat price ${inr(Number(n.per))}${Number(n.people) >= 3 ? ", Trio pack" : ""})`,
                 `Passengers: ${[n.name, n.passengers].filter(Boolean).join(", ")}`,
                 `Phone: ${n.phone} · Email: ${n.email}`,
                 `Paid: ${paid} via ${payment.method}${due ? " (50% advance)" : ""}`,

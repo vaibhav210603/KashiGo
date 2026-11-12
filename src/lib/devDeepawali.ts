@@ -38,6 +38,21 @@ export function seatPrices(todayIso: string, steps = 3) {
     return out;
 }
 
+// Seat packs, priced so a pair looks at the trio: Solo is one seat, Pair is exactly two seats (no discount),
+// and Trio adds a third seat for only ₹2,001 more than the Pair — so the Pair is the one nobody picks.
+// Bigger groups pay the Trio price for every 3 seats and the seat price for the rest; the server prices the same way.
+export const THIRD_SEAT_INR = 2001;
+export const trioPrice = (seat: number) => seat * 2 + THIRD_SEAT_INR;
+export function ddTotal(seat: number, people: number): number {
+    const n = Math.max(0, Math.trunc(people));
+    return Math.floor(n / 3) * trioPrice(seat) + (n % 3) * seat;
+}
+export const DD_PACKS = [
+    { people: 1, name: "Solo", line: "1 seat" },
+    { people: 2, name: "Pair", line: "2 seats" },
+    { people: 3, name: "Trio", line: "3 seats" },
+] as const;
+
 // What every Dev Deepawali seat includes. Boarding ghat and time are confirmed on a call after booking.
 export const AMENITIES: { title: string; short: string; detail: string }[] = [
     { title: "Your seat on a KashiGo boat", short: "Your seat", detail: "A reserved seat on our shared boat for Dev Deepawali night, in your name." },

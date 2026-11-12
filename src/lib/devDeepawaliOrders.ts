@@ -4,7 +4,7 @@
 import crypto from "crypto";
 import { razorpay } from "@/lib/quotePayments";
 import { istNow } from "@/lib/boatRides";
-import { DD_MAX_PEOPLE, DEV_DEEPAWALI_DATE, ddSplit, seatPriceOn, type DdPay } from "@/lib/devDeepawali";
+import { DD_MAX_PEOPLE, DEV_DEEPAWALI_DATE, ddSplit, ddTotal, seatPriceOn, type DdPay } from "@/lib/devDeepawali";
 import type { OrderRecord } from "@/lib/orderMail";
 
 const clean = (v: unknown, max: number) => String(v ?? "").replace(/[\u0000-\u001f\u007f<>|]/g, "").trim().slice(0, max);
@@ -30,7 +30,7 @@ export function priceBooking(body: any): { booking: DdBooking } | { problem: str
     if (!(people >= 1 && people <= DD_MAX_PEOPLE)) return { problem: `Seats can be booked for 1 to ${DD_MAX_PEOPLE} people at a time.` };
     if (passengers.length !== people - 1 || passengers.some((p: string) => !p)) return { problem: "Add a name for every passenger." };
     const perInr = seatPriceOn(today);
-    const totalInr = perInr * people;
+    const totalInr = ddTotal(perInr, people); // seat packs: every 3 seats at the Trio price
     const { online, atGhat } = ddSplit(totalInr, pay);
     const id = `DD-${crypto.randomInt(0, 1_000_000).toString().padStart(6, "0")}`;
     return { booking: { id, name, phone, email, people, passengers, pay, perInr, totalInr, onlineInr: online, dueInr: atGhat } };
@@ -72,7 +72,7 @@ export function ddRecord(order: any, payment: any): OrderRecord {
         amount: Number(payment?.amount ?? order?.amount ?? 0) / 100,
         credits_used: 0,
         coupon: null,
-        notes: [`Dev Deepawali shared boat · ${n.people} × ₹${Number(n.per).toLocaleString("en-IN")}`, `Passengers: ${passengers.join(", ")}`, due ? `Collect ₹${due.toLocaleString("en-IN")} at the ghat` : "Paid in full", "Boarding ghat & time: call to confirm"].join(" · "),
+        notes: [`Dev Deepawali shared boat · ${n.people} seat${n.people === "1" ? "" : "s"} · ₹${Number(n.total).toLocaleString("en-IN")} (seat ₹${Number(n.per).toLocaleString("en-IN")})`, `Passengers: ${passengers.join(", ")}`, due ? `Collect ₹${due.toLocaleString("en-IN")} at the ghat` : "Paid in full", "Boarding ghat & time: call to confirm"].join(" · "),
         ghat: "To be confirmed on call",
         ride_date: DEV_DEEPAWALI_DATE,
         time_of_day: "Evening, Dev Deepawali",

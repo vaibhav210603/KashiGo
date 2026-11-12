@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowRight, BadgeCheck, BadgeIndianRupee, Check, Eye, LifeBuoy, Loader2, Lock, Minus, Play, Plus, ShieldCheck, Ticket, TrendingUp, UserCheck } from "lucide-react";
+import { ArrowDown, ArrowRight, BadgeCheck, BadgeIndianRupee, Check, Eye, LifeBuoy, Loader2, Lock, Play, Plus, ShieldCheck, Ticket, TrendingUp, UserCheck } from "lucide-react";
 import DiyaRiver from "@/components/motion/DiyaRiver";
-import { Countdown, FestivalFilm, FillingFast, InvitationSeal, RiverScene } from "@/components/home/DevDeepawali";
+import { Countdown, FestivalFilm, FillingFast, InvitationSeal, RiverScene, SeatPacks } from "@/components/home/DevDeepawali";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { AMENITIES, BEST_PRICE_LINE, DD_MAX_PEOPLE, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, ddSplit, seatPrices, type DdPay } from "@/lib/devDeepawali";
+import { AMENITIES, BEST_PRICE_LINE, DD_MAX_PEOPLE, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, ddSplit, ddTotal, seatPrices, trioPrice, type DdPay } from "@/lib/devDeepawali";
 import { goToThankYou } from "@/lib/thankYou";
 import { track } from "@/lib/analytics";
 
@@ -246,11 +246,11 @@ export default function DevDeepawaliClient() {
 
 // Passenger details → full or 50% → Razorpay. The server prices the order; the totals here are a preview.
 function BookingForm({ price, tomorrow }: { price: number; tomorrow?: number }) {
-    const [people, setPeople] = useState(2);
+    const [people, setPeople] = useState(3);
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
-    const [others, setOthers] = useState<string[]>([""]);
+    const [others, setOthers] = useState<string[]>(["", ""]);
     const [pay, setPay] = useState<DdPay>("full");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
@@ -277,7 +277,7 @@ function BookingForm({ price, tomorrow }: { price: number; tomorrow?: number }) 
         const t = setTimeout(() => setCount(n), 0);
         return () => clearTimeout(t);
     }, []);
-    const total = price * people;
+    const total = ddTotal(price, people);
     const split = ddSplit(total, pay);
     const input = "h-12 w-full rounded-xl border border-white/15 bg-white/[0.05] px-4 text-base text-white placeholder:text-white/35 outline-none transition-colors focus:border-marigold";
 
@@ -337,14 +337,7 @@ function BookingForm({ price, tomorrow }: { price: number; tomorrow?: number }) 
                     <p className="mb-5 flex items-center justify-center gap-2 rounded-full bg-[#e8c158] px-4 py-2 text-center text-sm font-bold text-[#0a1c52]">You&apos;re booking for Tuesday, 24 November 2026</p>
                     {/* 1 — who's coming */}
                     <p className="flex items-center gap-2.5 text-sm font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}><span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#e8c158] text-xs text-[#0a1c52]">1</span> Passenger details</p>
-                    <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border-2 border-[#e8c158] bg-[#e8c158]/10 p-3">
-                        <span className="pl-1 font-semibold">How many people?</span>
-                        <span className="flex items-center gap-2">
-                            <button type="button" aria-label="Fewer people" onClick={() => setCount(people - 1)} disabled={people <= 1} className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#e8c158] text-[#f3d27a] disabled:opacity-40"><Minus size={18} /></button>
-                            <span className="w-9 text-center font-display text-3xl tabular-nums" aria-live="polite">{people}</span>
-                            <button type="button" aria-label="More people" onClick={() => setCount(people + 1)} disabled={people >= DD_MAX_PEOPLE} className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e8c158] text-[#0a1c52] disabled:opacity-40"><Plus size={18} /></button>
-                        </span>
-                    </div>
+                    <div className="mt-5"><SeatPacks seat={price} people={people} onPick={setCount} /></div>
                     <div className="mt-4 grid gap-3">
                         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Lead passenger's full name" autoComplete="name" className={input} />
                         <div className="grid gap-3 sm:grid-cols-2">
@@ -374,7 +367,7 @@ function BookingForm({ price, tomorrow }: { price: number; tomorrow?: number }) 
 
                     {/* Summary */}
                     <div className="mt-6 space-y-1.5 rounded-2xl bg-night/40 p-4 text-sm">
-                        <div className="flex justify-between text-white/70"><span>{inr(price)} × {people} {people === 1 ? "person" : "people"}</span><span className="tabular-nums">{inr(total)}</span></div>
+                        <div className="flex justify-between text-white/70"><span>{people >= 3 ? `${people} seats (Trio price)` : `${inr(price)} × ${people} ${people === 1 ? "person" : "people"}`}</span><span className="tabular-nums">{inr(total)}</span></div>
                         <div className="flex justify-between text-white/45"><span>On the ghat that would be</span><s className="tabular-nums">{inr(GHAT_PRICE_INR * people)}</s></div>
                         <div className="flex justify-between border-t border-white/10 pt-2 text-base font-bold"><span>{pay === "advance" ? "Pay now (50%)" : "Pay now"}</span><span className="tabular-nums" style={{ color: GOLD }}>{inr(split.online)}</span></div>
                         {split.atGhat > 0 && <div className="flex justify-between text-white/70"><span>Due at the ghat</span><span className="tabular-nums">{inr(split.atGhat)}</span></div>}
@@ -399,7 +392,7 @@ function BookingForm({ price, tomorrow }: { price: number; tomorrow?: number }) 
             <div className={`fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-[#e8c158]/40 bg-[#0a1c52]/95 px-4 pb-[calc(0.625rem+env(safe-area-inset-bottom))] pt-2.5 backdrop-blur transition-transform duration-300 sm:hidden ${inView ? "translate-y-full" : ""}`}>
                 <div className="flex-1 leading-tight">
                     <p className="text-[11px] text-white/60">Dev Deepawali · per person <s className="ml-1 text-white/40">{inr(GHAT_PRICE_INR)}</s></p>
-                    <p className="font-display text-xl" style={{ color: GOLD }}>{price ? inr(price) : " "}</p>
+                    <p className="font-display text-xl" style={{ color: GOLD }}>{price ? inr(price) : " "}{price > 0 && <span className="ml-2 font-sans text-[11px] font-semibold text-[#7ee0c9]">Trio {inr(trioPrice(price))}</span>}</p>
                 </div>
                 <button onClick={goBook} className="h-11 rounded-full bg-gradient-to-b from-[#f9e29a] to-[#d6a332] px-6 text-sm font-extrabold text-[#0a1c52]">Book now</button>
             </div>
