@@ -3,6 +3,7 @@ import { createTransporter, simpleEmail } from "@/lib/mailer";
 import { rateLimited } from "@/lib/rateLimit";
 import { normalizePhone, formatPhone } from "@/lib/phone";
 import { SERVICES } from "@/lib/services";
+import { captureLead } from "@/lib/leads";
 
 // Plain text only: strips control characters and HTML-significant characters, caps the length.
 const clean = (v: unknown, max = 100) => String(v ?? "").replace(/[\u0000-\u001f\u007f<>]/g, " ").trim().slice(0, max);
@@ -22,6 +23,8 @@ export async function POST(req: Request) {
         if (!service) return NextResponse.json({ success: false, message: "Please choose a service." }, { status: 400 });
         if (!name || !phone) return NextResponse.json({ success: false, message: "Please add your name and a WhatsApp number we can reach." }, { status: 400 });
         if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ success: false, message: "That email doesn't look right." }, { status: 400 });
+
+        await captureLead({ name, phone, source: "website", interest: service.name, travel_date: date || null, pax: guests, notes: [note, email].filter(Boolean).join(" · ") }, "website form");
 
         const owner = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
         if (!owner) return NextResponse.json({ success: false, message: "Requests are offline right now — please WhatsApp us." }, { status: 503 });
