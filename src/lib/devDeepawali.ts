@@ -18,10 +18,10 @@ export const HIKE_INR = 200;
 export const HIKE_EVERY_DAYS = 2;
 export const BEST_PRICE_LINE = "Best prices and 100% money-back guarantee";
 
-// Early-bird offer (from 14 Nov 2026): ₹3,599 a seat for the first 20 passengers on our boat, the regular price
+// Early-bird offer (from 14 Nov 2026): ₹3,699 a seat for the first 20 passengers on our boat, the regular price
 // struck through next to it. Update EARLY_BIRD_TAKEN as seats go; at 20 the offer closes by itself and the
 // regular price ladder below comes back.
-export const EARLY_BIRD_INR = 3599;
+export const EARLY_BIRD_INR = 3699;
 export const EARLY_BIRD_SEATS = 20;
 export const EARLY_BIRD_TAKEN = 8; // 12 left (set 15 Nov 2026)
 export const EARLY_BIRD_LEFT = Math.max(0, EARLY_BIRD_SEATS - EARLY_BIRD_TAKEN);

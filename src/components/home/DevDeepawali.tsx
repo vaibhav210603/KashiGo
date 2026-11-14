@@ -57,7 +57,7 @@ export function EarlyBirdMeter({ light = false }: { light?: boolean }) {
     );
 }
 
-// The early-bird offer with a photo of the boat itself: regular price struck through, ₹3,599, seats left.
+// The early-bird offer with a photo of the boat itself: regular price struck through, ₹3,699, seats left.
 export function EarlyBirdOffer({ was, onBook }: { was: number; onBook?: () => void }) {
     if (!EARLY_BIRD_OPEN) return null;
     return (
