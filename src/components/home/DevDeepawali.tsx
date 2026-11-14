@@ -66,7 +66,7 @@ export function EarlyBirdOffer({ was, onBook }: { was: number; onBook?: () => vo
                 {/* eslint-disable-next-line @next/next/no-img-element -- photo of our boat, lit for the night */}
                 <img src="/dev-deepawali/our-boat.jpg" alt="The KashiGo shared boat on the Ganga at night, lit with lights and marigold garlands" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
                 <span className="absolute left-3 top-3 rounded-full bg-[#d7191f] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-lg">Early-bird offer</span>
-                <span className="absolute bottom-3 left-3 rounded-full bg-night/75 px-3 py-1 text-xs text-white/90">This is your boat on Dev Deepawali</span>
+                <span className="absolute bottom-3 left-3 rounded-lg bg-[#d7191f] px-3 py-1.5 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_6px_20px_rgba(215,25,31,0.7)]">Get this exact boat</span>
             </div>
             <div className="p-5 sm:p-7">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">Shared boat · per person</p>
@@ -74,7 +74,7 @@ export function EarlyBirdOffer({ was, onBook }: { was: number; onBook?: () => vo
                     <s className="mr-2 align-middle font-sans text-xl font-medium text-white/50 decoration-[#ff6b6b] decoration-[3px]">{was ? inr(was) : " "}</s>
                     <span className="text-5xl sm:text-6xl" style={{ color: GOLD }}>{inr(EARLY_BIRD_INR)}</span>
                 </p>
-                <p className="mt-3 text-sm text-white/80">For the <b className="text-white">FINAL {EARLY_BIRD_SEATS} passengers</b> only. When they&apos;re gone, the price goes back up.</p>
+                <p className="mt-3 text-sm text-white/80"><b className="text-[#ff9b9b]">Last {EARLY_BIRD_LEFT} seats remaining! Limited time offer!</b> When they&apos;re gone, the price goes back up.</p>
                 <div className="mt-4"><EarlyBirdMeter light /></div>
                 <p className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-[#7ee0c9]"><ShieldCheck size={16} /> Best prices and 100% money-back guarantee!</p>
                 {onBook && (

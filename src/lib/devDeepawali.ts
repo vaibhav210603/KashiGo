@@ -23,7 +23,7 @@ export const BEST_PRICE_LINE = "Best prices and 100% money-back guarantee";
 // regular price ladder below comes back.
 export const EARLY_BIRD_INR = 3599;
 export const EARLY_BIRD_SEATS = 20;
-export const EARLY_BIRD_TAKEN = 12;
+export const EARLY_BIRD_TAKEN = 8; // 12 left (set 15 Nov 2026)
 export const EARLY_BIRD_LEFT = Math.max(0, EARLY_BIRD_SEATS - EARLY_BIRD_TAKEN);
 export const EARLY_BIRD_OPEN = EARLY_BIRD_LEFT > 0;
 

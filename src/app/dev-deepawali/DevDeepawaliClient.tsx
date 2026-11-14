@@ -8,7 +8,7 @@ import DiyaRiver from "@/components/motion/DiyaRiver";
 import { Countdown, EarlyBirdMeter, FestivalFilm, FillingFast, InvitationSeal, RiverScene, SeatPacks } from "@/components/home/DevDeepawali";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { AMENITIES, BEST_PRICE_LINE, DD_MAX_PEOPLE, EARLY_BIRD_SEATS, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, THIRD_SEAT_INR, ddSplit, ddTotal, seatPrices, trioPrice, type DdPay } from "@/lib/devDeepawali";
+import { AMENITIES, BEST_PRICE_LINE, DD_MAX_PEOPLE, EARLY_BIRD_LEFT, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, THIRD_SEAT_INR, ddSplit, ddTotal, seatPrices, trioPrice, type DdPay } from "@/lib/devDeepawali";
 import { goToThankYou } from "@/lib/thankYou";
 import { track } from "@/lib/analytics";
 
@@ -118,18 +118,19 @@ function Hero({ price, was, currency }: { price: number; was?: number; currency:
                             {was && (
                                 <span className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-[#d7191f] px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-white shadow-lg">
                                     <span className="relative flex h-2 w-2"><span className="absolute h-full w-full animate-ping rounded-full bg-white/80" /><span className="relative h-2 w-2 rounded-full bg-white" /></span>
-                                    Early-bird · {EARLY_BIRD_SEATS} seats only
+                                    Limited time offer
                                 </span>
                             )}
-                            <span className="absolute bottom-2 left-3 rounded-full bg-night/75 px-3 py-1 text-xs text-white/90">This is your boat on Dev Deepawali</span>
+                            <span className="absolute bottom-3 left-3 rounded-lg bg-[#d7191f] px-3 py-1.5 text-sm font-black uppercase tracking-[0.12em] text-white shadow-[0_6px_20px_rgba(215,25,31,0.7)]">Get this exact boat</span>
                         </div>
                         <div className="px-5 pb-5 pt-3 sm:px-6 sm:pb-6">
+                            {was && <h2 className="mb-3 font-display text-2xl leading-tight text-white sm:text-3xl">Last {EARLY_BIRD_LEFT} seats remaining! <span className="text-[#ff7070]">Limited time offer!</span></h2>}
                             <p className="font-display leading-none">
                                 <s className="mr-2 align-middle font-sans text-xl text-white/50 decoration-[#ff6b6b] decoration-[3px]">{price ? inr(was ?? GHAT_PRICE_INR) : " "}</s>
                                 <span className="text-5xl sm:text-6xl" style={{ color: GOLD }}>{price ? inr(price) : " "}</span>
                                 <span className="ml-1.5 font-sans text-sm text-white/65">per person{price && currency === "usd" ? ` · ≈ ${money(price, "usd").replace(/\.\d+$/, "")}` : ""}</span>
                             </p>
-                            {was && <p className="mt-2 text-sm text-white/80">For the <b className="text-white">FINAL {EARLY_BIRD_SEATS} passengers</b> only — then the price goes back up.</p>}
+                            {was && <p className="mt-2 text-sm text-white/80">This price ends the moment these {EARLY_BIRD_LEFT} seats are booked — then it&apos;s back to {inr(was)}.</p>}
                             <div className="mt-3"><EarlyBirdMeter light /></div>
                             <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-[#7ee0c9]"><ShieldCheck size={16} /> Best prices and 100% money-back guarantee!</p>
                             <button onClick={() => { track("dd_cta", { from: "hero" }); goBook(); }}
