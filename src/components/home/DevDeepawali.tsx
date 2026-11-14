@@ -74,7 +74,7 @@ export function EarlyBirdOffer({ was, onBook }: { was: number; onBook?: () => vo
                     <s className="mr-2 align-middle font-sans text-xl font-medium text-white/50 decoration-[#ff6b6b] decoration-[3px]">{was ? inr(was) : " "}</s>
                     <span className="text-5xl sm:text-6xl" style={{ color: GOLD }}>{inr(EARLY_BIRD_INR)}</span>
                 </p>
-                <p className="mt-3 text-sm text-white/80">For the first <b className="text-white">{EARLY_BIRD_SEATS} lucky passengers</b> only. When they&apos;re gone, the price goes back up.</p>
+                <p className="mt-3 text-sm text-white/80">For the <b className="text-white">FINAL {EARLY_BIRD_SEATS} passengers</b> only. When they&apos;re gone, the price goes back up.</p>
                 <div className="mt-4"><EarlyBirdMeter light /></div>
                 <p className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-[#7ee0c9]"><ShieldCheck size={16} /> Best prices and 100% money-back guarantee!</p>
                 {onBook && (

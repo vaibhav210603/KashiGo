@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { animate, motion, useInView, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion";
-import { ArrowDown, ArrowRight, BadgeCheck, BadgeIndianRupee, Eye, LifeBuoy, Loader2, Lock, Play, Plus, ShieldCheck, Ticket, TrendingUp, UserCheck } from "lucide-react";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, BadgeCheck, BadgeIndianRupee, Eye, LifeBuoy, Loader2, Lock, Play, Plus, ShieldCheck, Ticket, TrendingUp, UserCheck } from "lucide-react";
 import DiyaRiver from "@/components/motion/DiyaRiver";
-import { Countdown, EarlyBirdMeter, EarlyBirdOffer, FestivalFilm, FillingFast, InvitationSeal, RiverScene, SeatPacks } from "@/components/home/DevDeepawali";
+import { Countdown, EarlyBirdMeter, FestivalFilm, FillingFast, InvitationSeal, RiverScene, SeatPacks } from "@/components/home/DevDeepawali";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { AMENITIES, BEST_PRICE_LINE, DD_MAX_PEOPLE, EARLY_BIRD_SEATS, EARLY_BIRD_TAKEN, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, THIRD_SEAT_INR, ddSplit, ddTotal, seatPrices, trioPrice, type DdPay } from "@/lib/devDeepawali";
+import { AMENITIES, BEST_PRICE_LINE, DD_MAX_PEOPLE, EARLY_BIRD_SEATS, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, THIRD_SEAT_INR, ddSplit, ddTotal, seatPrices, trioPrice, type DdPay } from "@/lib/devDeepawali";
 import { goToThankYou } from "@/lib/thankYou";
 import { track } from "@/lib/analytics";
 
@@ -76,147 +76,75 @@ function Fireworks() {
     );
 }
 
-// ── 1. First screen: the night, the date, today's price against the ghat's, one button ──
+// ── 1. First screen: the night, and the early-bird offer on a photo of our boat, with one button ──
 function Hero({ price, was, currency }: { price: number; was?: number; currency: string }) {
-    const ref = useRef<HTMLElement>(null);
     const reduce = !!useReducedMotion();
-    const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-    const imgScale = useTransform(scrollYProgress, [0, 1], [1.06, 1.22]);
-    const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
-    const textY = useTransform(scrollYProgress, [0, 1], [0, -90]);
-    const textOpacity = useTransform(scrollYProgress, [0, 0.65], [1, 0]);
-    const words = ["Dev", "Deepawali,"];
+    const rise = (delay: number) => (reduce ? {} : { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.9, ease: EASE, delay } });
 
     return (
-        <section ref={ref} className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden pb-12 pt-28 md:pb-16">
-            <motion.div aria-hidden className="absolute inset-0 -z-30" style={reduce ? undefined : { scale: imgScale, y: imgY }}>
+        <section className="relative isolate overflow-hidden pb-10 pt-24 md:pb-16 md:pt-32">
+            <div aria-hidden className="absolute inset-0 -z-30">
                 <picture>
                     <source media="(min-width: 768px)" srcSet="/dev-deepawali/ghats-night-desktop.jpg" />
                     <img src="/dev-deepawali/diya-steps-tall.jpg" alt="" fetchPriority="high" decoding="async" className="h-full w-full object-cover" />
                 </picture>
-            </motion.div>
-            <div aria-hidden className="absolute inset-0 -z-20 bg-[linear-gradient(180deg,rgba(7,11,24,0.55)_0%,rgba(7,11,24,0.25)_35%,rgba(7,11,24,0.85)_78%,#070b18_100%)]" />
-            <div aria-hidden className="absolute inset-0 -z-20 bg-[radial-gradient(80%_50%_at_50%_100%,rgba(255,140,40,0.28),transparent_70%)]" />
+            </div>
+            <div aria-hidden className="absolute inset-0 -z-20 bg-[linear-gradient(180deg,rgba(7,11,24,0.6)_0%,rgba(7,11,24,0.55)_40%,rgba(7,11,24,0.92)_85%,#070b18_100%)]" />
             <div className="-z-10"><Fireworks /></div>
             <DiyaRiver className="-z-10" />
 
-            <motion.div style={reduce ? undefined : { y: textY, opacity: textOpacity }} className="relative mx-auto w-full max-w-5xl px-4 text-center sm:px-6">
-                <motion.p initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE }}
-                    className="inline-flex items-center gap-2 rounded-full border border-[#e8c158]/40 bg-night/50 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#f3d27a] backdrop-blur-sm">
-                    Kartik Purnima · {DEV_DEEPAWALI_LABEL} 2026
-                </motion.p>
-                <h1 className="mt-5 font-display text-[2.85rem] font-light leading-[0.92] tracking-[-0.035em] text-white sm:text-8xl lg:text-[8.5rem]">
-                    {words.map((w, i) => (
-                        <motion.span key={w} className="inline-block pr-[0.22em]" initial={reduce ? false : { opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: EASE, delay: 0.15 + i * 0.12 }}>{w}</motion.span>
-                    ))}
-                    <motion.em className="block text-fire" initial={reduce ? false : { opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: EASE, delay: 0.45 }}>from the river.</motion.em>
-                </h1>
-                <motion.p initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.8 }} className="mx-auto mt-5 max-w-lg text-base text-white/80 sm:text-lg">
-                    A million diyas on 84 ghats, the grand aarti and fireworks over the Ganga — watched from your seat on the water.
-                </motion.p>
-
-                <motion.div initial={reduce ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 1 }} className="mt-7 flex flex-col items-center gap-4">
-                    {was && <p className="rounded-full bg-[#d7191f] px-4 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_6px_24px_-6px_rgba(215,25,31,0.9)]">Early-bird offer · only {EARLY_BIRD_SEATS} seats · {EARLY_BIRD_TAKEN} taken</p>}
-                    <p className="font-display text-2xl text-white sm:text-3xl">
-                        <s className="mr-2 font-sans text-base text-white/45 decoration-[#ff6b6b] decoration-2 sm:text-lg">{inr(was ?? GHAT_PRICE_INR)}</s>
-                        <span style={{ color: GOLD }}>{price ? inr(price) : " "}</span>
-                        <span className="ml-1.5 font-sans text-sm text-white/65">per person today{price && currency === "usd" ? ` · ≈ ${money(price, "usd").replace(/\.\d+$/, "")}` : ""}</span>
-                    </p>
-                    <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
-                        <button onClick={() => { track("dd_cta", { from: "hero" }); document.getElementById("seats")?.scrollIntoView({ behavior: "smooth" }); }}
-                            className="btn-sheen inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] px-10 text-lg font-bold text-[#0a1c52] shadow-[0_12px_40px_-8px_rgba(232,193,88,0.9)] sm:w-auto">
-                            Reserve my seats <ArrowDown size={18} />
-                        </button>
-                        <a href="#film" className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full border border-white/25 bg-night/30 px-7 font-medium text-white backdrop-blur-sm transition-colors hover:bg-white hover:text-night sm:w-auto">
-                            <Play size={16} className="text-marigold" /> Watch the night
-                        </a>
-                    </div>
-                    <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/65">
-                        <span className="inline-flex items-center gap-1.5"><BadgeCheck size={13} className="text-[#7ee0c9]" /> Best prices</span>
-                        <span className="inline-flex items-center gap-1.5"><ShieldCheck size={13} className="text-[#7ee0c9]" /> 100% money-back guarantee</span>
-                        <span className="inline-flex items-center gap-1.5"><LifeBuoy size={13} className="text-[#7ee0c9]" /> Life jackets</span>
-                        <span className="inline-flex items-center gap-1.5"><BadgeIndianRupee size={13} className="text-[#7ee0c9]" /> Pay 50% at the ghat</span>
-                    </p>
-                </motion.div>
-                <motion.div initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 1.3 }} className="mx-auto mt-7 max-w-sm"><Countdown /></motion.div>
-            </motion.div>
-        </section>
-    );
-}
-
-// ── 2. The scale of the night, counted up as it comes into view ──
-function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
-    const ref = useRef<HTMLSpanElement>(null);
-    const seen = useInView(ref, { once: true, margin: "0px 0px -10% 0px" });
-    useEffect(() => {
-        const el = ref.current;
-        if (!seen || !el) return;
-        const c = animate(0, to, { duration: 2.2, ease: EASE, onUpdate: (v) => { el.textContent = `${Math.round(v).toLocaleString("en-IN")}${suffix}`; } });
-        return () => c.stop();
-    }, [seen, to, suffix]);
-    return <span ref={ref}>0{suffix}</span>;
-}
-
-function Facts() {
-    const facts: [number, string, string][] = [[10, " lakh+", "diyas on the steps"], [84, "", "ghats lit end to end"], [1, "", "night a year"]];
-    return (
-        <section className="relative border-y border-white/10 bg-night py-10 md:py-14">
-            <div className="mx-auto grid max-w-5xl grid-cols-3 gap-3 px-4 text-center sm:px-6">
-                {facts.map(([n, s, l], i) => (
-                    <Reveal key={l} delay={i * 0.1}>
-                        <p className="font-display text-4xl leading-none sm:text-6xl" style={{ color: GOLD }}><CountUp to={n} suffix={s} /></p>
-                        <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-white/55 sm:text-xs">{l}</p>
-                    </Reveal>
-                ))}
-            </div>
-        </section>
-    );
-}
-
-// ── 3. The night, scrolled through: the section pins and three moments cross-fade ──
-const CHAPTERS = [
-    { img: "/dev-deepawali/diya-steps-wide.jpg", time: "5:15 PM", title: "The first diya is lit.", text: "Then thousands more, step after step, until every ghat glows." },
-    { img: "/dev-deepawali/ghats-night-desktop.jpg", time: "6:30 PM", title: "Kashi turns to gold.", text: "Eighty-four ghats shine along the river, and the grand aarti begins." },
-    { img: "/dev-deepawali/ghats-full-moon.jpg", time: "7:30 PM", title: "Fireworks over the Ganga.", text: "Under the Kartik full moon — and you see it all from your seat on the water." },
-];
-
-function Chapter({ i, p, c }: { i: number; p: MotionValue<number>; c: (typeof CHAPTERS)[number] }) {
-    const n = CHAPTERS.length;
-    const a = i / n, b = (i + 1) / n;
-    const first = i === 0, last = i === n - 1;
-    const opacity = useTransform(p, first ? [0, b - 0.06, b + 0.02] : last ? [a - 0.06, a + 0.02, 1] : [a - 0.06, a + 0.02, b - 0.06, b + 0.02], first ? [1, 1, 0] : last ? [0, 1, 1] : [0, 1, 1, 0]);
-    const scale = useTransform(p, [a - 0.15, b + 0.1], [1.18, 1]);
-    const textY = useTransform(p, [a - 0.05, a + 0.08, b - 0.08, b], first ? [0, 0, 0, -40] : last ? [50, 0, 0, 0] : [50, 0, 0, -40]);
-    return (
-        <motion.div className="absolute inset-0" style={{ opacity }}>
-            <motion.div className="absolute inset-0" style={{ scale }}>
-                {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed photo */}
-                <img src={c.img} alt="" loading="lazy" className="h-full w-full object-cover" />
-            </motion.div>
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,11,24,0.55)_0%,rgba(7,11,24,0.15)_40%,rgba(7,11,24,0.9)_100%)]" />
-            <motion.div style={{ y: textY }} className="absolute inset-x-0 bottom-[14%] mx-auto max-w-3xl px-6 text-center">
-                <p className="text-sm font-semibold tracking-[0.3em] text-[#f3d27a]">{c.time}</p>
-                <h3 className="mt-3 font-display text-5xl font-light leading-[1] tracking-[-0.02em] text-white sm:text-7xl">{c.title}</h3>
-                <p className="mx-auto mt-4 max-w-md text-base text-white/80 sm:text-lg">{c.text}</p>
-            </motion.div>
-        </motion.div>
-    );
-}
-
-function NightStory() {
-    const ref = useRef<HTMLElement>(null);
-    const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-    const bar = useTransform(scrollYProgress, [0, 1], [0, 1]);
-    return (
-        <section ref={ref} aria-label="Dev Deepawali night" className="relative h-[300vh] bg-night">
-            <div className="sticky top-0 h-[100svh] overflow-hidden">
-                {CHAPTERS.map((c, i) => <Chapter key={c.time} i={i} p={scrollYProgress} c={c} />)}
-                <div className="absolute left-1/2 top-24 w-56 -translate-x-1/2">
-                    <div className="h-[2px] w-full overflow-hidden rounded-full bg-white/20">
-                        <motion.div className="h-full origin-left bg-[#e8c158]" style={{ scaleX: bar }} />
-                    </div>
-                    <p className="mt-2 text-center text-[10px] uppercase tracking-[0.3em] text-white/60">The night of 24 Nov</p>
+            <div className="relative mx-auto grid max-w-6xl items-center gap-7 px-4 sm:px-6 md:grid-cols-[1fr_1.05fr] md:gap-10">
+                <div className="text-center md:text-left">
+                    <motion.p {...rise(0)} className="inline-flex items-center gap-2 rounded-full border border-[#e8c158]/40 bg-night/50 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#f3d27a] backdrop-blur-sm">
+                        Kartik Purnima · {DEV_DEEPAWALI_LABEL} 2026
+                    </motion.p>
+                    <motion.h1 {...rise(0.1)} className="mt-4 font-display text-[2.6rem] font-light leading-[0.95] tracking-[-0.03em] text-white sm:text-7xl">
+                        Dev Deepawali, <em className="block text-fire">from the river.</em>
+                    </motion.h1>
+                    <motion.p {...rise(0.2)} className="mx-auto mt-4 max-w-md text-base text-white/80 md:mx-0 md:text-lg">
+                        A million diyas on 84 ghats, the grand aarti and fireworks over the Ganga — watched from your seat on our boat.
+                    </motion.p>
+                    <motion.div {...rise(0.3)} className="mx-auto mt-6 hidden max-w-sm md:mx-0 md:block"><Countdown /></motion.div>
                 </div>
+
+                {/* The offer, on the boat itself */}
+                <motion.div {...rise(0.25)} className="relative">
+                    <div aria-hidden className="glow-breathe pointer-events-none absolute inset-0 rounded-[1.75rem] shadow-[0_0_60px_10px_rgba(232,193,88,0.35)]" />
+                    <div className="relative overflow-hidden rounded-[1.75rem] border-2 border-[#e8c158] bg-[#0a1c52]">
+                        <div className="relative aspect-[16/10]">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- photo of our boat, lit for the night */}
+                            <img src="/dev-deepawali/our-boat.jpg" alt="The KashiGo shared boat on the Ganga at night, lit with lights and marigold garlands" fetchPriority="high" className="h-full w-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a1c52]" />
+                            {was && (
+                                <span className="absolute left-3 top-3 inline-flex items-center gap-2 rounded-full bg-[#d7191f] px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-white shadow-lg">
+                                    <span className="relative flex h-2 w-2"><span className="absolute h-full w-full animate-ping rounded-full bg-white/80" /><span className="relative h-2 w-2 rounded-full bg-white" /></span>
+                                    Early-bird · {EARLY_BIRD_SEATS} seats only
+                                </span>
+                            )}
+                            <span className="absolute bottom-2 left-3 rounded-full bg-night/75 px-3 py-1 text-xs text-white/90">This is your boat on Dev Deepawali</span>
+                        </div>
+                        <div className="px-5 pb-5 pt-3 sm:px-6 sm:pb-6">
+                            <p className="font-display leading-none">
+                                <s className="mr-2 align-middle font-sans text-xl text-white/50 decoration-[#ff6b6b] decoration-[3px]">{price ? inr(was ?? GHAT_PRICE_INR) : " "}</s>
+                                <span className="text-5xl sm:text-6xl" style={{ color: GOLD }}>{price ? inr(price) : " "}</span>
+                                <span className="ml-1.5 font-sans text-sm text-white/65">per person{price && currency === "usd" ? ` · ≈ ${money(price, "usd").replace(/\.\d+$/, "")}` : ""}</span>
+                            </p>
+                            {was && <p className="mt-2 text-sm text-white/80">For the <b className="text-white">FINAL {EARLY_BIRD_SEATS} passengers</b> only — then the price goes back up.</p>}
+                            <div className="mt-3"><EarlyBirdMeter light /></div>
+                            <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-[#7ee0c9]"><ShieldCheck size={16} /> Best prices and 100% money-back guarantee!</p>
+                            <button onClick={() => { track("dd_cta", { from: "hero" }); goBook(); }}
+                                className="btn-sheen mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] py-3.5 text-lg font-bold text-[#0a1c52] shadow-[0_12px_40px_-8px_rgba(232,193,88,0.9)]">
+                                Book my seat now <ArrowRight size={18} />
+                            </button>
+                            <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/65">
+                                <span className="inline-flex items-center gap-1.5"><LifeBuoy size={13} className="text-[#7ee0c9]" /> Life jackets</span>
+                                <span className="inline-flex items-center gap-1.5"><BadgeIndianRupee size={13} className="text-[#7ee0c9]" /> Pay 50% at the ghat</span>
+                                <a href="#film" className="inline-flex items-center gap-1.5 underline-offset-4 hover:underline"><Play size={12} className="text-marigold" /> Watch the night</a>
+                            </p>
+                        </div>
+                    </div>
+                </motion.div>
+                <div className="mx-auto w-full max-w-sm md:hidden"><Countdown /></div>
             </div>
         </section>
     );
@@ -258,8 +186,6 @@ function Seats({ seat, ladder, onPick }: { seat: number; ladder: { iso: string; 
                 <Reveal><Label center>Your seats on the river</Label></Reveal>
                 <Reveal delay={0.08}><h2 className="mt-4 text-center font-display text-4xl font-light leading-[1.02] tracking-[-0.02em] text-white sm:text-6xl">Come together. <em className="text-fire">Pay less each.</em></h2></Reveal>
                 <Reveal delay={0.14}><p className="mx-auto mt-4 max-w-lg text-center text-white/65">A seat on a KashiGo shared boat, priced per person. Local boatmen ask {inr(GHAT_PRICE_INR)} each on the night.</p></Reveal>
-
-                {ladder[0]?.was && <Reveal delay={0.1} className="mx-auto mt-10 max-w-4xl"><EarlyBirdOffer was={ladder[0].was} onBook={() => onPick(3)} /></Reveal>}
 
                 {/* Phones: Trio first and full width, Solo and Pair side by side under it */}
                 <div className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-3 md:items-stretch md:gap-5">
@@ -377,12 +303,10 @@ export default function DevDeepawaliClient() {
     return (
         <div className="w-full bg-night text-white">
             <Hero price={price} was={ladder[0]?.was} currency={currency} />
-            <Facts />
-            <NightStory />
             <Seats seat={price} ladder={ladder} onPick={pick} />
+            <BookingForm price={price} was={ladder[0]?.was} tomorrow={tomorrow} people={people} setPeople={setPeople} />
             <Proof />
             <Film />
-            <BookingForm price={price} was={ladder[0]?.was} tomorrow={tomorrow} people={people} setPeople={setPeople} />
 
             {/* ── Questions ── */}
             <section className="py-16 md:py-20">
