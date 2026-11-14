@@ -23,7 +23,7 @@ export function priceBooking(body: any): { booking: DdBooking } | { problem: str
     const email = clean(body?.email, 120).toLowerCase();
     const people = Math.trunc(Number(body?.people));
     const passengers = (Array.isArray(body?.passengers) ? body.passengers : []).map((p: unknown) => clean(p, 60)).slice(0, DD_MAX_PEOPLE - 1);
-    const pay: DdPay = body?.pay === "advance" ? "advance" : "full";
+    const pay: DdPay = "full"; // 100% online payment only — no 50% advance
     if (name.length < 2) return { problem: "Add the lead passenger's name." };
     if (phone.replace(/\D/g, "").length < 8) return { problem: "Add a phone number so we can call you with your boarding details." };
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { problem: "Add your email — your confirmation goes there." };

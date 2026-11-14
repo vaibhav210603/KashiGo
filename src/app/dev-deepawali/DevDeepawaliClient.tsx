@@ -139,7 +139,7 @@ function Hero({ price, was, currency }: { price: number; was?: number; currency:
                             </button>
                             <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/65">
                                 <span className="inline-flex items-center gap-1.5"><LifeBuoy size={13} className="text-[#7ee0c9]" /> Life jackets</span>
-                                <span className="inline-flex items-center gap-1.5"><BadgeIndianRupee size={13} className="text-[#7ee0c9]" /> Pay 50% at the ghat</span>
+                                <span className="inline-flex items-center gap-1.5"><BadgeIndianRupee size={13} className="text-[#7ee0c9]" /> 100% online payment</span>
                                 <a href="#film" className="inline-flex items-center gap-1.5 underline-offset-4 hover:underline"><Play size={12} className="text-marigold" /> Watch the night</a>
                             </p>
                         </div>
@@ -316,7 +316,7 @@ export default function DevDeepawaliClient() {
                     <div className="mt-8 divide-y divide-white/10 rounded-[1.5rem] border border-white/10 bg-white/[0.03]">
                         {[
                             ["Where and when do we board?", "We call you after you book to confirm your boarding ghat and reporting time for Tuesday 24 November. The lighting begins at dusk, so plan to be on the ghat in the late afternoon."],
-                            ["Can I pay part now and the rest later?", "Yes — choose “50% now, 50% at the ghat” when you book. You pay half online now and the rest to your KashiGo boatman at the ghat, in cash or UPI. Nobody else."],
+                            ["How do I pay?", "100% online when you book — UPI, cards or net banking through Razorpay. There is nothing to pay at the ghat, and our 100% money-back guarantee covers every rupee."],
                             ["Is this a private boat?", "It's a seat on a KashiGo shared boat. For a private boat for your group on Dev Deepawali night, call or WhatsApp +91 81759 66910."],
                             ["What if the ride can't happen?", <>If we can&apos;t give you the ride you booked, our <Link href="/policies#guarantee" className="text-marigold underline underline-offset-4">100% money-back guarantee</Link> applies: every rupee you paid comes back.</>],
                         ].map(([q, a]) => (
@@ -332,7 +332,7 @@ export default function DevDeepawaliClient() {
     );
 }
 
-// Passenger details → full or 50% → Razorpay. The server prices the order; the totals here are a preview.
+// Passenger details → 100% online payment → Razorpay. The server prices the order; the totals here are a preview.
 function BookingForm({ price, was, tomorrow, people, setPeople }: { price: number; was?: number; tomorrow?: number; people: number; setPeople: (n: number) => void }) {
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
@@ -340,7 +340,7 @@ function BookingForm({ price, was, tomorrow, people, setPeople }: { price: numbe
     const [others, setOthers] = useState<string[]>(["", ""]);
     // One name field per extra passenger, kept in step with the head count (which the seat cards above can change).
     if (others.length !== people - 1) setOthers(Array.from({ length: people - 1 }, (_, i) => others[i] ?? ""));
-    const [pay, setPay] = useState<DdPay>("full");
+    const pay: DdPay = "full"; // bookings are 100% online
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const formRef = useRef<HTMLFormElement>(null);
@@ -367,7 +367,7 @@ function BookingForm({ price, was, tomorrow, people, setPeople }: { price: numbe
         if (others.some((o) => !o.trim())) return setError("Add a name for every passenger.");
         setBusy(true);
         try {
-            track("begin_checkout", { currency: "INR", value: split.online, item_id: "dev-deepawali", payment_type: pay === "advance" ? "razorpay_advance" : "razorpay" });
+            track("begin_checkout", { currency: "INR", value: split.online, item_id: "dev-deepawali", payment_type: "razorpay" });
             const o = await post({ action: "order", name, phone, email, people, passengers: others, pay });
             if (!o.success) throw new Error(o.message);
             await loadRazorpay();
@@ -426,27 +426,25 @@ function BookingForm({ price, was, tomorrow, people, setPeople }: { price: numbe
                         ))}
                     </div>
 
-                    {/* 2 — how to pay */}
-                    <p className="mt-8 flex items-center gap-2.5 text-sm font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}><span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#e8c158] text-xs text-[#0a1c52]">2</span> How would you like to pay?</p>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        {([["full", "Pay in full", `${inr(total)} now`, "Nothing more to pay at the ghat"], ["advance", "50% now, 50% at the ghat", `${inr(ddSplit(total, "advance").online)} now`, `${inr(ddSplit(total, "advance").atGhat)} to your boatman, cash or UPI`]] as const).map(([id, title, now, sub]) => (
-                            <button key={id} type="button" onClick={() => setPay(id)} aria-pressed={pay === id}
-                                className={`rounded-2xl border-2 p-4 text-left transition-colors ${pay === id ? "border-[#e8c158] bg-[#e8c158]/15" : "border-white/15 bg-white/[0.03] hover:border-white/35"}`}>
-                                <span className="flex items-center justify-between gap-2">
-                                    <span className="font-semibold">{title}</span>
-                                    <span className={`h-5 w-5 rounded-full border-2 ${pay === id ? "border-[#e8c158] bg-[#e8c158] shadow-[inset_0_0_0_3px_#0a1c52]" : "border-white/30"}`} />
-                                </span>
-                                <span className="mt-1 block font-display text-2xl" style={{ color: GOLD }}>{price ? now : " "}</span>
-                                <span className="block text-xs text-white/60">{sub}</span>
-                            </button>
-                        ))}
+                    {/* 2 — payment: 100% online only, with the guarantee right under it */}
+                    <p className="mt-8 flex items-center gap-2.5 text-sm font-bold uppercase tracking-[0.18em]" style={{ color: GOLD }}><span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#e8c158] text-xs text-[#0a1c52]">2</span> Payment</p>
+                    <div className="mt-4 rounded-2xl border-2 border-[#e8c158] bg-[#e8c158]/15 p-4">
+                        <span className="flex items-center justify-between gap-2">
+                            <span className="font-semibold">100% online payment</span>
+                            <Lock size={16} className="text-[#f3d27a]" />
+                        </span>
+                        <span className="mt-1 block font-display text-2xl" style={{ color: GOLD }}>{price ? `${inr(total)} now` : " "}</span>
+                        <span className="block text-xs text-white/60">UPI, cards or net banking. Nothing to pay at the ghat.</span>
                     </div>
+                    <p className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-[#7ee0c9]/10 px-3 py-2.5 text-center text-sm font-bold text-[#7ee0c9] ring-1 ring-[#7ee0c9]/40">
+                        <ShieldCheck size={18} /> 100% money-back guarantee
+                    </p>
 
                     {/* Summary */}
                     <div className="mt-6 space-y-1.5 rounded-2xl bg-night/40 p-4 text-sm">
                         <div className="flex justify-between text-white/70"><span>{people >= 3 ? `${people} seats (Trio price)` : `${inr(price)} × ${people} ${people === 1 ? "person" : "people"}`}</span><span className="tabular-nums">{inr(total)}</span></div>
                         <div className="flex justify-between text-white/45"><span>On the ghat that would be</span><s className="tabular-nums">{inr(GHAT_PRICE_INR * people)}</s></div>
-                        <div className="flex justify-between border-t border-white/10 pt-2 text-base font-bold"><span>{pay === "advance" ? "Pay now (50%)" : "Pay now"}</span><span className="tabular-nums" style={{ color: GOLD }}>{inr(split.online)}</span></div>
+                        <div className="flex justify-between border-t border-white/10 pt-2 text-base font-bold"><span>Pay now (100% online)</span><span className="tabular-nums" style={{ color: GOLD }}>{inr(split.online)}</span></div>
                         {split.atGhat > 0 && <div className="flex justify-between text-white/70"><span>Due at the ghat</span><span className="tabular-nums">{inr(split.atGhat)}</span></div>}
                     </div>
 

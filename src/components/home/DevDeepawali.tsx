@@ -456,7 +456,7 @@ export function DevDeepawaliSection() {
                         className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] text-base font-bold text-[#0a1c52] shadow-[0_10px_30px_-10px_rgba(232,193,88,0.9)]">
                         Book for {people} {people === 1 ? "person" : "people"} <ArrowRight size={17} />
                     </Link>
-                    <p className="mt-2 text-center text-[11px] text-white/55">Pay in full, or 50% now and 50% at the ghat.</p>
+                    <p className="mt-2 text-center text-[11px] text-white/55">100% online payment · 100% money-back guarantee</p>
                 </div>
             </div>
         </section>

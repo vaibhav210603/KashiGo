@@ -6,7 +6,7 @@ import DevDeepawaliClient from "./DevDeepawaliClient";
 export const metadata: Metadata = {
     title: "Dev Deepawali 2026 Boat Ride, Varanasi — Book Your Seat",
     description:
-        "Watch Dev Deepawali (Tue 24 Nov 2026) from the Ganga: the lit ghats, the grand aarti and fireworks over the river. A seat on a KashiGo boat with life jackets and a trusted boatman, paid online — in full or a 50% advance.",
+        "Watch Dev Deepawali (Tue 24 Nov 2026) from the Ganga: the lit ghats, the grand aarti and fireworks over the river. A seat on a KashiGo boat with life jackets and a trusted boatman, paid 100% online, with a 100% money-back guarantee.",
     alternates: { canonical: "https://kashigo.in/dev-deepawali" },
     openGraph: {
         title: "Dev Deepawali on the Ganga — book your seat | KashiGo",
