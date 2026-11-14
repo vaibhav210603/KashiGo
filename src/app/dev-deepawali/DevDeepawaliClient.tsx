@@ -5,10 +5,10 @@ import Link from "next/link";
 import { animate, motion, useInView, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { ArrowDown, ArrowRight, BadgeCheck, BadgeIndianRupee, Eye, LifeBuoy, Loader2, Lock, Play, Plus, ShieldCheck, Ticket, TrendingUp, UserCheck } from "lucide-react";
 import DiyaRiver from "@/components/motion/DiyaRiver";
-import { Countdown, FestivalFilm, FillingFast, InvitationSeal, RiverScene, SeatPacks } from "@/components/home/DevDeepawali";
+import { Countdown, EarlyBirdMeter, EarlyBirdOffer, FestivalFilm, FillingFast, InvitationSeal, RiverScene, SeatPacks } from "@/components/home/DevDeepawali";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { AMENITIES, BEST_PRICE_LINE, DD_MAX_PEOPLE, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, THIRD_SEAT_INR, ddSplit, ddTotal, seatPrices, trioPrice, type DdPay } from "@/lib/devDeepawali";
+import { AMENITIES, BEST_PRICE_LINE, DD_MAX_PEOPLE, EARLY_BIRD_SEATS, EARLY_BIRD_TAKEN, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, THIRD_SEAT_INR, ddSplit, ddTotal, seatPrices, trioPrice, type DdPay } from "@/lib/devDeepawali";
 import { goToThankYou } from "@/lib/thankYou";
 import { track } from "@/lib/analytics";
 
@@ -77,7 +77,7 @@ function Fireworks() {
 }
 
 // ── 1. First screen: the night, the date, today's price against the ghat's, one button ──
-function Hero({ price, currency }: { price: number; currency: string }) {
+function Hero({ price, was, currency }: { price: number; was?: number; currency: string }) {
     const ref = useRef<HTMLElement>(null);
     const reduce = !!useReducedMotion();
     const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
@@ -116,8 +116,9 @@ function Hero({ price, currency }: { price: number; currency: string }) {
                 </motion.p>
 
                 <motion.div initial={reduce ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 1 }} className="mt-7 flex flex-col items-center gap-4">
+                    {was && <p className="rounded-full bg-[#d7191f] px-4 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_6px_24px_-6px_rgba(215,25,31,0.9)]">Early-bird offer · only {EARLY_BIRD_SEATS} seats · {EARLY_BIRD_TAKEN} taken</p>}
                     <p className="font-display text-2xl text-white sm:text-3xl">
-                        <s className="mr-2 font-sans text-base text-white/45 decoration-[#ff6b6b] decoration-2 sm:text-lg">{inr(GHAT_PRICE_INR)}</s>
+                        <s className="mr-2 font-sans text-base text-white/45 decoration-[#ff6b6b] decoration-2 sm:text-lg">{inr(was ?? GHAT_PRICE_INR)}</s>
                         <span style={{ color: GOLD }}>{price ? inr(price) : " "}</span>
                         <span className="ml-1.5 font-sans text-sm text-white/65">per person today{price && currency === "usd" ? ` · ≈ ${money(price, "usd").replace(/\.\d+$/, "")}` : ""}</span>
                     </p>
@@ -131,7 +132,8 @@ function Hero({ price, currency }: { price: number; currency: string }) {
                         </a>
                     </div>
                     <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/65">
-                        <span className="inline-flex items-center gap-1.5"><ShieldCheck size={13} className="text-[#7ee0c9]" /> 100% money-back</span>
+                        <span className="inline-flex items-center gap-1.5"><BadgeCheck size={13} className="text-[#7ee0c9]" /> Best prices</span>
+                        <span className="inline-flex items-center gap-1.5"><ShieldCheck size={13} className="text-[#7ee0c9]" /> 100% money-back guarantee</span>
                         <span className="inline-flex items-center gap-1.5"><LifeBuoy size={13} className="text-[#7ee0c9]" /> Life jackets</span>
                         <span className="inline-flex items-center gap-1.5"><BadgeIndianRupee size={13} className="text-[#7ee0c9]" /> Pay 50% at the ghat</span>
                     </p>
@@ -249,13 +251,15 @@ function PackCard({ people, seat, onPick }: { people: number; seat: number; onPi
     );
 }
 
-function Seats({ seat, ladder, onPick }: { seat: number; ladder: { iso: string; inDays: number; inr: number }[]; onPick: (n: number) => void }) {
+function Seats({ seat, ladder, onPick }: { seat: number; ladder: { iso: string; inDays: number; inr: number; was?: number }[]; onPick: (n: number) => void }) {
     return (
         <section id="seats" className="relative scroll-mt-16 overflow-hidden bg-[radial-gradient(70%_50%_at_50%_0%,#13205a_0%,#070b18_70%)] py-16 md:py-28">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
                 <Reveal><Label center>Your seats on the river</Label></Reveal>
                 <Reveal delay={0.08}><h2 className="mt-4 text-center font-display text-4xl font-light leading-[1.02] tracking-[-0.02em] text-white sm:text-6xl">Come together. <em className="text-fire">Pay less each.</em></h2></Reveal>
                 <Reveal delay={0.14}><p className="mx-auto mt-4 max-w-lg text-center text-white/65">A seat on a KashiGo shared boat, priced per person. Local boatmen ask {inr(GHAT_PRICE_INR)} each on the night.</p></Reveal>
+
+                {ladder[0]?.was && <Reveal delay={0.1} className="mx-auto mt-10 max-w-4xl"><EarlyBirdOffer was={ladder[0].was} onBook={() => onPick(3)} /></Reveal>}
 
                 {/* Phones: Trio first and full width, Solo and Pair side by side under it */}
                 <div className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-3 md:items-stretch md:gap-5">
@@ -372,13 +376,13 @@ export default function DevDeepawaliClient() {
 
     return (
         <div className="w-full bg-night text-white">
-            <Hero price={price} currency={currency} />
+            <Hero price={price} was={ladder[0]?.was} currency={currency} />
             <Facts />
             <NightStory />
             <Seats seat={price} ladder={ladder} onPick={pick} />
             <Proof />
             <Film />
-            <BookingForm price={price} tomorrow={tomorrow} people={people} setPeople={setPeople} />
+            <BookingForm price={price} was={ladder[0]?.was} tomorrow={tomorrow} people={people} setPeople={setPeople} />
 
             {/* ── Questions ── */}
             <section className="py-16 md:py-20">
@@ -404,7 +408,7 @@ export default function DevDeepawaliClient() {
 }
 
 // Passenger details → full or 50% → Razorpay. The server prices the order; the totals here are a preview.
-function BookingForm({ price, tomorrow, people, setPeople }: { price: number; tomorrow?: number; people: number; setPeople: (n: number) => void }) {
+function BookingForm({ price, was, tomorrow, people, setPeople }: { price: number; was?: number; tomorrow?: number; people: number; setPeople: (n: number) => void }) {
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
@@ -524,6 +528,7 @@ function BookingForm({ price, tomorrow, people, setPeople }: { price: number; to
                     {/* Urgency, right by the button */}
                     <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 rounded-xl bg-[#d7191f]/15 px-3 py-2.5 text-center ring-1 ring-[#ff4d4d]/40">
                         <FillingFast />
+                        <div className="w-full max-w-xs"><EarlyBirdMeter /></div>
                         {tomorrow && <span className="text-xs font-semibold text-[#ffc2c2]">Price goes up to {inr(tomorrow)} tomorrow</span>}
                     </div>
                     {error && <p role="alert" className="mt-4 rounded-xl bg-ember/15 px-4 py-3 text-sm font-medium text-[#ffb3a6]">{error}</p>}
@@ -540,7 +545,7 @@ function BookingForm({ price, tomorrow, people, setPeople }: { price: number; to
             {/* Phones: a jump to the form while reading the page above it */}
             <div className={`fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-[#e8c158]/40 bg-[#0a1c52]/95 px-4 pb-[calc(0.625rem+env(safe-area-inset-bottom))] pt-2.5 backdrop-blur transition-transform duration-300 sm:hidden ${inView ? "translate-y-full" : ""}`}>
                 <div className="flex-1 leading-tight">
-                    <p className="text-[11px] text-white/60">Dev Deepawali · per person <s className="ml-1 text-white/40">{inr(GHAT_PRICE_INR)}</s></p>
+                    <p className="text-[11px] text-white/60">{was ? "Early-bird" : "Dev Deepawali"} · per person <s className="ml-1 text-white/40 decoration-[#ff6b6b]">{inr(was ?? GHAT_PRICE_INR)}</s></p>
                     <p className="font-display text-xl" style={{ color: GOLD }}>{price ? inr(price) : " "}{price > 0 && <span className="ml-2 font-sans text-[11px] font-semibold text-[#7ee0c9]">Trio {inr(trioPrice(price))}</span>}</p>
                 </div>
                 <button onClick={goBook} className="h-11 rounded-full bg-gradient-to-b from-[#f9e29a] to-[#d6a332] px-6 text-sm font-extrabold text-[#0a1c52]">Book now</button>

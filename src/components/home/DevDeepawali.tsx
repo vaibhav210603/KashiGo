@@ -2,10 +2,10 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Minus, Play, Plus, TrendingUp } from "lucide-react";
+import { ArrowRight, BadgeCheck, Minus, Play, Plus, ShieldCheck, TrendingUp } from "lucide-react";
 import { inr, istNow } from "@/lib/boatRides";
 import { money, useCurrency } from "@/lib/currency";
-import { BEST_PRICE_LINE, DD_MAX_PEOPLE, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, THIRD_SEAT_INR, ddTotal, seatPrices, trioPrice } from "@/lib/devDeepawali";
+import { BEST_PRICE_LINE, DD_MAX_PEOPLE, EARLY_BIRD_INR, EARLY_BIRD_LEFT, EARLY_BIRD_OPEN, EARLY_BIRD_SEATS, EARLY_BIRD_TAKEN, DD_PACKS, DEV_DEEPAWALI_LABEL, GHAT_PRICE_INR, LIGHTING_AT, THIRD_SEAT_INR, ddTotal, seatPrices, trioPrice } from "@/lib/devDeepawali";
 
 // Dev Deepawali on the home page: the invitation card in the hero and the section right after it.
 // Every animation here is a CSS transform / opacity loop (see globals.css), so phones run them on the GPU,
@@ -37,6 +37,54 @@ export function FillingFast() {
             </span>
             Seats are filling up fast
         </span>
+    );
+}
+
+// Early-bird seats: how many of the 20 are taken, as a bar that fills in.
+export function EarlyBirdMeter({ light = false }: { light?: boolean }) {
+    if (!EARLY_BIRD_OPEN) return null;
+    const pct = (EARLY_BIRD_TAKEN / EARLY_BIRD_SEATS) * 100;
+    return (
+        <div>
+            <div className="flex items-baseline justify-between text-xs font-semibold">
+                <span className={light ? "text-white/80" : "text-white/70"}>{EARLY_BIRD_TAKEN} of {EARLY_BIRD_SEATS} early-bird seats taken</span>
+                <span className="text-[#ff7070]">Only {EARLY_BIRD_LEFT} left</span>
+            </div>
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/12">
+                <div className="h-full rounded-full bg-gradient-to-r from-[#e8c158] to-[#ff6b6b]" style={{ width: `${pct}%` }} />
+            </div>
+        </div>
+    );
+}
+
+// The early-bird offer with a photo of the boat itself: regular price struck through, ₹3,599, seats left.
+export function EarlyBirdOffer({ was, onBook }: { was: number; onBook?: () => void }) {
+    if (!EARLY_BIRD_OPEN) return null;
+    return (
+        <div className="overflow-hidden rounded-[1.75rem] border-2 border-[#e8c158] bg-[#0a1c52] shadow-[0_24px_70px_-24px_rgba(232,193,88,0.6)] md:grid md:grid-cols-[1.2fr_1fr]">
+            <div className="relative aspect-[4/3] md:aspect-auto">
+                {/* eslint-disable-next-line @next/next/no-img-element -- photo of our boat, lit for the night */}
+                <img src="/dev-deepawali/our-boat.jpg" alt="The KashiGo shared boat on the Ganga at night, lit with lights and marigold garlands" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                <span className="absolute left-3 top-3 rounded-full bg-[#d7191f] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-lg">Early-bird offer</span>
+                <span className="absolute bottom-3 left-3 rounded-full bg-night/75 px-3 py-1 text-xs text-white/90">This is your boat on Dev Deepawali</span>
+            </div>
+            <div className="p-5 sm:p-7">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">Shared boat · per person</p>
+                <p className="mt-2 font-display leading-none">
+                    <s className="mr-2 align-middle font-sans text-xl font-medium text-white/50 decoration-[#ff6b6b] decoration-[3px]">{was ? inr(was) : " "}</s>
+                    <span className="text-5xl sm:text-6xl" style={{ color: GOLD }}>{inr(EARLY_BIRD_INR)}</span>
+                </p>
+                <p className="mt-3 text-sm text-white/80">For the first <b className="text-white">{EARLY_BIRD_SEATS} lucky passengers</b> only. When they&apos;re gone, the price goes back up.</p>
+                <div className="mt-4"><EarlyBirdMeter light /></div>
+                <p className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-[#7ee0c9]"><ShieldCheck size={16} /> Best prices and 100% money-back guarantee!</p>
+                {onBook && (
+                    <button type="button" onClick={onBook}
+                        className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#f3d27a] bg-gradient-to-b from-[#f9e29a] to-[#d6a332] text-base font-bold text-[#0a1c52] shadow-[0_10px_30px_-10px_rgba(232,193,88,0.9)]">
+                        Grab an early-bird seat <ArrowRight size={17} />
+                    </button>
+                )}
+            </div>
+        </div>
     );
 }
 
@@ -371,9 +419,9 @@ export function DevDeepawaliSection() {
                 <div ref={card} className="shine-once relative mx-auto w-full max-w-md lg:order-3 rounded-2xl border-2 border-[#e8c158] bg-gradient-to-b from-[#12348f] to-[#0a1c52] p-4 text-white">
                     <div>
                         <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">Today&apos;s price</p>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">{prices[0]?.was ? <span className="text-[#ff9b9b]">Early-bird price · first {EARLY_BIRD_SEATS} only</span> : "Today's price"}</p>
                             <p className="mt-1 font-display text-3xl leading-none" style={{ color: GOLD }}>
-                                <s className="mr-1.5 align-middle font-sans text-base font-medium text-white/50 decoration-[#ff6b6b] decoration-2">{inr(GHAT_PRICE_INR)}</s>
+                                <s className="mr-1.5 align-middle font-sans text-base font-medium text-white/50 decoration-[#ff6b6b] decoration-2">{inr(prices[0]?.was ?? GHAT_PRICE_INR)}</s>
                                 {price ? inr(price) : " "}<span className="ml-1 whitespace-nowrap font-sans text-xs font-medium text-white/70">/ person{price ? usdHint(price, currency) : ""}</span>
                             </p>
                         </div>
@@ -385,6 +433,13 @@ export function DevDeepawaliSection() {
                     </div>
                     <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#7ee0c9]"><BadgeCheck size={14} /> {BEST_PRICE_LINE}</p>
                     <div className="mt-1"><FillingFast /></div>
+                    {EARLY_BIRD_OPEN && (
+                        <div className="mt-3 flex items-center gap-3">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- photo of our boat */}
+                            <img src="/dev-deepawali/our-boat.jpg" alt="The KashiGo boat, lit for Dev Deepawali" loading="lazy" className="h-14 w-20 shrink-0 rounded-lg object-cover ring-1 ring-[#e8c158]/50" />
+                            <div className="min-w-0 flex-1"><EarlyBirdMeter /></div>
+                        </div>
+                    )}
 
                     <div className="mt-4">
                         <SeatPacks seat={price} people={people} onPick={setPeople} compact />

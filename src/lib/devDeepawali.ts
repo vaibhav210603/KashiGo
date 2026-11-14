@@ -16,23 +16,37 @@ export const GHAT_PRICE_INR = 8999;
 export const SEAT_PRICE_FROM = "2026-11-08";
 export const HIKE_INR = 200;
 export const HIKE_EVERY_DAYS = 2;
-export const BEST_PRICE_LINE = "Best price, guaranteed";
+export const BEST_PRICE_LINE = "Best prices and 100% money-back guarantee";
+
+// Early-bird offer (from 14 Nov 2026): ₹3,599 a seat for the first 20 passengers on our boat, the regular price
+// struck through next to it. Update EARLY_BIRD_TAKEN as seats go; at 20 the offer closes by itself and the
+// regular price ladder below comes back.
+export const EARLY_BIRD_INR = 3599;
+export const EARLY_BIRD_SEATS = 20;
+export const EARLY_BIRD_TAKEN = 12;
+export const EARLY_BIRD_LEFT = Math.max(0, EARLY_BIRD_SEATS - EARLY_BIRD_TAKEN);
+export const EARLY_BIRD_OPEN = EARLY_BIRD_LEFT > 0;
 
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
 
-// Seat price on a given India date (YYYY-MM-DD).
-export function seatPriceOn(iso: string): number {
+// Regular seat price on a given India date (YYYY-MM-DD), ignoring the early-bird offer.
+export function regularPriceOn(iso: string): number {
     const last = iso > DEV_DEEPAWALI_DATE ? DEV_DEEPAWALI_DATE : iso;
     return SEAT_PRICE_START_INR + Math.floor(Math.max(0, daysBetween(SEAT_PRICE_FROM, last)) / HIKE_EVERY_DAYS) * HIKE_INR;
 }
 
+// What a seat costs today: the early-bird price while those seats last, else the regular price.
+export const seatPriceOn = (iso: string): number => (EARLY_BIRD_OPEN ? EARLY_BIRD_INR : regularPriceOn(iso));
+
 // Today's price, then the next few price rises (each with the date it starts and how many days away that is).
-export function seatPrices(todayIso: string, steps = 3) {
-    const out = [{ iso: todayIso, inDays: 0, inr: seatPriceOn(todayIso) }];
+// During the early-bird offer it's just today's price, with `was` = the regular price to strike through.
+export function seatPrices(todayIso: string, steps = 3): { iso: string; inDays: number; inr: number; was?: number }[] {
+    if (EARLY_BIRD_OPEN) return [{ iso: todayIso, inDays: 0, inr: EARLY_BIRD_INR, was: regularPriceOn(todayIso) }];
+    const out: { iso: string; inDays: number; inr: number; was?: number }[] = [{ iso: todayIso, inDays: 0, inr: seatPriceOn(todayIso) }];
     for (let d = 1; out.length < steps; d++) {
         const iso = addDaysIso(todayIso, d);
         if (iso > DEV_DEEPAWALI_DATE) break;
-        const inr = seatPriceOn(iso);
+        const inr = regularPriceOn(iso);
         if (inr !== out[out.length - 1].inr) out.push({ iso, inDays: d, inr });
     }
     return out;
@@ -69,7 +83,8 @@ export const ddSplit = (total: number, pay: DdPay) => {
     const online = pay === "advance" ? Math.ceil(total / 2) : total;
     return { online, atGhat: total - online };
 };
-export const DD_MAX_PEOPLE = 12;
+// One booking can take up to 12 seats; during the offer, no more than the early-bird seats left.
+export const DD_MAX_PEOPLE = EARLY_BIRD_OPEN ? Math.min(12, EARLY_BIRD_LEFT) : 12;
 
 export const WHATSAPP = "918175966910";
 export const whatsappLink = (people: number, priceInr: number) =>

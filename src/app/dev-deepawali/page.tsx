@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
-import { GHAT_PRICE_INR, SEAT_PRICE_START_INR } from "@/lib/devDeepawali";
+import { EARLY_BIRD_INR, EARLY_BIRD_OPEN, GHAT_PRICE_INR, SEAT_PRICE_START_INR } from "@/lib/devDeepawali";
 import DevDeepawaliClient from "./DevDeepawaliClient";
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default function DevDeepawaliPage() {
                 location: { "@type": "Place", name: "Ghats of Varanasi, on the Ganga", address: { "@type": "PostalAddress", addressLocality: "Varanasi", addressRegion: "Uttar Pradesh", addressCountry: "IN" } },
                 image: "https://kashigo.in/dev-deepawali/diya-steps-wide.jpg",
                 organizer: { "@type": "Organization", name: "KashiGo", url: "https://kashigo.in" },
-                offers: { "@type": "Offer", price: String(SEAT_PRICE_START_INR), priceCurrency: "INR", availability: "https://schema.org/LimitedAvailability", url: "https://kashigo.in/dev-deepawali", description: `Per person. Local boatmen on the ghat charge ₹${GHAT_PRICE_INR.toLocaleString("en-IN")}.` },
+                offers: { "@type": "Offer", price: String(EARLY_BIRD_OPEN ? EARLY_BIRD_INR : SEAT_PRICE_START_INR), priceCurrency: "INR", availability: "https://schema.org/LimitedAvailability", url: "https://kashigo.in/dev-deepawali", description: `Per person. Local boatmen on the ghat charge ₹${GHAT_PRICE_INR.toLocaleString("en-IN")}.` },
             }} />
             <DevDeepawaliClient />
         </>
