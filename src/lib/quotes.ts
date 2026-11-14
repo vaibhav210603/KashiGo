@@ -147,6 +147,46 @@ export function describeSelection(q: Pick<Quote, "builder">, sel: QuoteSelection
 }
 
 export const STATIC_QUOTES: Record<string, Quote> = {
+    "KG-Q-261114-SH": {
+        id: "KG-Q-261114-SH",
+        issued: "2026-11-14",
+        validUntil: "7 days from issue",
+        customer: { name: "Shivanand" },
+        ride: {
+            packageId: "custom",
+            title: "Ganga Evening Aarti Boat — Group of 30",
+            ghat: "Dashashwamedh Ghat",
+            date: "2026-11-14",
+            dateLabel: "As discussed with you",
+            startLabel: "Aarti begins",
+            startTime: "6:00 PM",
+            reportTime: "5:00 PM",
+            route: "Dashashwamedh Ghat → ghats from the river → evening Ganga Aarti from the boat → deepdaan → back to Dashashwamedh Ghat",
+            guests: 30,
+            image: "/dev-deepawali/our-boat.jpg",
+            slot: "Evening",
+        },
+        intro: "Your whole group of 30 (24 adults and 6 children) gets its own boat for the evening Ganga Aarti: the ghats from the river at sunset, the aarti lamps from the water, and diyas for deepdaan floated by your own hands.",
+        inclusions: [
+            { label: "Life jackets", detail: "For every guest, adults and children" },
+            { label: "Water bottles", detail: "Packaged drinking water for all" },
+            { label: "Chai & biscuits", detail: "For the adults" },
+            { label: "Kids' snacks", detail: "Fruity, chips and Kurkure" },
+            { label: "Diyas for deepdaan", detail: "Float your diya on Maa Ganga" },
+        ],
+        itinerary: [
+            { time: "5:00 PM", what: "Report at Dashashwamedh Ghat. Your KashiGo team meets you at the steps." },
+            { time: "5:15 PM", what: "Board the boat, life jackets on, water, chai and snacks served." },
+            { time: "Aarti", what: "Watch the evening Ganga Aarti from the river, then float your diyas for deepdaan." },
+            { time: "After the Aarti", what: "Return to Dashashwamedh Ghat." },
+        ],
+        lines: [
+            { label: "Ganga Evening Aarti boat", detail: "Lead guest: Shivanand ji", amountInr: 2899 },
+            { label: "+23 passengers", detail: "23 × ₹450", amountInr: 10350 },
+            { label: "6 children", detail: "No charge for children", amountInr: 0 },
+            { label: "Group discount", detail: "Special group price for Shivanand ji", amountInr: -3550 },
+        ],
+    },
     "KG-Q-261021-PKS": {
         id: "KG-Q-261021-PKS",
         issued: "2026-10-21",
