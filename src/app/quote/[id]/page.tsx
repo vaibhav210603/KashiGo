@@ -272,10 +272,10 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
 
                             <div className="mt-6 max-w-xl mx-auto">
                                 {paid && <PaidStamp />}
-                                {!pdfMode && <QuotePay id={q.id} name={q.customer.name} fullInr={total} paid={paidOrder && { dueInr: paidOrder.dueInr }} codeBox={!paid} defaultPlan={quotePlan(q.payment)} />}
+                                {!pdfMode && <QuotePay id={q.id} name={q.customer.name} fullInr={total} paid={paidOrder && { dueInr: paidOrder.dueInr }} codeBox={!paid && !q.fullOnly} defaultPlan={quotePlan(q.payment)} fullOnly={q.fullOnly} />}
                                 {!paid && (
                                     <div className={`${pdfMode ? "" : "hidden print:block"} rounded-2xl bg-white ring-2 ring-marigold/60 p-5 text-center`}>
-                                        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-night/50">Pay {inr(total)} in full, or {inr(half.online)} now and {inr(half.atGhat)} at the ghat · UPI, cards, net banking</p>
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-night/50">{q.fullOnly ? `Pay ${inr(total)} online` : `Pay ${inr(total)} in full, or ${inr(half.online)} now and ${inr(half.atGhat)} at the ghat`} · UPI, cards, net banking</p>
                                         <p className="mt-1.5 font-heading font-extrabold text-lg text-fire break-all">kashigo.in/quote/{q.id}</p>
                                     </div>
                                 )}
@@ -298,10 +298,9 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
                             <div>
                                 {!paid ? (
                                     <>
-                                        <p className="font-heading font-extrabold text-xl sm:text-2xl">Pay only on this page — or, on 50/50, the rest to your boatman.</p>
+                                        <p className="font-heading font-extrabold text-xl sm:text-2xl">{q.fullOnly ? "Pay only on this page." : "Pay only on this page — or, on 50/50, the rest to your boatman."}</p>
                                         <p className="mt-1.5 text-white/90 leading-relaxed">
-                                            Pay in full through this secure Razorpay link and there&apos;s nothing to pay at the ghat. Choose 50/50 and you pay half here, the other half
-                                            to your KashiGo boatman (cash or UPI). Nobody else — a &ldquo;guide&rdquo; or anyone claiming to be from KashiGo — should ask for money,
+                                            {q.fullOnly ? "Pay through this secure Razorpay link only." : "Pay in full through this secure Razorpay link and there's nothing to pay at the ghat. Choose 50/50 and you pay half here, the other half to your KashiGo boatman (cash or UPI)."} Nobody else — a &ldquo;guide&rdquo; or anyone claiming to be from KashiGo — should ask for money,
                                             tips-in-advance or an extra fee. If anyone does, don&apos;t pay — call us on
                                             <a href="tel:+918175966910" className="font-bold underline underline-offset-2"> +91 81759 66910</a>.
                                         </p>

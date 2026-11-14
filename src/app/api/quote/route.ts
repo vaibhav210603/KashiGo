@@ -73,7 +73,7 @@ export async function POST(req: Request) {
         const q = await getQuote(String(body?.id ?? ""));
         if (!q) return NextResponse.json({ success: false, message: "Quotation not found." }, { status: 404 });
         // Every quotation can be paid in full online or 50/50 (half now, half at the ghat): the customer picks.
-        const plan: PayPlan = body.plan === "advance50" ? "advance50" : "full";
+        const plan: PayPlan = !q.fullOnly && body.plan === "advance50" ? "advance50" : "full";
         if (body.action === "coupon") {
             // Preview a site-wide discount code (the page shows the saving; "order" checks it again before charging).
             if (rateLimited(req, "quote-coupon", 20, 10 * 60 * 1000)) return NextResponse.json({ success: false, message: "Too many attempts. Try again later." }, { status: 429 });

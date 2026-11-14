@@ -13,7 +13,7 @@ import { goToThankYou } from "@/lib/thankYou";
 // `paid`: shows the confirmation instead; `dueInr` is what's left to pay at the ghat on a 50/50 booking.
 type Props = {
     id: string; name: string; fullInr: number; beforeCodeInr?: number; paid?: { dueInr: number } | null; selection?: QuoteSelection; blocked?: string;
-    siteCoupon?: SiteCoupon | null; codeBox?: boolean; plan?: PayPlan; onPlan?: (p: PayPlan) => void; defaultPlan?: PayPlan;
+    siteCoupon?: SiteCoupon | null; codeBox?: boolean; plan?: PayPlan; onPlan?: (p: PayPlan) => void; defaultPlan?: PayPlan; fullOnly?: boolean;
 };
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
@@ -30,7 +30,7 @@ const loadRazorpay = () =>
 const post = (body: object) =>
     fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());
 
-export default function QuotePay({ id, name, fullInr, beforeCodeInr, paid: paidOrder, selection, blocked, siteCoupon, codeBox, plan: shownPlan, onPlan, defaultPlan = "full" }: Props) {
+export default function QuotePay({ id, name, fullInr, beforeCodeInr, paid: paidOrder, selection, blocked, siteCoupon, codeBox, plan: shownPlan, onPlan, defaultPlan = "full", fullOnly = false }: Props) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [paymentId] = useState(paidOrder ? "received" : "");
@@ -134,7 +134,7 @@ export default function QuotePay({ id, name, fullInr, beforeCodeInr, paid: paidO
 
     return (
         <div className="print:hidden">
-            <div role="radiogroup" aria-label="How would you like to pay?" className="mb-3 grid grid-cols-2 gap-2">
+            {!fullOnly && <div role="radiogroup" aria-label="How would you like to pay?" className="mb-3 grid grid-cols-2 gap-2">
                 {([
                     ["full", "Pay 100% online", `${inr(fullNow)} online now`, "Nothing to pay at the ghat · WELCOME20"],
                     ["advance50", "Pay 50% at the ghat", `${inr(half.online)} online now`, `${inr(half.atGhat)} at the ghat · WELCOME10`],
@@ -149,7 +149,7 @@ export default function QuotePay({ id, name, fullInr, beforeCodeInr, paid: paidO
                         <span className={`block text-[11px] leading-snug ${plan === p ? "text-white/60" : "text-night/55"}`}>{sub}</span>
                     </button>
                 ))}
-            </div>
+            </div>}
             {codeBox && (
                 <div className="mb-3">
                     {ownCoupon ? (

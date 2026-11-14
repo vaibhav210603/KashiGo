@@ -36,6 +36,7 @@ export type Quote = {
     itinerary: { time: string; what: string }[];
     lines: QuoteLine[];
     builder?: QuoteBuilder; // lets the customer shape the quote on the page before paying
+    fullOnly?: boolean;  // paid in full online only: no 50/50 choice and no discount codes (e.g. a booking token)
     payment?: QuotePaymentMethod; // the way of paying selected first on the page (the customer can switch); missing = all online
 };
 
@@ -224,6 +225,7 @@ export const STATIC_QUOTES: Record<string, Quote> = {
         lines: [
             { label: "Booking token — Ganga Evening Aarti boat, group of 30", detail: "Locks your boat · balance ₹7,699 of the ₹9,699 group price paid before the ride", amountInr: 2000 },
         ],
+        fullOnly: true,
         payment: "online",
     },
     "KG-Q-261021-PKS": {
